@@ -59,7 +59,7 @@ export function Businesses() {
       name: 'Gower Inn',
       description: 'Traditional village pub in Parkmill serving quality locally-sourced food and real ales. Family-friendly atmosphere with a beer garden and close to local attractions.',
       image: gowerInnImg,
-      website: 'https://www.visitswanseabay.com/listing/gower-inn/48728101/'
+      website: 'https://www.gowerinn.co.uk/'
     },
     {
       name: 'Little Valley Bakery',
@@ -80,25 +80,25 @@ export function Businesses() {
       name: 'Three Cliffs Bay',
       description: "One of Wales' most beautiful beaches",
       image: threeCliffsBayImg,
-      website: '#'
+      website: 'https://www.tripadvisor.co.uk/Search?q=Three+Cliffs+Bay'
     },
     {
       name: 'Oxwich Bay',
       description: 'Beautiful sandy beach perfect for families and water sports',
       image: oxwichBayImg,
-      website: '#'
+      website: 'https://www.tripadvisor.co.uk/Search?q=Oxwich+Bay'
     },
     {
       name: 'Tor Bay Beach',
       description: 'Secluded sandy beach with dramatic cliffs and rock pools',
       image: torBayBeachImg,
-      website: '#'
+      website: 'https://www.visitswanseabay.com/things-to-do/beaches/tor-bay/'
     },
     {
       name: 'Gower Heritage Centre',
       description: 'Explore the history and heritage of the Gower Peninsula',
       image: gowerHeritageCentreImg,
-      website: 'https://www.gowerheritagecentre.co.uk'
+      website: 'https://www.tripadvisor.co.uk/Search?q=Gower+Heritage+Centre'
     }
   ];
 
@@ -122,13 +122,13 @@ export function Businesses() {
       name: 'Pennard Castle',
       description: 'Medieval castle ruins with spectacular views over Three Cliffs Bay',
       image: pennardCastleImg,
-      website: '#'
+      website: 'https://www.tripadvisor.co.uk/Search?q=Pennard+Castle'
     },
     {
       name: 'Oxwich Castle',
       description: 'Impressive Tudor manor house set in the heart of Oxwich village',
       image: oxwichCastleImg,
-      website: '#'
+      website: 'https://www.tripadvisor.co.uk/Search?q=Oxwich+Castle'
     }
   ];
 
@@ -301,10 +301,15 @@ export function Businesses() {
                     <p className="text-gray-600 text-sm mb-6 leading-relaxed">
                       {attraction.description}
                     </p>
-                    <button className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm">
+                    <a
+                      href={attraction.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                    >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Learn More
-                    </button>
+                    </a>
                   </div>
                 </div>
               ))}
@@ -372,10 +377,15 @@ export function Businesses() {
                     <p className="text-gray-600 text-sm mb-6 leading-relaxed">
                       {castle.description}
                     </p>
-                    <button className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm">
+                    <a
+                      href={castle.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                    >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Learn More
-                    </button>
+                    </a>
                   </div>
                 </div>
               ))}

@@ -7,19 +7,19 @@ export function Hall() {
   return (
     <div className="min-h-screen bg-primary-50">
       {/* Header Section */}
-      <section className="pt-48 pb-60 mb-12 px-4 sm:px-6 lg:px-8 text-center" style={{ backgroundColor: '#546b57' }}>
-        <div className="max-w-7xl mx-auto p-8">
-          <h1 className="text-white text-5xl md:text-7xl font-serif mb-2">
-            The Hall
-          </h1>
-          <p className="text-white text-xl md:text-2xl font-light tracking-wide max-w-3xl mx-auto">
-            Your community space in the heart of the village
-          </p>
+      <section className="relative h-64 overflow-hidden bg-primary-500">
+        <div className="absolute inset-0 flex items-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
+            <h1 className="text-white">The Hall</h1>
+            <p className="text-xl mt-2">
+              Your community space in the heart of the village
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Hero Image Section */}
-      <div className="relative px-8 sm:px-12 lg:px-16 -mt-24 mb-32 z-20">
+      <div className="relative px-8 sm:px-12 lg:px-16 py-16 bg-white mb-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Primary Image - Rotated Left */}
@@ -294,14 +294,14 @@ export function Hall() {
                 label: 'Welsh bara brith'
               }
             ].map((cake, index) => (
-              <div key={index} className="relative overflow-hidden rounded-xl shadow-md group cursor-pointer">
-                <ImageWithFallback
-                  src={cake.image}
-                  alt={cake.label}
-                  className="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 translate-y-2 group-hover:translate-y-0 transition-transform">
-                  <p className="text-white font-medium">{cake.label}</p>
+              <div key={index} className="group cursor-pointer">
+                <h3 className="text-black font-medium mb-2 text-lg text-left">{cake.label}</h3>
+                <div className="relative overflow-hidden rounded-xl shadow-md">
+                  <ImageWithFallback
+                    src={cake.image}
+                    alt={cake.label}
+                    className="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
               </div>
             ))}

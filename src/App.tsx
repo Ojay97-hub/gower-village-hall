@@ -7,6 +7,8 @@ import { Churches } from './pages/Churches';
 import { Committee } from './pages/Committee';
 import { Businesses } from './pages/Businesses';
 import { Contact } from './pages/Contact';
+import { Events } from './pages/Events';
+import { AdminLogin } from './pages/AdminLogin';
 
 export default function App() {
   return (
@@ -17,10 +19,12 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/hall" element={<Hall />} />
+            <Route path="/hall/events" element={<Events />} />
             <Route path="/churches" element={<Churches />} />
             <Route path="/committee" element={<Committee />} />
             <Route path="/businesses" element={<Businesses />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
           </Routes>
         </main>
         <Footer />
