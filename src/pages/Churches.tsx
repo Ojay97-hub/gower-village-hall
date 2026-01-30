@@ -5,7 +5,7 @@ import stNicholastonChurchImg from "../assets/st-nicholas-church.png";
 
 export function Churches() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative h-64 overflow-hidden bg-primary-500">
         <div className="absolute inset-0 flex items-center">

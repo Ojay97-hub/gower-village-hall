@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useEvents, Event } from '../context/EventContext';
 import { useAuth } from '../context/AuthContext';
@@ -65,7 +66,7 @@ export function Events() {
         <div className="min-h-screen bg-gray-50 flex flex-col" >
             {/* Hero Section */}
             <section className="bg-primary-600 text-white py-16 relative">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto mb-12 mt-4 px-4 sm:px-6 lg:px-8">
                     <h1 className="text-4xl font-bold mb-4">Events Schedule</h1>
                     <p className="text-xl text-primary-100 max-w-2xl">
                         See what's happening at the village hall. Join us for community gatherings,
@@ -304,13 +305,16 @@ export function Events() {
 
 
             {/* Delete Confirmation Modal */}
-            {deleteConfirmOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {deleteConfirmOpen && createPortal(
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+                >
                     <div
                         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={handleDeleteCancel}
                     />
-                    <div className="relative bg-white rounded-2xl shadow-2xl p-8 w-80 mx-auto">
+                    <div className="relative bg-white rounded-2xl shadow-2xl p-8 w-80 mx-auto animate-in fade-in zoom-in-95 duration-200">
                         {/* Close button */}
                         <button
                             onClick={handleDeleteCancel}
@@ -369,7 +373,8 @@ export function Events() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
