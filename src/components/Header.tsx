@@ -66,7 +66,7 @@ export function Header() {
                       onMouseLeave={() => setActiveDropdown(null)}
                     >
                       <button
-                        className={`px-5 py-2 rounded-lg transition-colors flex items-center gap-1 ${isActive(item.path)
+                        className={`px-5 py-2 rounded-lg transition-colors flex items-center gap-4 ${isActive(item.path)
                           ? "bg-primary-600 text-white"
                           : "text-gray-700 hover:bg-gray-100"
                           }`}

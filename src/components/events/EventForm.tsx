@@ -68,11 +68,13 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
             )}
 
             <div>
-                <label className={labelClasses}>
+                <label htmlFor="title" className={labelClasses}>
                     Event Title *
                 </label>
                 <input
                     type="text"
+                    id="title"
+                    name="title"
                     required
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -82,10 +84,12 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
             </div>
 
             <div>
-                <label className={labelClasses}>
+                <label htmlFor="description" className={labelClasses}>
                     Description
                 </label>
                 <textarea
+                    id="description"
+                    name="description"
                     rows={3}
                     value={formData.description || ''}
                     onChange={(e) =>
@@ -98,11 +102,13 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className={labelClasses}>
+                    <label htmlFor="date" className={labelClasses}>
                         Date *
                     </label>
                     <input
                         type="date"
+                        id="date"
+                        name="date"
                         required
                         value={formData.date}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
@@ -110,10 +116,12 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
                     />
                 </div>
                 <div>
-                    <label className={labelClasses}>
+                    <label htmlFor="type" className={labelClasses}>
                         Type
                     </label>
                     <select
+                        id="type"
+                        name="type"
                         value={formData.type || 'Community'}
                         onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                         className={inputClasses}
@@ -128,11 +136,13 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className={labelClasses}>
+                    <label htmlFor="start_time" className={labelClasses}>
                         Start Time
                     </label>
                     <input
                         type="time"
+                        id="start_time"
+                        name="start_time"
                         value={formData.start_time || ''}
                         onChange={(e) =>
                             setFormData({ ...formData, start_time: e.target.value })
@@ -141,11 +151,13 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
                     />
                 </div>
                 <div>
-                    <label className={labelClasses}>
+                    <label htmlFor="end_time" className={labelClasses}>
                         End Time
                     </label>
                     <input
                         type="time"
+                        id="end_time"
+                        name="end_time"
                         value={formData.end_time || ''}
                         onChange={(e) =>
                             setFormData({ ...formData, end_time: e.target.value })

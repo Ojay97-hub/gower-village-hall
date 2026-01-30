@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { useEvents, Event } from '../context/EventContext';
 import { useAuth } from '../context/AuthContext';
 import { EventForm } from '../components/events/EventForm';
-import { Calendar, Clock, MapPin, Plus, Edit2, Trash2, LogIn, AlertTriangle, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, Plus, Edit2, Trash2, LogIn, AlertTriangle, X, Coffee, Palette, Music } from 'lucide-react';
 
 export function Events() {
     const { events, loading, deleteEvent } = useEvents();
     const { isAdmin } = useAuth();
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [showEventForm, setShowEventForm] = useState(false);
     const [editingEvent, setEditingEvent] = useState<Event | undefined>(undefined);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
@@ -16,16 +16,23 @@ export function Events() {
 
     const handleEdit = (event: Event) => {
         setEditingEvent(event);
-        setIsDialogOpen(true);
+        setShowEventForm(true);
+        // Optional: Scroll to form
+        setTimeout(() => {
+            document.getElementById('event-form-section')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
     };
 
     const handleCreate = () => {
         setEditingEvent(undefined);
-        setIsDialogOpen(true);
+        setShowEventForm(true);
+        setTimeout(() => {
+            document.getElementById('event-form-section')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
     };
 
     const handleClose = () => {
-        setIsDialogOpen(false);
+        setShowEventForm(false);
         setEditingEvent(undefined);
     };
 
@@ -55,9 +62,9 @@ export function Events() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col" >
             {/* Hero Section */}
-            <section className="bg-primary-600 text-white py-16">
+            <section className="bg-primary-600 text-white py-16 relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-4xl font-bold mb-4">Events Schedule</h1>
                     <p className="text-xl text-primary-100 max-w-2xl">
@@ -65,10 +72,24 @@ export function Events() {
                         classes, and special events.
                     </p>
                 </div>
+                {/* Curved bottom */}
+                <div className="absolute bottom-0 left-0 right-0 overflow-hidden" style={{ height: '60px' }}>
+                    <svg
+                        viewBox="0 0 1440 60"
+                        preserveAspectRatio="none"
+                        className="w-full h-full"
+                        style={{ display: 'block' }}
+                    >
+                        <path
+                            d="M0,0 C360,60 1080,60 1440,0 L1440,60 L0,60 Z"
+                            fill="#f9fafb"
+                        />
+                    </svg>
+                </div>
             </section>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                 <div className="flex justify-between items-center mb-12">
                     <h2 className="text-2xl font-bold text-gray-900">Upcoming Events</h2>
 
@@ -182,24 +203,105 @@ export function Events() {
                         ))}
                     </div>
                 )}
-            </div>
 
-            {/* Modal */}
-            {isDialogOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-black/50"
-                        onClick={handleClose}
-                    />
-                    <div className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-7xl max-h-[90vh] overflow-y-auto">
+                {/* Inline Event Form */}
+                {showEventForm && (
+                    <div id="event-form-section" className="mt-12 bg-white rounded-2xl shadow-sm border border-gray-200 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+
                         <EventForm
                             initialData={editingEvent}
                             onSuccess={handleClose}
                             onCancel={handleClose}
                         />
                     </div>
+                )}
+            </div>
+
+            {/* Wave Divider */}
+            <div className="relative bg-gray-50">
+                <svg
+                    viewBox="0 0 1440 100"
+                    preserveAspectRatio="none"
+                    className="w-full"
+                    style={{ display: 'block', height: '80px' }}
+                >
+                    <path
+                        d="M0,100 C360,50 720,80 1080,30 C1260,5 1380,20 1440,10 L1440,100 L0,100 Z"
+                        fill="#f0f4f0"
+                    />
+                </svg>
+            </div>
+
+            {/* Regular Activities Section */}
+            <section className="py-16 pb-64 relative flex-grow" style={{ backgroundColor: '#f0f4f0' }}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="mb-12">
+                        <span className="inline-block px-4 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">
+                            Weekly & Monthly
+                        </span>
+                        <h2 className="text-2xl font-bold text-gray-900">Regular Activities</h2>
+                    </div>
+
+                    <div className="space-y-4">
+                        {/* Village Coffee Mornings */}
+                        <div className="flex items-center gap-6 bg-white p-6 rounded-xl border-l-4 border-amber-500 shadow-sm hover:shadow-md transition-all">
+                            <div className="flex-shrink-0 w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center">
+                                <Coffee className="w-7 h-7 text-amber-600" />
+                            </div>
+                            <div className="flex-grow">
+                                <h3 className="text-lg font-bold text-gray-900">Village Coffee Mornings</h3>
+                                <p className="text-gray-600 text-sm mt-1">
+                                    Join us for friendly coffee mornings with homemade cakes and good conversation.
+                                </p>
+                            </div>
+                            <div className="flex-shrink-0 text-right">
+                                <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 bg-amber-100 px-4 py-2 rounded-full">
+                                    <Clock className="w-4 h-4" />
+                                    First Saturday, 10:30 - 12:30
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Art Classes */}
+                        <div className="flex items-center gap-6 bg-white p-6 rounded-xl border-l-4 border-purple-500 shadow-sm hover:shadow-md transition-all">
+                            <div className="flex-shrink-0 w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                                <Palette className="w-7 h-7 text-purple-600" />
+                            </div>
+                            <div className="flex-grow">
+                                <h3 className="text-lg font-bold text-gray-900">Art Classes</h3>
+                                <p className="text-gray-600 text-sm mt-1">
+                                    Creative art sessions for all skill levels in a welcoming environment.
+                                </p>
+                            </div>
+                            <div className="flex-shrink-0">
+                                <button className="text-sm font-semibold text-purple-700 bg-purple-100 px-4 py-2 rounded-full hover:bg-purple-200 transition-colors">
+                                    Check schedule →
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Gower Harmony Choir */}
+                        <div className="flex items-center gap-6 bg-white p-6 rounded-xl border-l-4 border-teal-500 shadow-sm hover:shadow-md transition-all">
+                            <div className="flex-shrink-0 w-14 h-14 bg-teal-100 rounded-full flex items-center justify-center">
+                                <Music className="w-7 h-7 text-teal-600" />
+                            </div>
+                            <div className="flex-grow">
+                                <h3 className="text-lg font-bold text-gray-900">Gower Harmony Choir</h3>
+                                <p className="text-gray-600 text-sm mt-1">
+                                    Beautiful harmonies and community singing led by Kate Davies.
+                                </p>
+                            </div>
+                            <div className="flex-shrink-0">
+                                <a href="#" className="text-sm font-semibold text-teal-700 bg-teal-100 px-4 py-2 rounded-full hover:bg-teal-200 transition-colors inline-block">
+                                    Learn more →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            )}
+            </section>
+
+
 
             {/* Delete Confirmation Modal */}
             {deleteConfirmOpen && (
