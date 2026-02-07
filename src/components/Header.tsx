@@ -122,35 +122,50 @@ export function Header() {
 
           {/* Mobile Navigation */}
           {isMenuOpen && (
-            <nav className="md:hidden pb-4 space-y-2">
+            <nav className="md:hidden pb-4 space-y-1">
               {navItems.map((item) => (
                 <div key={item.path}>
                   {item.children ? (
                     <div className="space-y-1">
-                      <div className="px-4 py-2 font-medium text-gray-900 border-b border-gray-100 mb-2">
+                      <button
+                        onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
+                        className={`w-full flex items-center justify-between px-4 py-2 text-left rounded-md transition-colors ${isActive(item.path) || activeDropdown === item.label
+                            ? "bg-primary-50 text-primary-700 font-medium"
+                            : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                      >
                         {item.label}
-                      </div>
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.path}
-                          to={child.path}
-                          onClick={() => setIsMenuOpen(false)}
-                          className={`block px-4 py-2 pl-8 rounded-md transition-colors ${location.pathname === child.path
-                            ? "bg-primary-50 text-primary-700"
-                            : "text-gray-600 hover:bg-gray-50"
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === item.label ? "transform rotate-180" : ""
                             }`}
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
+                        />
+                      </button>
+
+                      {activeDropdown === item.label && (
+                        <div className="bg-gray-50 py-2 space-y-1">
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.path}
+                              to={child.path}
+                              onClick={() => setIsMenuOpen(false)}
+                              className={`block px-8 py-2 text-sm transition-colors ${location.pathname === child.path
+                                  ? "text-primary-700 font-medium"
+                                  : "text-gray-600 hover:text-gray-900"
+                                }`}
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <Link
                       to={item.path}
                       onClick={() => setIsMenuOpen(false)}
                       className={`block px-4 py-2 rounded-md transition-colors ${isActive(item.path)
-                        ? "bg-primary-600 text-white"
-                        : "text-gray-700 hover:bg-primary-100"
+                          ? "bg-primary-600 text-white"
+                          : "text-gray-700 hover:bg-primary-50"
                         }`}
                     >
                       {item.label}

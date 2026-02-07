@@ -1,24 +1,27 @@
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Building2, Coffee, Church, Users, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import churchImg from "../assets/pennard-church.png";
+import churchImg from "../assets/penmaen-sign.jpeg";
 import torbayImg from "../assets/torbay.jpeg";
+import threeCliffsImg from "../assets/3-cliffs-sign.jpeg";
+import cakeMorningImg from "../assets/cake-morning-summer.jpeg";
+import leftHeroImg from "../assets/left-hero-image.jpeg";
 
 export function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section - Split Design */}
-      <section className="relative h-[600px] grid grid-cols-1 md:grid-cols-2">
+      <section className="relative md:h-[600px] grid grid-cols-1 md:grid-cols-2">
         {/* Left Side - Landscape with Text Overlay */}
-        <div className="relative overflow-hidden">
+        <div className="relative md:h-full" style={{ minHeight: '500px' }}>
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1517348678194-ca7addd87931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0aHJlZSUyMGNsaWZmcyUyMGJheSUyMHdhbGVzfGVufDF8fHx8MTc2NDYwNDA4MHww&ixlib=rb-4.1.0&q=80&w=1080"
-            alt="Three Cliffs Bay"
-            className="w-full h-full object-cover"
+            src={leftHeroImg}
+            alt="Gower Peninsula Landscape"
+            className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center">
-            <div className="px-8 md:px-12 lg:px-16 text-white max-w-2xl">
-              <h1 className="mb-4 text-white text-4xl md:text-5xl">
+            <div className="px-6 py-12 md:px-10 lg:px-16 text-white max-w-2xl md:py-0">
+              <h1 className="mb-4 text-white text-4xl md:text-5xl lg:text-6xl font-bold">
                 Welcome to Penmaen and Nicholaston Village Hall
               </h1>
               <p className="text-lg md:text-xl mb-8 leading-relaxed">
@@ -43,10 +46,10 @@ export function Home() {
         </div>
 
         {/* Right Side - Village Hall Image */}
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden h-[300px] md:h-auto">
           <ImageWithFallback
             src={churchImg}
-            alt="Local Church"
+            alt="Penmaen Sign"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-800/30"></div>
@@ -54,7 +57,7 @@ export function Home() {
       </section>
 
       {/* About Section */}
-      <section className="py-16 bg-white">
+      <section className="py-12 md:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h2 className="mb-6">About Our Community</h2>
@@ -68,7 +71,7 @@ export function Home() {
           </div>
 
           {/* Image Gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="relative h-64 rounded-xl overflow-hidden shadow-md">
               <ImageWithFallback
                 src={torbayImg}
@@ -81,7 +84,7 @@ export function Home() {
             </div>
             <div className="relative h-64 rounded-xl overflow-hidden shadow-md">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1720179470710-53e31f83d593?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2FzdGFsJTIwY2xpZmZzJTIwZ293ZXJ8ZW58MXx8fHwxNzY0NjA0MDgxfDA&ixlib=rb-4.1.0&q=80&w=1080"
+                src={threeCliffsImg}
                 alt="Three Cliffs"
                 className="w-full h-full object-cover"
               />
@@ -91,12 +94,12 @@ export function Home() {
             </div>
             <div className="relative h-64 rounded-xl overflow-hidden shadow-md">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1693040775922-6aa218c689ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2ZmZWUlMjBjYWtlcyUyMHBhc3RyaWVzfGVufDF8fHx8MTc2NDYwNDA4MXww&ixlib=rb-4.1.0&q=80&w=1080"
+                src={cakeMorningImg}
                 alt="Coffee morning cakes"
                 className="w-full h-full object-cover"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                <p className="text-white">Coffee Morning Treats</p>
+                <p className="text-white">Monthly coffee mornings</p>
               </div>
             </div>
           </div>
@@ -104,9 +107,9 @@ export function Home() {
       </section>
 
       {/* Quick Links Cards */}
-      <section className="py-16 bg-primary-50 pt-[64px] pr-[0px] pb-[32px] pl-[0px]">
+      <section className="py-12 md:py-16 bg-primary-50 pt-[64px] pr-[0px] pb-[32px] pl-[0px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {/* Book the Hall Card */}
             <Link
               to="/hall"
@@ -179,7 +182,7 @@ export function Home() {
       </section>
 
       {/* Coffee Morning Highlight */}
-      <section className="py-16 bg-primary-50 pt-[32px] pr-[0px] pb-[64px] pl-[0px]">
+      <section className="py-12 md:py-16 bg-primary-50 pt-[32px] pr-[0px] pb-[64px] pl-[0px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">

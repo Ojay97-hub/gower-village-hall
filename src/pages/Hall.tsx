@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Clock, Car, Music, Palette, Coffee, PoundSterling, Plus, Edit2, Trash2, AlertTriangle, X } from 'lucide-react';
 import { useGallery, GalleryImage } from '../context/GalleryContext';
@@ -191,58 +192,57 @@ export function Hall() {
 
   return (
     <div className="min-h-screen bg-primary-50">
-      {/* Header Section */}
-      <section className="relative h-64 overflow-hidden bg-primary-500">
-        <div className="absolute inset-0 flex items-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-            <h1 className="text-white">The Hall</h1>
-            <p className="text-xl mt-2">
-              Your community space in the heart of the village
-            </p>
+      {/* Hero Section - Split Design */}
+      <section className="relative md:h-[600px] grid grid-cols-1 md:grid-cols-2">
+        {/* Left Side - Hall Entrance with Text Overlay */}
+        <div className="relative overflow-hidden min-h-[500px] md:min-h-0">
+          <ImageWithFallback
+            src={hallGateEntrance}
+            alt="Village Hall Entrance with Gate"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center">
+            <div className="px-8 md:px-12 lg:px-16 text-white max-w-2xl py-12 md:py-0">
+              <h1 className="mb-4 text-white text-4xl md:text-5xl">
+                The Hall
+              </h1>
+              <p className="text-lg md:text-xl mb-8 leading-relaxed">
+                Your community space in the heart of the village. Available for events, meetings, and celebrations.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a
+                  href="#booking"
+                  className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Book Now
+                </a>
+                <Link
+                  to="/hall/events"
+                  className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-colors border border-white/40"
+                >
+                  View Activities
+                </Link>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Right Side - Hall Side View Image */}
+        <div className="relative overflow-hidden h-[300px] md:h-auto">
+          <ImageWithFallback
+            src={hallSideView}
+            alt="Village Hall Side View"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-800/30"></div>
         </div>
       </section>
-
-      {/* Hero Image Section */}
-      <div className="relative px-8 sm:px-12 lg:px-16 py-16 bg-white mb-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Primary Image - Rotated Left */}
-            <div className="transform lg:-rotate-2 transition-all duration-700 hover:rotate-0 hover:scale-[1.02]">
-              <div className="bg-white p-4 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] border border-gray-100 overflow-hidden">
-                <div className="aspect-[3/2] overflow-hidden rounded-xl">
-                  <ImageWithFallback
-                    src={hallGateEntrance}
-                    alt="Village Hall Entrance with Gate"
-                    className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-                <div className="mt-4 text-gray-400 font-serif italic text-xs text-center">Main Entrance & Gateway</div>
-              </div>
-            </div>
-
-            {/* Secondary Image - Rotated Right */}
-            <div className="transform lg:rotate-2 transition-all duration-700 hover:rotate-0 hover:scale-[1.02] mt-8 lg:mt-12">
-              <div className="bg-white p-4 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] border border-gray-100 overflow-hidden">
-                <div className="aspect-[3/2] overflow-hidden rounded-xl">
-                  <ImageWithFallback
-                    src={hallSideView}
-                    alt="Village Hall Side View"
-                    className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-                <div className="mt-4 text-gray-400 font-serif italic text-xs text-center">Side View & Surroundings</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
 
         {/* Book the Hall Section */}
-        <div className="mb-16">
+        <div id="booking" className="mb-16 pt-8">
           <div className="text-left max-w-3xl mb-12">
             <h2 className="mb-6">Book the Hall</h2>
             <p className="text-lg text-gray-700 leading-relaxed">
@@ -391,7 +391,7 @@ export function Hall() {
         </div>
 
         {/* Activities Section */}
-        <div className="mb-20">
+        <div id="activities" className="mb-20 pt-8">
           <h2 className="mb-12 text-center">Regular Activities</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all group flex flex-col items-start border border-gray-100 overflow-hidden">
