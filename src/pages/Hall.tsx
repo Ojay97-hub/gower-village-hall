@@ -93,6 +93,7 @@ export function Hall() {
     email: '',
     phone: '',
     date: '',
+    endDate: '',
     details: '',
   });
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
@@ -113,37 +114,86 @@ export function Hall() {
     setBookingStatus('idle');
     setBookingError('');
 
-    const formspreeId = import.meta.env.VITE_FORMSPREE_FORM_ID;
-    if (!formspreeId) {
+    console.log('[BookingForm] Submit triggered');
+    console.log('[BookingForm] Form data:', bookingForm);
+
+    // Client-side validation
+    if (!bookingForm.name.trim()) {
+      console.warn('[BookingForm] Validation failed: name is empty');
+      setBookingStatus('error');
+      setBookingError('Please enter your name.');
+      setBookingSubmitting(false);
+      return;
+    }
+    if (!bookingForm.email.trim()) {
+      console.warn('[BookingForm] Validation failed: email is empty');
+      setBookingStatus('error');
+      setBookingError('Please enter your email address.');
+      setBookingSubmitting(false);
+      return;
+    }
+    if (!bookingForm.details.trim()) {
+      console.warn('[BookingForm] Validation failed: details is empty');
+      setBookingStatus('error');
+      setBookingError('Please provide some event details.');
+      setBookingSubmitting(false);
+      return;
+    }
+    if (!bookingForm.date) {
+      console.warn('[BookingForm] Validation failed: date is empty');
+      setBookingStatus('error');
+      setBookingError('Please select a preferred date.');
+      setBookingSubmitting(false);
+      return;
+    }
+
+    const web3formsKey = import.meta.env.VITE_WEB3FORMS_KEY;
+    console.log('[BookingForm] API key present:', !!web3formsKey);
+    if (!web3formsKey) {
       setBookingStatus('error');
       setBookingError('Form is not configured yet. Please contact us directly.');
       setBookingSubmitting(false);
       return;
     }
 
+    const payload = {
+      access_key: web3formsKey,
+      subject: `Hall Booking Enquiry from ${bookingForm.name.trim()}`,
+      name: bookingForm.name.trim(),
+      email: bookingForm.email.trim(),
+      phone: bookingForm.phone.trim() || 'Not provided',
+      start_date: bookingForm.date,
+      end_date: bookingForm.endDate || 'Not specified',
+      event_details: bookingForm.details.trim(),
+    };
+
+    console.log('[BookingForm] Sending payload:', { ...payload, access_key: '***hidden***' });
+
     try {
-      const response = await fetch(`https://formspree.io/f/${formspreeId}`, {
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: bookingForm.name,
-          email: bookingForm.email,
-          phone: bookingForm.phone || 'Not provided',
-          preferred_date: bookingForm.date || 'Not specified',
-          event_details: bookingForm.details,
-          _subject: `Hall Booking Enquiry from ${bookingForm.name}`,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
+      console.log('[BookingForm] Response status:', response.status);
+      const data = await response.json();
+      console.log('[BookingForm] Response data:', data);
+
+      if (data.success) {
+        console.log('[BookingForm] ✅ Submission successful');
         setBookingStatus('success');
-        setBookingForm({ name: '', email: '', phone: '', date: '', details: '' });
+        setBookingForm({ name: '', email: '', phone: '', date: '', endDate: '', details: '' });
       } else {
-        const data = await response.json().catch(() => null);
+        console.error('[BookingForm] ❌ Submission failed:', data.message);
         setBookingStatus('error');
-        setBookingError(data?.error || 'Something went wrong. Please try again.');
+        setBookingError(data.message || 'Something went wrong. Please try again.');
       }
-    } catch {
+    } catch (err) {
+      console.error('[BookingForm] ❌ Network error:', err);
       setBookingStatus('error');
       setBookingError('Network error. Please check your connection and try again.');
     } finally {
@@ -374,10 +424,10 @@ export function Hall() {
 
                 {/* Success Message */}
                 {bookingStatus === 'success' && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+                  <div className="mb-6 p-4 bg-green-50 border border-green-200 border-l-4 border-l-green-500 rounded-lg flex items-start gap-4">
                     <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-green-800 font-medium text-sm">Enquiry sent successfully!</p>
+                      <p className="text-green-800 font-semibold text-sm">Enquiry sent successfully!</p>
                       <p className="text-green-700 text-sm mt-1">We'll get back to you as soon as possible.</p>
                     </div>
                   </div>
@@ -385,10 +435,10 @@ export function Hall() {
 
                 {/* Error Message */}
                 {bookingStatus === 'error' && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 border-l-4 border-l-red-500 rounded-lg flex items-start gap-4">
                     <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-red-800 font-medium text-sm">Failed to send enquiry</p>
+                      <p className="text-red-800 font-semibold text-sm">Failed to send enquiry</p>
                       <p className="text-red-700 text-sm mt-1">{bookingError}</p>
                     </div>
                   </div>
@@ -442,20 +492,37 @@ export function Hall() {
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="date" className="block text-sm mb-2 text-gray-700 font-medium">
-                      Preferred Date
-                    </label>
-                    <input
-                      type="text"
-                      id="date"
-                      name="date"
-                      value={bookingForm.date}
-                      onChange={handleBookingChange}
-                      placeholder="dd/mm/yyyy"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      disabled={bookingSubmitting}
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="date" className="block text-sm mb-2 text-gray-700 font-medium">
+                        Start Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value={bookingForm.date}
+                        onChange={handleBookingChange}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        required
+                        disabled={bookingSubmitting}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="endDate" className="block text-sm mb-2 text-gray-700 font-medium">
+                        End Date <span className="text-gray-400 font-normal">(optional)</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="endDate"
+                        name="endDate"
+                        value={bookingForm.endDate}
+                        min={bookingForm.date || undefined}
+                        onChange={handleBookingChange}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        disabled={bookingSubmitting}
+                      />
+                    </div>
                   </div>
                   <div>
                     <label htmlFor="details" className="block text-sm mb-2 text-gray-700 font-medium">
