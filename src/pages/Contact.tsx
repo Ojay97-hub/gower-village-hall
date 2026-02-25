@@ -1,4 +1,5 @@
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, MapPin } from "lucide-react";
+import { What3WordsMap } from "../components/What3WordsMap";
 
 export function Contact() {
   return (
@@ -17,185 +18,106 @@ export function Contact() {
 
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div>
-              <h2 className="mb-6">Send us a message</h2>
-              <form className="space-y-6">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm mb-2 text-gray-700"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                    placeholder="Your name"
-                  />
-                </div>
+          {/* Full-width Map */}
+          <div className="overflow-hidden shadow-lg mb-14" style={{ height: "550px" }}>
+            <What3WordsMap />
+          </div>
 
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm mb-2 text-gray-700"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                    placeholder="your@email.com"
-                  />
+          {/* Detail Cards - 3 Column Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+            {/* Address Card */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-primary-600" />
                 </div>
-
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm mb-2 text-gray-700"
-                  >
-                    Phone Number (optional)
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                    placeholder="01234 567890"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="block text-sm mb-2 text-gray-700"
-                  >
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                    placeholder="What is your message about?"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="block text-sm mb-2 text-gray-700"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                    placeholder="Tell us more..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Send Message
-                </button>
-              </form>
+                <h3 className="text-lg font-semibold">Address</h3>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Penmaen Parish Hall
+                <br />
+                Penmaen
+                <br />
+                Gower, Swansea
+                <br />
+                SA3 2HH
+              </p>
             </div>
 
-            {/* Contact Information */}
-            <div>
-              <h2 className="mb-6">Contact Information</h2>
-
-              <div className="space-y-6 mb-8">
-                <div className="flex items-start space-x-4">
-                  <MapPin className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="mb-1">Address</h4>
-                    <p className="text-gray-600 text-sm">
-                      Penmaen Parish Hall
-                      <br />
-                      Penmaen
-                      <br />
-                      Gower, Swansea
-                      <br />
-                      SA3 2HH
-                    </p>
-                  </div>
+            {/* Contact Details Card */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-primary-600" />
                 </div>
-
-                <div className="flex items-start space-x-4">
-                  <Mail className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="mb-1">Email</h4>
-                    <a
-                      href="mailto:info@penmaenvillagehall.org"
-                      className="text-primary-600 hover:text-primary-700 text-sm"
-                    >
-                      info@penmaenvillagehall.org
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <Phone className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="mb-1">Phone</h4>
-                    <a
-                      href="tel:01792123456"
-                      className="text-primary-600 hover:text-primary-700 text-sm"
-                    >
-                      01792 123 456
-                    </a>
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold">Get In Touch</h3>
               </div>
-
-              {/* What3Words */}
-              <div className="bg-primary-50 rounded-2xl p-6 mb-8">
-                <h3 className="mb-3">What3Words Location</h3>
-                <p className="text-gray-700 mb-2 text-sm">
-                  For easy navigation, you can find us using
-                  What3Words:
-                </p>
-                <p className="text-primary-600">
-                  ///example.words.location
-                </p>
-              </div>
-
-              {/* Map Placeholder */}
-              <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">Map location</p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                  <a
+                    href="mailto:info@penmaenvillagehall.org"
+                    className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    info@penmaenvillagehall.org
+                  </a>
                 </div>
-              </div>
-
-              {/* Opening Hours */}
-              <div className="mt-8 bg-white border border-gray-200 rounded-2xl p-6">
-                <h3 className="mb-4">Office Hours</h3>
-                <div className="space-y-2 text-gray-700 text-sm">
-                  <div className="flex justify-between">
-                    <span>Monday - Friday:</span>
-                    <span>9:00 AM - 5:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Saturday:</span>
-                    <span>10:00 AM - 2:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sunday:</span>
-                    <span>Closed</span>
-                  </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Phone</p>
+                  <a
+                    href="tel:01792123456"
+                    className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    01792 123 456
+                  </a>
                 </div>
-                <p className="text-sm text-gray-600 mt-4">
-                  * Hall bookings available outside these hours
-                </p>
               </div>
             </div>
+
+            {/* Office Hours Card */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-primary-600" />
+                </div>
+                <h3 className="text-lg font-semibold">Office Hours</h3>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between text-gray-700">
+                  <span>Monday – Friday</span>
+                  <span className="font-medium">9:00 AM – 5:00 PM</span>
+                </div>
+                <div className="flex justify-between text-gray-700">
+                  <span>Saturday</span>
+                  <span className="font-medium">10:00 AM – 2:00 PM</span>
+                </div>
+                <div className="flex justify-between text-gray-700">
+                  <span>Sunday</span>
+                  <span className="font-medium">Closed</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-4">
+                * Hall bookings available outside these hours
+              </p>
+            </div>
+          </div>
+
+          {/* What3Words Banner */}
+          <div className="mt-6 bg-primary-50 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-1">What3Words Location</h3>
+              <p className="text-gray-600 text-sm">
+                For easy navigation, you can find us using What3Words
+              </p>
+            </div>
+            <a
+              href="https://what3words.com/listed.wisdom.dividers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white border border-primary-200 text-primary-700 font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-100 transition-colors text-sm"
+            >
+              <span>///</span>listed.wisdom.dividers
+            </a>
           </div>
         </div>
       </section>

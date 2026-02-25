@@ -265,35 +265,36 @@ export function Events() {
 
                                     {/* Content Side */}
                                     <div className="flex-grow min-w-0">
-                                        <div className="flex justify-between items-start gap-4">
-                                            <div className="space-y-2">
-                                                <span className="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-800 tracking-wide uppercase">
+                                        <div className="flex justify-between items-center gap-4">
+                                            <h3 className="text-2xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors duration-200">
+                                                {event.title}
+                                            </h3>
+
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <span className="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold bg-primary-100 text-primary-800 tracking-wide uppercase">
                                                     {event.type || 'Event'}
                                                 </span>
-                                                <h3 className="text-2xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors duration-200">
-                                                    {event.title}
-                                                </h3>
-                                            </div>
 
-                                            {/* Admin Actions */}
-                                            {isAdmin && (
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(event)}
-                                                        className="p-2 text-gray-400 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-all duration-200"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 className="w-5 h-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(event)}
-                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            )}
+                                                {/* Admin Actions */}
+                                                {isAdmin && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEdit(event)}
+                                                            className="p-2 text-gray-400 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-all duration-200"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit2 className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(event)}
+                                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <p className="mt-4 text-gray-600 leading-relaxed line-clamp-3">
@@ -475,17 +476,7 @@ export function Events() {
                                                     )}
                                                 </div>
 
-                                                {/* Action Button */}
-                                                {(activity.action_type === 'button' || activity.action_type === 'link') && activity.action_link && (
-                                                    <div className="w-full mt-2">
-                                                        <a
-                                                            href={activity.action_link}
-                                                            className="text-sm font-semibold hover:underline transition-all flex items-center gap-1 text-primary-600"
-                                                        >
-                                                            {activity.action_text || 'Learn more'} →
-                                                        </a>
-                                                    </div>
-                                                )}
+
                                             </div>
                                         </div>
                                     </div>
