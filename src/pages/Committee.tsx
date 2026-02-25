@@ -10,11 +10,11 @@ export function Committee() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-64 overflow-hidden bg-primary-400">
-        <div className="absolute inset-0 flex items-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-            <h1 className="text-white">Committee & Trustees</h1>
-            <p className="text-xl mt-2">
+      <section className="relative bg-primary-300">
+        <div className="flex items-center px-4 sm:px-6 lg:px-12 py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto">
+            <h1>Committee & Trustees</h1>
+            <p className="text-xl text-gray-800 mt-2">
               Dedicated volunteers managing our village hall
             </p>
           </div>
