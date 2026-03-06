@@ -1,13 +1,11 @@
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Tent, Home, UtensilsCrossed, Landmark, ExternalLink, MapPin, Target } from 'lucide-react';
+import { Tent, Home, UtensilsCrossed, Landmark, ExternalLink, MapPin, Target, ShoppingBag } from 'lucide-react';
 import perriswoodImg from "../assets/perriswood-archery.png";
 import parcLeBreosImg from "../assets/parc-le-breos.png";
 import pennardCastleImg from "../assets/pennard-castle.png";
 import oxwichHotelImg from "../assets/oxwich-hotel.png";
 import oxwichBayImg from "../assets/oxwich-bay.png";
 import littleValleyBakeryImg from "../assets/little-valley-bakery.jpg";
-import kingArthurHotelImg from "../assets/king-arthur.png";
-import gowerInnImg from "../assets/gower-inn.jpg";
 import beachHouseImg from "../assets/beach-house.jpg";
 import gowerCoastAdventuresImg from "../assets/gower-coast-adventures.png";
 import gowerHeritageCentreImg from "../assets/gower-heritage-centre.png";
@@ -16,9 +14,18 @@ import threeCliffsBayAerialImg from "../assets/aerial-of-the-campsite-and-three-
 import threeCliffsBayHolidayParkImg from "../assets/holiday-park.png";
 import torBayBeachImg from "../assets/tor-bay-beach.png";
 import oxwichCastleImg from "../assets/oxwich-castle.png";
+import gowerInnImg from "../assets/gower-inn.jpg";
+import ivyCottageImg from "../assets/ivy-cottage-caravans.jpg";
+import shepherdsImg from "../assets/sheperds-shop-edit-2.jpg";
 
 export function Businesses() {
   const campsites = [
+    {
+      name: 'Ivy Cottage Campsite',
+      description: 'Family-friendly campsite located in Parkmill, offering a peaceful rural escape and a great base for exploring the Gower Peninsula.',
+      image: ivyCottageImg,
+      website: 'https://ivycottagegower.co.uk/'
+    },
     {
       name: 'Nicholaston Farm Campsite',
       description: 'Peaceful working farm campsite set in beautiful Gower countryside. Just a short walk to the beach, offering a tranquil escape with traditional farm camping.',
@@ -45,12 +52,15 @@ export function Businesses() {
       description: 'Stunning beachfront hotel overlooking Oxwich Bay. Enjoy fine dining, comfortable rooms with sea views, and direct beach access in this idyllic coastal location.',
       image: oxwichHotelImg,
       website: 'https://oxwichbayhotel.co.uk/'
-    },
+    }
+  ];
+
+  const shops = [
     {
-      name: 'King Arthur Hotel',
-      description: 'Historic family-run hotel in Reynoldston offering cozy accommodation, home-cooked meals, and a warm Welsh welcome. Perfectly located for exploring Gower.',
-      image: kingArthurHotelImg,
-      website: 'https://www.kingarthurhotel.co.uk/'
+      name: 'Shepherds Store & Coffee Shop',
+      description: 'Local grocer, off-license, newsagent, and coffee shop located in Parkmill. The perfect stop for daily essentials and a relaxing break.',
+      image: shepherdsImg,
+      website: 'https://shepherdsgower.com/'
     }
   ];
 
@@ -172,7 +182,7 @@ export function Businesses() {
               </div>
               <h2>Campsites</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {campsites.map((site, index) => (
                 <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
                   <div className="h-56 overflow-hidden">
@@ -202,41 +212,82 @@ export function Businesses() {
             </div>
           </div>
 
-          {/* Places to Stay */}
-          <div className="mb-20">
-            <div className="flex items-center mb-8">
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                <Home className="w-5 h-5 text-gray-700" />
-              </div>
-              <h2>Places to Stay</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {accommodation.map((place, index) => (
-                <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-                  <div className="h-56 overflow-hidden">
-                    <ImageWithFallback
-                      src={place.image}
-                      alt={place.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-8">
-                    <h3 className="mb-3">{place.name}</h3>
-                    <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                      {place.description}
-                    </p>
-                    <a
-                      href={place.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Visit Website
-                    </a>
-                  </div>
+          {/* Places to Stay and Shop */}
+          <div className="mb-20 flex flex-col lg:flex-row gap-8">
+            {/* Places to Stay */}
+            <div className="w-full lg:w-2/3 flex flex-col">
+              <div className="flex items-center mb-8">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                  <Home className="w-5 h-5 text-gray-700" />
                 </div>
-              ))}
+                <h2>Places to Stay</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                {accommodation.map((place, index) => (
+                  <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow flex flex-col">
+                    <div className="h-56 shrink-0 overflow-hidden">
+                      <ImageWithFallback
+                        src={place.image}
+                        alt={place.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-8 flex flex-col flex-grow">
+                      <h3 className="mb-3">{place.name}</h3>
+                      <p className="text-gray-600 text-sm mb-6 leading-relaxed flex-grow">
+                        {place.description}
+                      </p>
+                      <a
+                        href={place.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-auto inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Visit Website
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Places to Shop */}
+            <div className="w-full lg:w-1/3 flex flex-col">
+              <div className="flex items-center mb-8">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                  <ShoppingBag className="w-5 h-5 text-gray-700" />
+                </div>
+                <h2>Places to Shop</h2>
+              </div>
+              <div className="flex flex-col gap-8 h-full">
+                {shops.map((shop, index) => (
+                  <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow flex flex-col">
+                    <div className="h-48 shrink-0 overflow-hidden">
+                      <ImageWithFallback
+                        src={shop.image}
+                        alt={shop.name}
+                        className="w-full h-full object-cover object-center"
+                      />
+                    </div>
+                    <div className="p-8 flex flex-col flex-grow">
+                      <h3 className="mb-4">{shop.name}</h3>
+                      <p className="text-gray-600 text-sm mb-8 leading-loose flex-grow">
+                        {shop.description}
+                      </p>
+                      <a
+                        href={shop.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-auto inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Visit Website
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

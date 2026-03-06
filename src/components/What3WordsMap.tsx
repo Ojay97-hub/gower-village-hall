@@ -1,117 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-declare global {
-    interface Window {
-        google: any;
-    }
-}
-
-import { useEffect, useRef, useState } from "react";
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
-
 // Coordinates for ///listed.wisdom.dividers (Penmaen Parish Hall, Gower)
 const LAT = 51.575396;
 const LNG = -4.129141;
 const W3W_ADDRESS = "listed.wisdom.dividers";
 
-// Module-level promise — prevents duplicate <script> tags during HMR / re-mounts
-let mapsLoadPromise: Promise<void> | null = null;
-
-/** Polls until google.maps.Map is a constructor (handles partial-load during HMR) */
-function waitForMapsReady(): Promise<void> {
-    return new Promise((resolve) => {
-        const check = () => {
-            if (typeof window.google?.maps?.Map === "function") {
-                resolve();
-            } else {
-                setTimeout(check, 50);
-            }
-        };
-        check();
-    });
-}
-
-function loadGoogleMapsApi(): Promise<void> {
-    // Already fully loaded
-    if (typeof window.google?.maps?.Map === "function") return Promise.resolve();
-
-    // Return in-flight promise if one exists
-    if (mapsLoadPromise) return mapsLoadPromise;
-
-    // Script tag already in DOM (e.g. added by a previous render before HMR reset)
-    const existing = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
-    if (existing) {
-        mapsLoadPromise = waitForMapsReady();
-        return mapsLoadPromise;
-    }
-
-    mapsLoadPromise = new Promise<void>((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => waitForMapsReady().then(resolve);
-        script.onerror = () => {
-            mapsLoadPromise = null;
-            reject(new Error("Failed to load Google Maps API"));
-        };
-        document.head.appendChild(script);
-    });
-
-    return mapsLoadPromise;
-}
-
 export function What3WordsMap() {
-    const mapRef = useRef<HTMLDivElement>(null);
-    const [mapLoaded, setMapLoaded] = useState(false);
-
-    useEffect(() => {
-        if (mapLoaded || !mapRef.current) return;
-
-        let cancelled = false;
-
-        loadGoogleMapsApi()
-            .then(() => {
-                if (cancelled || !mapRef.current) return;
-                initMap();
-            })
-            .catch((err) => {
-                console.error("Google Maps failed to load:", err);
-            });
-
-        return () => { cancelled = true; };
-    }, [mapLoaded]);
-
-    function initMap() {
-        if (!mapRef.current || !window.google?.maps) return;
-
-        const location = { lat: LAT, lng: LNG };
-
-        const map = new window.google.maps.Map(mapRef.current, {
-            center: location,
-            zoom: 17,
-            mapTypeId: "satellite",
-            disableDefaultUI: true,
-            zoomControl: true,
-            fullscreenControl: true,
-            gestureHandling: "cooperative",
-        });
-
-        new window.google.maps.Marker({
-            position: location,
-            map,
-            title: `///${W3W_ADDRESS} — Penmaen Parish Hall`,
-        });
-
-        setMapLoaded(true);
-    }
-
     return (
-        <div style={{ position: "relative", width: "100%", height: "100%", minHeight: "400px" }}>
-            {/* Google Map */}
-            <div
-                ref={mapRef}
-                style={{ width: "100%", height: "100%", minHeight: "400px" }}
+        <div style={{ position: "relative", width: "100%", height: "100%", minHeight: "400px", borderRadius: "0.5rem", overflow: "hidden" }}>
+            {/* Free Google Maps Iframe Embed with Satellite View */}
+            <iframe
+                title={`///${W3W_ADDRESS} — Penmaen Parish Hall`}
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: "400px" }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://maps.google.com/maps?q=${LAT},${LNG}&t=k&z=17&output=embed`}
             />
 
             {/* Map Overlay Badges */}
