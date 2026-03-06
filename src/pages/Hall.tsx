@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Clock, Car, Music, Palette, Coffee, PoundSterling, Plus, Edit2, Trash2, AlertTriangle, X, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Clock, Car, Music, Palette, Coffee, PoundSterling, Plus, Edit2, Trash2, AlertTriangle, X, CheckCircle, XCircle, Loader2, Mail, Users } from 'lucide-react';
 import { useGallery, GalleryImage } from '../context/GalleryContext';
 import { useAuth } from '../context/AuthContext';
 import { GalleryImageForm } from '../components/gallery/GalleryImageForm';
@@ -99,6 +99,72 @@ export function Hall() {
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [bookingError, setBookingError] = useState('');
+
+  // Friends form state
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [friendsEmail, setFriendsEmail] = useState("");
+  const [friendsName, setFriendsName] = useState("");
+  const [friendsSubmitting, setFriendsSubmitting] = useState(false);
+  const [friendsSubmitted, setFriendsSubmitted] = useState(false);
+  const [friendsError, setFriendsError] = useState("");
+
+  const handleFriendsSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setFriendsSubmitting(true);
+    setFriendsError("");
+
+    if (!friendsEmail.trim()) {
+      setFriendsError("Please enter your email address.");
+      setFriendsSubmitting(false);
+      return;
+    }
+
+    const web3formsKey = import.meta.env.VITE_WEB3FORMS_KEY;
+    if (!web3formsKey) {
+      setFriendsError("Form is not configured yet. Please try again later.");
+      setFriendsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: web3formsKey,
+          subject: `Friends of Gower Village Hall - New Member Interest`,
+          name: friendsName.trim() || "Not provided",
+          email: friendsEmail.trim(),
+          message: `${friendsName.trim() || "Someone"} would like to join Friends of Gower Village Hall.`,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setFriendsSubmitted(true);
+        setFriendsEmail("");
+        setFriendsName("");
+      } else {
+        setFriendsError(data.message || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setFriendsError("Network error. Please check your connection and try again.");
+    } finally {
+      setFriendsSubmitting(false);
+    }
+  };
+
+  const handleCloseFriendsModal = () => {
+    setShowFriendsModal(false);
+    // Reset state after close animation
+    setTimeout(() => {
+      setFriendsSubmitted(false);
+      setFriendsError("");
+    }, 300);
+  };
 
   // Use database images if available, or if admin is logged in (to see empty state), otherwise use defaults
   const displayImages = (isAdmin || galleryImages.length > 0) ? galleryImages : defaultGalleryImages;
@@ -420,7 +486,22 @@ export function Hall() {
             {/* Right Side - Booking Form */}
             <div className="flex flex-col">
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg flex-grow">
-                <h3 className="mb-6">Booking Enquiry Form</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3>Booking Enquiry Form</h3>
+                  <a
+                    href="https://www.facebook.com/panvillagehall"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Follow us on Facebook"
+                    style={{ color: '#1877F2' }}
+                    className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm text-gray-500 font-medium">or contact us on Facebook</span>
+                  </a>
+                </div>
 
                 {/* Success Message */}
                 {bookingStatus === 'success' && (
@@ -558,13 +639,24 @@ export function Hall() {
                 </form>
               </div>
 
-              {/* Donate Section */}
-              <div className="mt-6 bg-white p-6 text-center rounded-2xl shadow-sm border border-gray-100">
+              {/* Support Section */}
+              <div className="mt-6 bg-white p-6 text-center rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
                 <p className="text-gray-700 mb-4 font-medium">
                   Help maintain the hall and ensure activities can continue
                 </p>
-                <button className="bg-primary-600 text-white px-6 p-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium shadow-sm">
-                  Donate Now
+                <button
+                  onClick={() => setShowFriendsModal(true)}
+                  className="bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '0.625rem 1.5rem'
+                  }}
+                >
+                  <Mail className="w-4 h-4" />
+                  Join as Friends
                 </button>
               </div>
             </div>
@@ -761,6 +853,236 @@ export function Hall() {
           )}
         </div>
       </div>
+
+      {/* Join Friends Email Modal */}
+      {showFriendsModal && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+        >
+          {/* Backdrop */}
+          <div
+            onClick={handleCloseFriendsModal}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+
+          {/* Modal */}
+          <div
+            className="relative rounded-2xl mx-auto overflow-hidden"
+            style={{
+              width: '100%',
+              maxWidth: '28rem',
+              backgroundColor: 'white',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            {/* Green header strip */}
+            <div
+              className="text-center"
+              style={{
+                padding: '2rem 2rem 1.5rem',
+                background: 'linear-gradient(135deg, #3d5a3e 0%, #5a7d52 100%)',
+              }}
+            >
+              <button
+                onClick={handleCloseFriendsModal}
+                className="rounded-lg"
+                style={{
+                  position: 'absolute',
+                  top: '0.75rem',
+                  right: '0.75rem',
+                  padding: '0.375rem',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div
+                className="rounded-full flex items-center justify-center mx-auto"
+                style={{ width: '3.5rem', height: '3.5rem', backgroundColor: 'rgba(255, 255, 255, 0.15)', marginBottom: '1rem' }}
+              >
+                <Users style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
+              </div>
+              <h3
+                style={{
+                  fontSize: '1.25rem',
+                  fontFamily: 'var(--font-family-serif)',
+                  color: 'white',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                Welcome to Friends of<br />Gower Village Hall
+              </h3>
+              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                Join our community and stay connected
+              </p>
+            </div>
+
+            {/* Form area */}
+            <div style={{ padding: '1.5rem 2rem' }}>
+              {friendsSubmitted ? (
+                <div className="text-center" style={{ padding: '1rem 0' }}>
+                  <div
+                    className="rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#dcfce7' }}
+                  >
+                    <CheckCircle style={{ width: '1.75rem', height: '1.75rem', color: '#16a34a' }} />
+                  </div>
+                  <h4 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
+                    Welcome Aboard!
+                  </h4>
+                  <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>
+                    Thank you for your interest! We'll be in touch soon with more
+                    information about upcoming events and how you can get involved.
+                  </p>
+                  <button
+                    onClick={handleCloseFriendsModal}
+                    className="rounded-lg text-sm"
+                    style={{
+                      marginTop: '1.5rem',
+                      padding: '0.625rem 1.5rem',
+                      backgroundColor: 'var(--color-primary-600)',
+                      color: 'white',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-center leading-relaxed" style={{ color: '#4b5563', marginBottom: '1.25rem' }}>
+                    Enter your details below and we'll keep you updated on community news,
+                    events, and hall activities.
+                  </p>
+
+                  {friendsError && (
+                    <div className="rounded-lg" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
+                      <p className="text-sm" style={{ color: '#b91c1c' }}>{friendsError}</p>
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={handleFriendsSubmit}
+                    className="flex flex-col"
+                    style={{ marginTop: '1rem', gap: '1rem' }}
+                  >
+                    <div>
+                      <label
+                        htmlFor="friends-name"
+                        className="block text-sm"
+                        style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
+                      >
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        id="friends-name"
+                        value={friendsName}
+                        onChange={(e) => setFriendsName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full border border-gray-200 rounded-lg text-sm"
+                        style={{
+                          padding: '0.75rem 1rem',
+                          backgroundColor: '#f9fafb',
+                          outline: 'none',
+                        }}
+                        disabled={friendsSubmitting}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="friends-email"
+                        className="block text-sm"
+                        style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
+                      >
+                        Email Address <span style={{ color: '#ef4444' }}>*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="friends-email"
+                        value={friendsEmail}
+                        onChange={(e) => setFriendsEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="w-full border border-gray-200 rounded-lg text-sm"
+                        style={{
+                          padding: '0.75rem 1rem',
+                          backgroundColor: '#f9fafb',
+                          outline: 'none',
+                        }}
+                        required
+                        disabled={friendsSubmitting}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={friendsSubmitting}
+                      className="w-full rounded-lg text-sm flex items-center justify-center gap-4"
+                      style={{
+                        marginTop: '0.5rem',
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: '#3d5a3e',
+                        color: 'white',
+                        fontWeight: 500,
+                        border: 'none',
+                        cursor: friendsSubmitting ? 'not-allowed' : 'pointer',
+                        opacity: friendsSubmitting ? 0.6 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!friendsSubmitting) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#4a6741';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#3d5a3e';
+                      }}
+                    >
+                      {friendsSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4" style={{ animation: 'spin 1s linear infinite' }} />
+                          Joining...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4" />
+                          Join Friends
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  <p className="text-center mt-4" style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                    We respect your privacy. Unsubscribe at any time.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && createPortal(

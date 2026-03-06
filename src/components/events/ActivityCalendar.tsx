@@ -152,11 +152,15 @@ export function ActivityCalendar() {
 
         // Add one-time events
         events.forEach(event => {
+            // Parse YYYY-MM-DD exactly to avoid timezone shift pushing it to the previous day
+            const [y, m, d] = (event.date as string).split('-');
+            const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+
             items.push({
                 id: event.id,
                 title: event.title,
                 type: 'event',
-                date: new Date(event.date),
+                date: localDate,
                 startTime: event.start_time,
                 endTime: event.end_time,
                 description: event.description,
@@ -210,7 +214,12 @@ export function ActivityCalendar() {
     const itemsByDate = useMemo(() => {
         const map = new Map<string, CalendarItem[]>();
         calendarItems.forEach(item => {
-            const dateKey = item.date.toISOString().split('T')[0];
+            // Safely format local date to YYYY-MM-DD
+            const year = item.date.getFullYear();
+            const month = String(item.date.getMonth() + 1).padStart(2, '0');
+            const day = String(item.date.getDate()).padStart(2, '0');
+            const dateKey = `${year}-${month}-${day}`;
+
             const existing = map.get(dateKey) || [];
             map.set(dateKey, [...existing, item]);
         });
@@ -225,7 +234,11 @@ export function ActivityCalendar() {
     // Get items for selected date
     const selectedDateItems = useMemo(() => {
         if (!selectedDate) return [];
-        const dateKey = selectedDate.toISOString().split('T')[0];
+        // Safely format local date to YYYY-MM-DD
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
         return itemsByDate.get(dateKey) || [];
     }, [selectedDate, itemsByDate]);
 
@@ -236,7 +249,12 @@ export function ActivityCalendar() {
 
     // Custom day content to show activity dots
     const renderDay = (date: Date) => {
-        const dateKey = date.toISOString().split('T')[0];
+        // Safely format local date to YYYY-MM-DD
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+
         const dayItems = itemsByDate.get(dateKey) || [];
 
         return (

@@ -117,10 +117,16 @@ export function Events() {
     const handleDeleteConfirm = async () => {
         if (eventToDelete) {
             setIsDeleting(true);
-            await deleteEvent(eventToDelete.id);
-            setIsDeleting(false);
-            setDeleteConfirmOpen(false);
-            setEventToDelete(null);
+            try {
+                await deleteEvent(eventToDelete.id);
+                setDeleteConfirmOpen(false);
+                setEventToDelete(null);
+            } catch (error: any) {
+                console.error(error);
+                alert(error?.message || "Failed to delete event. You might not have permission.");
+            } finally {
+                setIsDeleting(false);
+            }
         }
     };
 
@@ -159,10 +165,16 @@ export function Events() {
     const handleActivityDeleteConfirm = async () => {
         if (activityToDelete) {
             setIsDeleting(true);
-            await deleteRegularActivity(activityToDelete.id);
-            setIsDeleting(false);
-            setDeleteActivityConfirmOpen(false);
-            setActivityToDelete(null);
+            try {
+                await deleteRegularActivity(activityToDelete.id);
+                setDeleteActivityConfirmOpen(false);
+                setActivityToDelete(null);
+            } catch (error: any) {
+                console.error(error);
+                alert(error?.message || "Failed to delete activity. You might not have permission.");
+            } finally {
+                setIsDeleting(false);
+            }
         }
     };
 

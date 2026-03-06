@@ -1,9 +1,76 @@
+import { useState, FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { Clock, MapPin, Heart, Calendar } from "lucide-react";
+import { Clock, MapPin, Calendar, Users, X, CheckCircle, Loader2, Mail } from "lucide-react";
 import stJohnsChurchImg from "../assets/st-johns-church.png";
 import stNicholastonChurchImg from "../assets/st-nicholas-church.png";
 
 export function Churches() {
+  const [showModal, setShowModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleJoinSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      setSubmitting(false);
+      return;
+    }
+
+    const web3formsKey = import.meta.env.VITE_WEB3FORMS_KEY;
+    if (!web3formsKey) {
+      setError("Form is not configured yet. Please try again later.");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: web3formsKey,
+          subject: `Friends of St. John's & St. Nicholas - New Member Interest`,
+          name: name.trim() || "Not provided",
+          email: email.trim(),
+          message: `${name.trim() || "Someone"} would like to join Friends of St. John's & St. Nicholas.`,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSubmitted(true);
+        setEmail("");
+        setName("");
+      } else {
+        setError(data.message || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    // Reset state after close animation
+    setTimeout(() => {
+      setSubmitted(false);
+      setError("");
+    }, 300);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -21,7 +88,7 @@ export function Churches() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* St Johns Church */}
-          <div className="mb-16">
+          <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
               <div>
                 <h2 className="mb-4">
@@ -63,21 +130,6 @@ export function Churches() {
                   </div>
 
                   <div className="flex items-start space-x-3">
-                    <Heart className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
-                    <div>
-                      <h4 className="mb-1">How to Donate</h4>
-                      <p className="text-gray-600 text-sm mb-3">
-                        Donations help maintain this historic
-                        building and support our community
-                        activities.
-                      </p>
-                      <button className="bg-primary-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-primary-700 transition-colors">
-                        Donate Now
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
                     <MapPin className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
                       <h4 className="mb-1">Location</h4>
@@ -89,27 +141,82 @@ export function Churches() {
                 </div>
               </div>
 
-              <div className="rounded-2xl overflow-hidden shadow-lg">
+              <div className="rounded-2xl overflow-hidden shadow-lg h-full">
                 <ImageWithFallback
                   src={stJohnsChurchImg}
                   alt="St Johns Church, Penmaen"
-                  className="w-full h-96 object-cover"
+                  className="w-full h-full object-cover min-h-[350px]"
                 />
               </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-16"></div>
+          {/* Join Friends CTA Banner */}
+          <div
+            className="relative shadow-xl"
+            style={{
+              marginTop: '40px',
+              marginBottom: '40px',
+              background: 'linear-gradient(160deg, #3a5240 0%, #4a6741 50%, #5c7e54 100%)',
+              borderRadius: '1.5rem',
+              overflow: 'hidden'
+            }}
+          >
+            <div className="relative px-8 sm:px-12 py-16 md:py-20 text-center">
+              <div className="flex justify-center mb-8">
+                <div
+                  className="w-18 h-18 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)', width: '72px', height: '72px' }}
+                >
+                  <Users className="w-9 h-9 text-white" />
+                </div>
+              </div>
+              <h2
+                className="text-white mb-5 font-serif"
+                style={{ fontSize: '2.25rem', lineHeight: 1.25, color: 'white' }}
+              >
+                Join Friends of St. John's &amp; St. Nicholas
+              </h2>
+              <p
+                className="max-w-xl mx-auto mt-2 mb-10 leading-relaxed"
+                style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem' }}
+              >
+                Become part of our community dedicated to preserving these beautiful
+                historic churches. Stay informed about events, services, and ways
+                to support our churches.
+              </p>
+              <button
+                onClick={() => setShowModal(true)}
+                id="join-friends-cta"
+                className="inline-flex items-center gap-4 mt-4 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5"
+                style={{
+                  backgroundColor: 'white',
+                  color: '#3a5240',
+                  padding: '18px 48px',
+                  fontSize: '1.125rem',
+                  letterSpacing: '0.01em',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#f0f7f0';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'white';
+                }}
+              >
+                <Mail className="w-5 h-5" />
+                Join Us Today
+              </button>
+            </div>
+          </div>
 
           {/* St Nicholaston Church */}
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-              <div className="order-2 md:order-1 rounded-2xl overflow-hidden shadow-lg">
+              <div className="order-2 md:order-1 rounded-2xl overflow-hidden shadow-lg h-full">
                 <ImageWithFallback
                   src={stNicholastonChurchImg}
                   alt="St Nicholaston Church"
-                  className="w-full h-96 object-cover"
+                  className="w-full h-full object-cover min-h-[350px]"
                 />
               </div>
 
@@ -150,21 +257,6 @@ export function Churches() {
                   </div>
 
                   <div className="flex items-start space-x-3">
-                    <Heart className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
-                    <div>
-                      <h4 className="mb-1">How to Donate</h4>
-                      <p className="text-gray-600 text-sm mb-3">
-                        Your donations help preserve this
-                        historic building and support our
-                        community outreach programs.
-                      </p>
-                      <button className="bg-primary-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-primary-700 transition-colors">
-                        Donate Now
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
                     <MapPin className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
                       <h4 className="mb-1">Location</h4>
@@ -193,6 +285,236 @@ export function Churches() {
           </div>
         </div>
       </section>
+
+      {/* Join Friends Email Modal */}
+      {showModal && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+        >
+          {/* Backdrop */}
+          <div
+            onClick={handleCloseModal}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+
+          {/* Modal */}
+          <div
+            className="relative rounded-2xl mx-auto overflow-hidden"
+            style={{
+              width: '100%',
+              maxWidth: '28rem',
+              backgroundColor: 'white',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            {/* Green header strip */}
+            <div
+              className="text-center"
+              style={{
+                padding: '2rem 2rem 1.5rem',
+                background: 'linear-gradient(135deg, #3d5a3e 0%, #5a7d52 100%)',
+              }}
+            >
+              <button
+                onClick={handleCloseModal}
+                className="rounded-lg"
+                style={{
+                  position: 'absolute',
+                  top: '0.75rem',
+                  right: '0.75rem',
+                  padding: '0.375rem',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div
+                className="rounded-full flex items-center justify-center mx-auto"
+                style={{ width: '3.5rem', height: '3.5rem', backgroundColor: 'rgba(255, 255, 255, 0.15)', marginBottom: '1rem' }}
+              >
+                <Users style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
+              </div>
+              <h3
+                style={{
+                  fontSize: '1.25rem',
+                  fontFamily: 'var(--font-family-serif)',
+                  color: 'white',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                Welcome to Friends of<br />St. John's & St. Nicholas
+              </h3>
+              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                Join our community and stay connected
+              </p>
+            </div>
+
+            {/* Form area */}
+            <div style={{ padding: '1.5rem 2rem' }}>
+              {submitted ? (
+                <div className="text-center" style={{ padding: '1rem 0' }}>
+                  <div
+                    className="rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#dcfce7' }}
+                  >
+                    <CheckCircle style={{ width: '1.75rem', height: '1.75rem', color: '#16a34a' }} />
+                  </div>
+                  <h4 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
+                    Welcome Aboard!
+                  </h4>
+                  <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>
+                    Thank you for your interest! We'll be in touch soon with more
+                    information about upcoming events and how you can get involved.
+                  </p>
+                  <button
+                    onClick={handleCloseModal}
+                    className="rounded-lg text-sm"
+                    style={{
+                      marginTop: '1.5rem',
+                      padding: '0.625rem 1.5rem',
+                      backgroundColor: 'var(--color-primary-600)',
+                      color: 'white',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-center leading-relaxed" style={{ color: '#4b5563', marginBottom: '1.25rem' }}>
+                    Enter your details below and we'll keep you updated on services,
+                    events, and community news.
+                  </p>
+
+                  {error && (
+                    <div className="rounded-lg" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
+                      <p className="text-sm" style={{ color: '#b91c1c' }}>{error}</p>
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={handleJoinSubmit}
+                    className="flex flex-col"
+                    style={{ marginTop: '1rem', gap: '1rem' }}
+                  >
+                    <div>
+                      <label
+                        htmlFor="join-name"
+                        className="block text-sm"
+                        style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
+                      >
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        id="join-name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full border border-gray-200 rounded-lg text-sm"
+                        style={{
+                          padding: '0.75rem 1rem',
+                          backgroundColor: '#f9fafb',
+                          outline: 'none',
+                        }}
+                        disabled={submitting}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="join-email"
+                        className="block text-sm"
+                        style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
+                      >
+                        Email Address <span style={{ color: '#ef4444' }}>*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="join-email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="w-full border border-gray-200 rounded-lg text-sm"
+                        style={{
+                          padding: '0.75rem 1rem',
+                          backgroundColor: '#f9fafb',
+                          outline: 'none',
+                        }}
+                        required
+                        disabled={submitting}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full rounded-lg text-sm flex items-center justify-center gap-4"
+                      style={{
+                        marginTop: '0.5rem',
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: '#3d5a3e',
+                        color: 'white',
+                        fontWeight: 500,
+                        border: 'none',
+                        cursor: submitting ? 'not-allowed' : 'pointer',
+                        opacity: submitting ? 0.6 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!submitting) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#4a6741';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#3d5a3e';
+                      }}
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4" style={{ animation: 'spin 1s linear infinite' }} />
+                          Joining...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4" />
+                          Join Friends
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  <p className="text-center mt-4" style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                    We respect your privacy. Unsubscribe at any time.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

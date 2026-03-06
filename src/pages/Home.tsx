@@ -1,7 +1,7 @@
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Building2, Coffee, Church, Users, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import churchImg from "../assets/penmaen-sign.jpeg";
+import churchImg from "../assets/updated-penmaen-sign.png";
 import torbayImg from "../assets/torbay.jpeg";
 import threeCliffsImg from "../assets/3-cliffs-sign.jpeg";
 import cakeMorningImg from "../assets/cake-morning-summer.jpeg";
