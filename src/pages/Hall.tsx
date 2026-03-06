@@ -559,13 +559,26 @@ export function Hall() {
               </div>
 
               {/* Donate Section */}
-              <div className="mt-6 bg-white p-6 text-center rounded-2xl shadow-sm border border-gray-100">
+              <div className="mt-6 bg-white p-6 text-center rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
                 <p className="text-gray-700 mb-4 font-medium">
                   Help maintain the hall and ensure activities can continue
                 </p>
-                <button className="bg-primary-600 text-white px-6 p-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium shadow-sm">
-                  Donate Now
-                </button>
+                <div className="flex gap-4">
+                  <button className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium shadow-sm">
+                    Donate Now
+                  </button>
+                  <a
+                    href="https://www.facebook.com/panvillagehall"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#1877F2] text-white px-6 py-2 rounded-lg hover:bg-[#166FE5] transition-colors text-sm font-medium shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                    </svg>
+                    Follow on Facebook
+                  </a>
+                </div>
               </div>
             </div>
           </div>
