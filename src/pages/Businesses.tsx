@@ -262,8 +262,8 @@ export function Businesses() {
               </div>
               <div className="flex flex-col gap-8 h-full">
                 {shops.map((shop, index) => (
-                  <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow flex flex-col">
-                    <div className="h-48 shrink-0 overflow-hidden">
+                  <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow flex flex-col h-full">
+                    <div className="h-56 shrink-0 overflow-hidden">
                       <ImageWithFallback
                         src={shop.image}
                         alt={shop.name}

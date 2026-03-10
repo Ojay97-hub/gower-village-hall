@@ -34,7 +34,7 @@ export function ArticlePage() {
                 <div style={{ textAlign: "center" }}>
                     <h1
                         style={{
-                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                            fontFamily: "var(--font-family-serif)",
                             fontSize: "2rem",
                             color: "#2d2d2d",
                             marginBottom: "16px",
@@ -157,7 +157,7 @@ export function ArticlePage() {
                 {/* Title */}
                 <h1
                     style={{
-                        fontFamily: "'Libre Baskerville', Georgia, serif",
+                        fontFamily: "var(--font-family-serif)",
                         fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
                         lineHeight: 1.25,
                         fontWeight: 400,
@@ -266,7 +266,7 @@ export function ArticlePage() {
                                     </p>
                                     <h4
                                         style={{
-                                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                                            fontFamily: "var(--font-family-serif)",
                                             fontSize: "0.9rem",
                                             lineHeight: 1.35,
                                             fontWeight: 400,
@@ -311,7 +311,7 @@ export function ArticlePage() {
                                     </p>
                                     <h4
                                         style={{
-                                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                                            fontFamily: "var(--font-family-serif)",
                                             fontSize: "0.9rem",
                                             lineHeight: 1.35,
                                             fontWeight: 400,

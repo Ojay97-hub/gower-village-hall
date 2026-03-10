@@ -1,7 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
-
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Lato:wght@300;400;700&display=swap');
 
 @theme {
   /* Vintage Modern Greens Color Palette */
@@ -21,8 +20,8 @@
   --color-light-sage: #ccdcc1;
   
   /* Font families */
-  --font-family-serif: "Libre Baskerville", Georgia, serif;
-  --font-family-sans: "Lato", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-serif: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-sans: "Mulish", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 @layer base {

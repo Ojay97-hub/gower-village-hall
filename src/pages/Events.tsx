@@ -404,7 +404,7 @@ export function Events() {
                                 return (
                                     <div
                                         key={activity.id}
-                                        className={`rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden flex flex-col ${isAloneInRow ? 'md:col-span-2 lg:col-span-3' : 'aspect-square'}`}
+                                        className={`rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden flex flex-col ${isAloneInRow ? 'md:col-span-2 lg:col-span-3' : 'h-full'}`}
                                     >
                                         {/* Card Content */}
                                         <div className="p-6 flex flex-col h-full">

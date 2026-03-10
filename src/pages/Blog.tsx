@@ -107,7 +107,7 @@ export function Blog() {
 
                     <h1
                         style={{
-                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                            fontFamily: "var(--font-family-serif)",
                             fontSize: "clamp(2rem, 4vw, 3.25rem)",
                             lineHeight: 1.15,
                             fontWeight: 400,
@@ -199,7 +199,7 @@ export function Blog() {
                     </p>
                     <h2
                         style={{
-                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                            fontFamily: "var(--font-family-serif)",
                             fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
                             fontWeight: 400,
                             color: "#2d2d2d",
@@ -250,7 +250,7 @@ export function Blog() {
                                 <div style={{ padding: "28px" }}>
                                     <h3
                                         style={{
-                                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                                            fontFamily: "var(--font-family-serif)",
                                             fontSize: "1.35rem",
                                             lineHeight: 1.35,
                                             fontWeight: 400,
@@ -310,7 +310,7 @@ export function Blog() {
                                         <div>
                                             <h3
                                                 style={{
-                                                    fontFamily: "'Libre Baskerville', Georgia, serif",
+                                                    fontFamily: "var(--font-family-serif)",
                                                     fontSize: "1rem",
                                                     lineHeight: 1.4,
                                                     fontWeight: 400,
@@ -355,7 +355,7 @@ export function Blog() {
                     <Search className="mx-auto mb-4" style={{ width: "48px", height: "48px", color: "#ccc" }} />
                     <h2
                         style={{
-                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                            fontFamily: "var(--font-family-serif)",
                             fontSize: "1.5rem",
                             color: "#666",
                             marginBottom: "8px",
@@ -377,7 +377,7 @@ export function Blog() {
                 >
                     <h2
                         style={{
-                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                            fontFamily: "var(--font-family-serif)",
                             fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
                             fontWeight: 400,
                             color: "#2d2d2d",
@@ -429,7 +429,7 @@ export function Blog() {
                                 <div style={{ padding: "20px" }}>
                                     <h3
                                         style={{
-                                            fontFamily: "'Libre Baskerville', Georgia, serif",
+                                            fontFamily: "var(--font-family-serif)",
                                             fontSize: "1rem",
                                             lineHeight: 1.4,
                                             fontWeight: 400,

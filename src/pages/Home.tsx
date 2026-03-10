@@ -107,7 +107,7 @@ export function Home() {
       </section>
 
       {/* Quick Links Cards */}
-      <section className="py-12 md:py-16 bg-primary-50 pt-[64px] pr-[0px] pb-[32px] pl-[0px]">
+      <section className="py-12 md:py-16 bg-primary-50 pt-[64px] pr-[0px] pb-[20px] pl-[0px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {/* Book the Hall Card */}
@@ -182,7 +182,7 @@ export function Home() {
       </section>
 
       {/* Coffee Morning Highlight */}
-      <section className="py-12 md:py-16 bg-primary-50 pt-[32px] pr-[0px] pb-[64px] pl-[0px]">
+      <section className="py-6 bg-primary-50 pr-[0px] pb-[64px] pl-[0px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">

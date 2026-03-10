@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Lato:wght@300;400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap");
 /*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
 @layer properties {
   @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
@@ -95,8 +95,8 @@
     --color-primary-500: #7a8473;
     --color-primary-600: #6b7564;
     --color-primary-700: #5c6555;
-    --font-family-serif: "Libre Baskerville", Georgia, serif;
-    --font-family-sans: "Lato", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-family-serif: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-family-sans: "Mulish", ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
 }
 
@@ -343,6 +343,10 @@
   * {
     border-color: oklch(.922 0 0);
     outline-color: color-mix(in oklab, oklch(.708 0 0) 50%, transparent);
+  }
+
+  html, body {
+    font-family: var(--font-family-sans);
   }
 
   * {

@@ -7,6 +7,10 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['var(--font-family-sans)'],
+                serif: ['var(--font-family-serif)'],
+            },
             screens: {
                 'nav-md': '848px',
             },
