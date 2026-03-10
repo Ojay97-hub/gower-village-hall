@@ -91,7 +91,7 @@ export function Churches() {
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
               <div>
-                <h2 className="mb-4">
+                <h2 className="mb-4 font-bold">
                   St Johns Church, Penmaen
                 </h2>
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
@@ -153,33 +153,43 @@ export function Churches() {
 
           {/* Join Friends CTA Banner */}
           <div
-            className="relative shadow-xl"
+            className="relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50"
             style={{
               marginTop: '40px',
               marginBottom: '40px',
-              background: 'linear-gradient(160deg, #3a5240 0%, #4a6741 50%, #5c7e54 100%)',
+              backgroundColor: '#ffffff',
               borderRadius: '1.5rem',
               overflow: 'hidden'
             }}
           >
-            <div className="relative px-8 sm:px-12 py-16 md:py-20 text-center">
-              <div className="flex justify-center mb-8">
+            {/* Subtle soft gradient blur in the background */}
+            <div
+              className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full opacity-20 filter blur-[60px]"
+              style={{ background: 'linear-gradient(135deg, #b7c6ad, #6b7564)' }}
+            />
+            <div
+              className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full opacity-[0.15] filter blur-[60px]"
+              style={{ background: 'linear-gradient(135deg, #6b7564, #ccdcc1)' }}
+            />
+
+            <div className="relative px-8 sm:px-12 py-20 md:py-24 text-center z-10">
+              <div className="flex justify-center mb-10">
                 <div
-                  className="w-18 h-18 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)', width: '72px', height: '72px' }}
+                  className="rounded-full flex items-center justify-center shadow-sm"
+                  style={{ backgroundColor: '#f5f5f0', width: '80px', height: '80px', border: '1px solid #e8e8dd' }}
                 >
-                  <Users className="w-9 h-9 text-white" />
+                  <Users className="w-10 h-10" style={{ color: '#6b7564' }} />
                 </div>
               </div>
               <h2
-                className="text-white mb-5 font-serif"
-                style={{ fontSize: '2.25rem', lineHeight: 1.25, color: 'white' }}
+                className="mb-6 font-serif tracking-tight"
+                style={{ fontSize: '2.5rem', lineHeight: 1.2, color: '#111827' }}
               >
                 Join Friends of St. John's &amp; St. Nicholas
               </h2>
               <p
-                className="max-w-xl mx-auto mt-2 mb-10 leading-relaxed"
-                style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem' }}
+                className="max-w-xl mx-auto mt-2 mb-12 leading-relaxed"
+                style={{ color: '#4b5563', fontSize: '1.1rem' }}
               >
                 Become part of our community dedicated to preserving these beautiful
                 historic churches. Stay informed about events, services, and ways
@@ -188,19 +198,19 @@ export function Churches() {
               <button
                 onClick={() => setShowModal(true)}
                 id="join-friends-cta"
-                className="inline-flex items-center gap-4 mt-4 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5"
+                className="inline-flex items-center gap-3 font-medium rounded-xl transition-all duration-300 shadow-[0_4px_14px_0_rgba(107,117,100,0.39)] hover:shadow-[0_6px_20px_rgba(107,117,100,0.23)] transform hover:-translate-y-0.5"
                 style={{
-                  backgroundColor: 'white',
-                  color: '#3a5240',
-                  padding: '18px 48px',
-                  fontSize: '1.125rem',
+                  backgroundColor: '#6b7564', // primary-600
+                  color: 'white',
+                  padding: '16px 40px',
+                  fontSize: '1.05rem',
                   letterSpacing: '0.01em',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#f0f7f0';
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#5c6555'; // primary-700
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'white';
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#6b7564'; // primary-600
                 }}
               >
                 <Mail className="w-5 h-5" />
@@ -221,7 +231,7 @@ export function Churches() {
               </div>
 
               <div className="order-1 md:order-2">
-                <h2 className="mb-4">St Nicholas Church</h2>
+                <h2 className="mb-4 font-bold">St Nicholas Church</h2>
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
                   Set in the picturesque village of Nicholaston,
                   this historic church has served the local
@@ -326,23 +336,23 @@ export function Churches() {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
           >
-            {/* Green header strip */}
+            {/* Header strip */}
             <div
               className="text-center"
               style={{
                 padding: '2rem 2rem 1.5rem',
-                background: 'linear-gradient(135deg, #3d5a3e 0%, #5a7d52 100%)',
+                background: 'linear-gradient(135deg, #6b7564 0%, #5c6555 100%)', // primary gradient
               }}
             >
               <button
                 onClick={handleCloseModal}
-                className="rounded-lg"
+                className="rounded-lg transition-colors hover:bg-white/10"
                 style={{
                   position: 'absolute',
                   top: '0.75rem',
                   right: '0.75rem',
                   padding: '0.375rem',
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: 'rgba(255, 255, 255, 0.9)',
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
@@ -367,7 +377,7 @@ export function Churches() {
               >
                 Welcome to Friends of<br />St. John's & St. Nicholas
               </h3>
-              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+              <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
                 Join our community and stay connected
               </p>
             </div>
@@ -378,9 +388,9 @@ export function Churches() {
                 <div className="text-center" style={{ padding: '1rem 0' }}>
                   <div
                     className="rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#dcfce7' }}
+                    style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#e8e8dd' }}
                   >
-                    <CheckCircle style={{ width: '1.75rem', height: '1.75rem', color: '#16a34a' }} />
+                    <CheckCircle style={{ width: '1.75rem', height: '1.75rem', color: '#6b7564' }} />
                   </div>
                   <h4 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
                     Welcome Aboard!
@@ -473,11 +483,11 @@ export function Churches() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full rounded-lg text-sm flex items-center justify-center gap-4"
+                      className="w-full rounded-lg text-sm flex items-center justify-center gap-3 transition-colors"
                       style={{
                         marginTop: '0.5rem',
                         padding: '0.75rem 1.5rem',
-                        backgroundColor: '#3d5a3e',
+                        backgroundColor: '#6b7564', // primary-600
                         color: 'white',
                         fontWeight: 500,
                         border: 'none',
@@ -485,10 +495,10 @@ export function Churches() {
                         opacity: submitting ? 0.6 : 1,
                       }}
                       onMouseEnter={(e) => {
-                        if (!submitting) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#4a6741';
+                        if (!submitting) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#5c6555'; // primary-700
                       }}
                       onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#3d5a3e';
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#6b7564'; // primary-600
                       }}
                     >
                       {submitting ? (

@@ -1,5 +1,5 @@
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Building2, Coffee, Church, Users, ArrowRight } from 'lucide-react';
+import { Building2, BookOpen, Church, Users, ArrowRight, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import churchImg from "../assets/updated-penmaen-sign.png";
 import torbayImg from "../assets/torbay.jpeg";
@@ -60,7 +60,7 @@ export function Home() {
       <section className="py-12 md:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center mb-12">
-            <h2 className="mb-6">About Our Community</h2>
+            <h2 className="mb-6 font-bold">About Our Community</h2>
             <p className="text-lg text-gray-600 leading-relaxed">
               Penmaen and Nicholaston Village Hall is at the heart of our beautiful Gower
               community. Managed by a dedicated committee of trustees, the hall serves as a
@@ -127,17 +127,17 @@ export function Home() {
               </span>
             </Link>
 
-            {/* Coffee Mornings Card */}
+            {/* Blog Card */}
             <Link
-              to="/hall"
+              to="/blog"
               className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-all group"
             >
               <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary-200 transition-colors">
-                <Coffee className="w-6 h-6 text-primary-600" />
+                <BookOpen className="w-6 h-6 text-primary-600" />
               </div>
-              <h3 className="mb-3">Coffee Mornings</h3>
+              <h3 className="mb-3">Read Our Blog</h3>
               <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                Join us every Thursday for coffee and cake
+                Stay updated with the latest news, stories, and community highlights
               </p>
               <span className="text-primary-600 text-sm inline-flex items-center group-hover:gap-2 transition-all">
                 Learn more <ArrowRight className="w-4 h-4 ml-1" />
