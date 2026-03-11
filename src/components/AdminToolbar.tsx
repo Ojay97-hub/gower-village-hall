@@ -47,7 +47,7 @@ export function AdminToolbar() {
                 <div
                     className="transition-all duration-300 ease-in-out overflow-hidden"
                     style={{
-                        maxHeight: collapsed ? '0px' : '200px',
+                        maxHeight: collapsed ? '0px' : '260px',
                         opacity: collapsed ? 0 : 1,
                     }}
                 >
