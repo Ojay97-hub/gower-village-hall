@@ -6,10 +6,19 @@ import { Clock, Car, Music, Palette, Coffee, PoundSterling, Plus, Edit2, Trash2,
 import { useGallery, GalleryImage } from '../context/GalleryContext';
 import { useAuth } from '../context/AuthContext';
 import { GalleryImageForm } from '../components/gallery/GalleryImageForm';
-import hallGateEntrance from '../assets/edited-hall-gate.png';
-import hallSideView from '../assets/edited-side-hall.png';
 import cakeDisplay from '../assets/cake-display.jpg';
 import flowerArrangement from '../assets/flower-arrangement.jpg';
+
+const hallGateEntrance = '/images/edited-hall-gate.webp';
+const hallSideView = '/images/edited-side-hall.webp';
+
+// Transform Supabase storage URLs to use the image transformation API for responsive delivery
+function supabaseImageUrl(url: string, width: number, quality = 75): string {
+  if (!url.includes('supabase.co/storage/v1/object/public/')) return url;
+  return url
+    .replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+    .concat(`?width=${width}&quality=${quality}&format=webp`);
+}
 
 // Default gallery images for when Supabase is empty or loading
 const defaultGalleryImages = [
@@ -378,6 +387,8 @@ export function Hall() {
             alt="Village Hall Entrance with Gate"
             className="w-full h-full object-cover"
             style={{ maxHeight: '850px' }}
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center">
             <div className="px-8 md:px-12 lg:px-16 text-white max-w-2xl py-12 md:py-0">
@@ -412,6 +423,8 @@ export function Hall() {
             alt="Village Hall Side View"
             className="w-full h-full object-cover"
             style={{ maxHeight: '850px' }}
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-800/30"></div>
         </div>
@@ -486,7 +499,7 @@ export function Hall() {
             {/* Right Side - Booking Form */}
             <div className="flex flex-col">
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg flex-grow">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
                   <h3>Booking Enquiry Form</h3>
                   <a
                     href="https://www.facebook.com/panvillagehall"
@@ -591,7 +604,7 @@ export function Hall() {
                     </div>
                     <div>
                       <label htmlFor="endDate" className="block text-sm mb-2 text-gray-700 font-medium">
-                        End Date <span className="text-gray-400 font-normal">(optional)</span>
+                        End Date <span className="text-gray-500 font-normal">(optional)</span>
                       </label>
                       <input
                         type="date"
@@ -795,10 +808,11 @@ export function Hall() {
                     }`}
                 >
                   <ImageWithFallback
-                    src={image.image_url}
+                    src={supabaseImageUrl(image.image_url, image.grid_size === 'large' ? 800 : 600)}
                     alt={image.label}
                     className={`w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105 ${image.grid_size === 'large' ? 'aspect-square' : 'aspect-[4/3]'
                       }`}
+                    loading="lazy"
                   />
 
                   {/* Click handler overlay for edit/delete modes */}

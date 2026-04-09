@@ -1,11 +1,12 @@
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Building2, BookOpen, Church, Users, ArrowRight, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import churchImg from "../assets/updated-penmaen-sign.png";
 import torbayImg from "../assets/torbay.jpeg";
 import threeCliffsImg from "../assets/3-cliffs-sign.jpeg";
 import cakeMorningImg from "../assets/cake-morning-summer.jpeg";
-import leftHeroImg from "../assets/left-hero-image.jpeg";
+
+const churchImg = "/images/updated-penmaen-sign.webp";
+const leftHeroImg = "/images/left-hero-image.jpeg";
 
 export function Home() {
   return (
@@ -18,6 +19,8 @@ export function Home() {
             src={leftHeroImg}
             alt="Gower Peninsula Landscape"
             className="absolute inset-0 w-full h-full object-cover"
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center">
             <div className="px-6 py-12 md:px-10 lg:px-16 text-white max-w-2xl md:py-0">
@@ -51,6 +54,8 @@ export function Home() {
             src={churchImg}
             alt="Penmaen Sign"
             className="w-full h-full object-cover"
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-800/30"></div>
         </div>
