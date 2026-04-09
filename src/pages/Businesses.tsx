@@ -179,7 +179,7 @@ export function Businesses() {
               >
                 <MapPin className="w-10 h-10 text-primary-700 mb-3 group-hover:scale-110 transition-transform" />
                 <span className="text-primary-800 font-medium text-sm">Click to load map</span>
-                <span className="text-primary-600 text-xs mt-1">Penmaen & Nicholaston, Gower</span>
+                <span className="text-primary-800 text-xs mt-1">Penmaen & Nicholaston, Gower</span>
               </button>
             )}
           </div>
@@ -371,11 +371,10 @@ export function Businesses() {
                       href={attraction.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Learn more about ${attraction.name}`}
                       className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Learn More
+                      Learn More<span className="sr-only"> about {attraction.name}</span>
                     </a>
                   </div>
                 </div>
@@ -448,11 +447,10 @@ export function Businesses() {
                       href={castle.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Learn more about ${castle.name}`}
                       className="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Learn More
+                      Learn More<span className="sr-only"> about {castle.name}</span>
                     </a>
                   </div>
                 </div>

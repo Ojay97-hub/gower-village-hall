@@ -106,7 +106,7 @@ export function Churches() {
                   <div className="flex items-start space-x-3">
                     <Clock className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
-                      <h4 className="mb-1">Service Times</h4>
+                      <h3 className="mb-1">Service Times</h3>
                       <p className="text-gray-600 text-sm">
                         Sunday services at 9:30 AM
                         <br />
@@ -119,7 +119,7 @@ export function Churches() {
                   <div className="flex items-start space-x-3">
                     <Calendar className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
-                      <h4 className="mb-1">Visiting</h4>
+                      <h3 className="mb-1">Visiting</h3>
                       <p className="text-gray-600 text-sm">
                         The church welcomes visitors throughout
                         the year. Please contact us to arrange a
@@ -132,7 +132,7 @@ export function Churches() {
                   <div className="flex items-start space-x-3">
                     <MapPin className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
-                      <h4 className="mb-1">Location</h4>
+                      <h3 className="mb-1">Location</h3>
                       <p className="text-gray-600 text-sm">
                         Penmaen, Gower, Swansea SA3 2HH
                       </p>
@@ -244,7 +244,7 @@ export function Churches() {
                   <div className="flex items-start space-x-3">
                     <Clock className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
-                      <h4 className="mb-1">Service Times</h4>
+                      <h3 className="mb-1">Service Times</h3>
                       <p className="text-gray-600 text-sm">
                         Sunday services at 11:00 AM
                         <br />
@@ -256,7 +256,7 @@ export function Churches() {
                   <div className="flex items-start space-x-3">
                     <Calendar className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
-                      <h4 className="mb-1">Visiting</h4>
+                      <h3 className="mb-1">Visiting</h3>
                       <p className="text-gray-600 text-sm">
                         Visitors are always welcome. The church
                         is typically open during daylight hours,
@@ -269,7 +269,7 @@ export function Churches() {
                   <div className="flex items-start space-x-3">
                     <MapPin className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
                     <div>
-                      <h4 className="mb-1">Location</h4>
+                      <h3 className="mb-1">Location</h3>
                       <p className="text-gray-600 text-sm">
                         Nicholaston, Gower, Swansea SA3 2HL
                       </p>
