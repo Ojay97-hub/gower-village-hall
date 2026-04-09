@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm uninstall sharp)"
+      "Bash(npm uninstall sharp)",
+      "Bash(node -e \"require\\(''sharp''\\)\")"
     ]
   }
 }

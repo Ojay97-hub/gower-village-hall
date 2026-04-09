@@ -17,6 +17,7 @@ import { AdminToolbar } from './components/AdminToolbar';
 import { AdminRoute } from './components/AdminRoute';
 import { MasterAdminRoute } from './components/MasterAdminRoute';
 import { AdminUsers } from './pages/AdminUsers';
+import { CanonicalUrl } from './components/CanonicalUrl';
 import { AuthProvider } from './context/AuthContext';
 import { EventProvider } from './context/EventContext';
 import { GalleryProvider } from './context/GalleryContext';
@@ -33,6 +34,7 @@ export default function App() {
           <GalleryProvider>
             <BlogProvider>
               <ScrollToTop />
+              <CanonicalUrl />
               <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-1">

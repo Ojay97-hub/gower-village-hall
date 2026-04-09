@@ -42,6 +42,7 @@
             "react": "^18.3.1",
             "react-day-picker": "^8.10.1",
             "react-dom": "^18.3.1",
+            "react-helmet-async": "^3.0.0",
             "react-hook-form": "^7.55.0",
             "react-markdown": "^10.1.0",
             "react-resizable-panels": "^2.1.7",
@@ -59,6 +60,7 @@
             "@types/react-dom": "^19.2.3",
             "@vitejs/plugin-react-swc": "^3.10.2",
             "dotenv": "^17.3.1",
+            "sharp": "^0.34.5",
             "vite": "6.3.5"
       },
       "scripts": {
