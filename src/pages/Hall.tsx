@@ -12,12 +12,9 @@ import flowerArrangement from '../assets/flower-arrangement.jpg';
 const hallGateEntrance = '/images/edited-hall-gate.webp';
 const hallSideView = '/images/edited-side-hall.webp';
 
-// Transform Supabase storage URLs to use the image transformation API for responsive delivery
-function supabaseImageUrl(url: string, width: number, quality = 75): string {
-  if (!url.includes('supabase.co/storage/v1/object/public/')) return url;
-  return url
-    .replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-    .concat(`?width=${width}&quality=${quality}&format=webp`);
+// Pass through image URLs unchanged (Supabase image transformation API requires a paid plan)
+function supabaseImageUrl(url: string, _width: number, _quality = 75): string {
+  return url;
 }
 
 // Default gallery images for when Supabase is empty or loading

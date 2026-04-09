@@ -151,7 +151,7 @@
 .calendar-container .rdp-head_cell {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #9ca3af;
+    color: #4b5563;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 0.5rem;
@@ -310,6 +310,7 @@
     background: white;
     border-radius: 1.5rem;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    min-height: 560px;
 }
 
 /* Details panel */
@@ -481,7 +482,7 @@
     align-items: center;
     justify-content: center;
     flex: 1;
-    color: #9ca3af;
+    color: #6b7280;
     gap: 1.25rem;
     text-align: center;
     background: white;

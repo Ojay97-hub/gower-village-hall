@@ -31,7 +31,7 @@ export function Contact() {
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-primary-600" />
                 </div>
-                <h3 className="text-lg font-semibold">Address</h3>
+                <h2 className="text-lg font-semibold">Address</h2>
               </div>
               <p className="text-gray-600 text-sm leading-relaxed">
                 Penmaen Parish Hall
@@ -50,7 +50,7 @@ export function Contact() {
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-primary-600" />
                 </div>
-                <h3 className="text-lg font-semibold">Get In Touch</h3>
+                <h2 className="text-lg font-semibold">Get In Touch</h2>
               </div>
               <div className="space-y-3">
                 <div>
@@ -80,7 +80,7 @@ export function Contact() {
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-primary-600" />
                 </div>
-                <h3 className="text-lg font-semibold">Office Hours</h3>
+                <h2 className="text-lg font-semibold">Office Hours</h2>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-700">
@@ -111,7 +111,7 @@ export function Contact() {
 
               {/* Left Column: Information & what3words */}
               <div className="w-full xl:w-5/12 flex flex-col justify-center text-center xl:text-left">
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Find Us Easily</h3>
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">Find Us Easily</h2>
                 <p className="text-gray-600 mb-6 max-w-lg mx-auto xl:mx-0">
                   We use what3words to mark our exact location. Click below to view on the what3words map, or navigate using your preferred app.
                 </p>
@@ -120,10 +120,10 @@ export function Contact() {
                     href="https://what3words.com/listed.wisdom.dividers"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 bg-[#E11C2B]/10 border border-[#E11C2B]/20 px-6 py-4 rounded-2xl hover:bg-[#E11C2B] hover:text-white transition-all duration-300 group"
+                    className="inline-flex items-center gap-3 bg-primary-100 border border-primary-200 px-6 py-4 rounded-2xl hover:bg-primary-600 hover:border-primary-600 hover:text-white transition-all duration-300 group"
                   >
-                    <span className="text-[#E11C2B] group-hover:text-white font-bold text-xl tracking-wider">///</span>
-                    <span className="font-semibold text-[#E11C2B] group-hover:text-white">listed.wisdom.dividers</span>
+                    <span className="text-primary-700 group-hover:text-white font-bold text-xl tracking-wider">///</span>
+                    <span className="font-semibold text-primary-700 group-hover:text-white">listed.wisdom.dividers</span>
                   </a>
                 </div>
               </div>

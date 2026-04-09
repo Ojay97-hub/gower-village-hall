@@ -1,23 +1,23 @@
 import { useState } from 'react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Tent, Home, UtensilsCrossed, Landmark, ExternalLink, MapPin, Target, ShoppingBag } from 'lucide-react';
-import perriswoodImg from "../assets/perriswood-archery.png";
-import parcLeBreosImg from "../assets/parc-le-breos.png";
-import pennardCastleImg from "../assets/pennard-castle.png";
-import oxwichHotelImg from "../assets/oxwich-hotel.png";
-import oxwichBayImg from "../assets/oxwich-bay.png";
-import littleValleyBakeryImg from "../assets/little-valley-bakery.jpg";
-import beachHouseImg from "../assets/beach-house.jpg";
-import gowerCoastAdventuresImg from "../assets/gower-coast-adventures.png";
-import gowerHeritageCentreImg from "../assets/gower-heritage-centre.png";
-import threeCliffsBayImg from "../assets/three-cliffs-bay.png";
+import perriswoodImg from "../assets/perriswood-archery.webp";
+import parcLeBreosImg from "../assets/parc-le-breos.webp";
+import pennardCastleImg from "../assets/pennard-castle.webp";
+import oxwichHotelImg from "../assets/oxwich-hotel.webp";
+import oxwichBayImg from "../assets/oxwich-bay.webp";
+import littleValleyBakeryImg from "../assets/little-valley-bakery.webp";
+import beachHouseImg from "../assets/beach-house.webp";
+import gowerCoastAdventuresImg from "../assets/gower-coast-adventures.webp";
+import gowerHeritageCentreImg from "../assets/gower-heritage-centre.webp";
+import threeCliffsBayImg from "../assets/three-cliffs-bay.webp";
 import threeCliffsBayAerialImg from "../assets/aerial-of-the-campsite-and-three-cliffs-bay.webp";
-import threeCliffsBayHolidayParkImg from "../assets/holiday-park.png";
-import torBayBeachImg from "../assets/tor-bay-beach.png";
-import oxwichCastleImg from "../assets/oxwich-castle.png";
-import gowerInnImg from "../assets/gower-inn.jpg";
-import ivyCottageImg from "../assets/ivy-cottage-caravans.jpg";
-import shepherdsImg from "../assets/sheperds-shop-edit-2.jpg";
+import threeCliffsBayHolidayParkImg from "../assets/holiday-park.webp";
+import torBayBeachImg from "../assets/tor-bay-beach.webp";
+import oxwichCastleImg from "../assets/oxwich-castle.webp";
+import gowerInnImg from "../assets/gower-inn.webp";
+import ivyCottageImg from "../assets/ivy-cottage-caravans.webp";
+import shepherdsImg from "../assets/sheperds-shop-edit-2.webp";
 
 export function Businesses() {
   const campsites = [

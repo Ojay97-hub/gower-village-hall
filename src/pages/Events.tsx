@@ -246,7 +246,7 @@ export function Events() {
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center items-center py-20">
+                    <div className="flex justify-center items-center py-20 min-h-[400px]">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                     </div>
                 ) : events.length === 0 ? (
@@ -269,7 +269,7 @@ export function Events() {
                                             <span className="text-xl md:text-2xl font-bold text-primary-600 group-hover:text-white transition-colors duration-300">
                                                 {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric' })}
                                             </span>
-                                            <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-primary-400 group-hover:text-primary-100 transition-colors duration-300">
+                                            <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-primary-700 group-hover:text-primary-100 transition-colors duration-300">
                                                 {new Date(event.date).toLocaleDateString('en-GB', { month: 'short' })}
                                             </span>
                                         </div>
