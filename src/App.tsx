@@ -54,6 +54,7 @@ export default function App() {
 
                     {/* Admin login */}
                     <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin" element={<AdminLogin />} />
 
                     {/* Protected admin routes (wrap future admin-only pages here) */}
                     <Route element={<AdminRoute />}>

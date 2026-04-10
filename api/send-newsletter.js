@@ -53,6 +53,32 @@ module.exports = async (req, res) => {
     </div>
   `;
 
+  const listId = group === 'churches'
+    ? parseInt(process.env.BREVO_CHURCHES_LIST_ID, 10)
+    : parseInt(process.env.BREVO_HALL_LIST_ID, 10);
+
+  const addToBrevoList = async () => {
+    if (!process.env.BREVO_API_KEY || !listId) return;
+    const body = {
+      email,
+      attributes: name ? { FIRSTNAME: name } : undefined,
+      listIds: [listId],
+      updateEnabled: true,
+    };
+    const response = await fetch('https://api.brevo.com/v3/contacts', {
+      method: 'POST',
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Brevo contacts API error:', text);
+    }
+  };
+
   try {
     await Promise.all([
       transporter.sendMail({
@@ -68,6 +94,7 @@ module.exports = async (req, res) => {
         subject: `Thanks for joining ${displayGroup}`,
         html: confirmationHtml,
       }),
+      addToBrevoList(),
     ]);
     return res.status(200).json({ success: true });
   } catch (err) {
