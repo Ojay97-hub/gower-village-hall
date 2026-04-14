@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, AlertCircle, Loader2, User as UserIcon, ArrowLeft, ChevronRight } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { Lock, Mail, AlertCircle, Loader2, User as UserIcon, ArrowLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
 // Hardcoded available users for quick switching
 const AVAILABLE_USERS = [
@@ -39,14 +40,23 @@ function getErrorMessage(error: Error): string {
 }
 
 export function AdminLogin() {
-    type LoginStep = 'select-user' | 'enter-password' | 'manual-login';
+    type LoginStep = 'select-user' | 'enter-password' | 'manual-login' | 'set-password';
+
+    // Capture invite/recovery token from URL hash before Supabase clears it
+    const [isInviteFlow] = useState(() => {
+        const hash = window.location.hash;
+        return hash.includes('type=invite') || hash.includes('type=recovery');
+    });
 
     const [step, setStep] = useState<LoginStep>('select-user');
     const [selectedUser, setSelectedUser] = useState<typeof AVAILABLE_USERS[0] | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [settingPassword, setSettingPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(() => {
         return localStorage.getItem('admin_remember_me') === 'true';
     });
@@ -54,15 +64,40 @@ export function AdminLogin() {
     const { signIn, isAdmin, isLoading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const from = location.state?.from?.pathname || '/hall/events';
 
-    // Auto-redirect if already authenticated
+    // Auto-redirect if already authenticated; for invite flow, prompt password setup first
     useEffect(() => {
         if (!isLoading && isAdmin) {
+            if (isInviteFlow && step !== 'set-password') {
+                setStep('set-password');
+            } else if (!isInviteFlow) {
+                navigate(from, { replace: true });
+            }
+        }
+    }, [isAdmin, isLoading, navigate, from, isInviteFlow, step]);
+
+    const handleSetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setError("Passwords don't match.");
+            return;
+        }
+        setSettingPassword(true);
+        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+        setSettingPassword(false);
+        if (updateError) {
+            setError(updateError.message);
+        } else {
             navigate(from, { replace: true });
         }
-    }, [isAdmin, isLoading, navigate, from]);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -292,6 +327,86 @@ export function AdminLogin() {
                                         </>
                                     ) : (
                                         'Continue'
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* View: Set Password (invite / recovery flow) */}
+                    {step === 'set-password' && (
+                        <div className="p-8 pt-10">
+                            <div className="text-center mb-8">
+                                <CheckCircle className="h-12 w-12 text-primary-600 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold text-gray-900">
+                                    Welcome to the team!
+                                </h3>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Set a password to complete your admin account setup.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleSetPassword} className="space-y-5">
+                                {error && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-600">{error}</p>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Lock className="h-4 w-4 text-gray-500" />
+                                        <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
+                                            New Password
+                                        </label>
+                                    </div>
+                                    <input
+                                        id="new-password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        autoFocus
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-lg tracking-widest placeholder:tracking-normal"
+                                        placeholder="••••••••"
+                                        disabled={settingPassword}
+                                    />
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Lock className="h-4 w-4 text-gray-500" />
+                                        <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+                                            Confirm Password
+                                        </label>
+                                    </div>
+                                    <input
+                                        id="confirm-password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-lg tracking-widest placeholder:tracking-normal"
+                                        placeholder="••••••••"
+                                        disabled={settingPassword}
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={settingPassword || !newPassword || !confirmPassword}
+                                    className="w-full mt-4 flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+                                >
+                                    {settingPassword ? (
+                                        <>
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            Saving…
+                                        </>
+                                    ) : (
+                                        'Set Password & Continue'
                                     )}
                                 </button>
                             </form>

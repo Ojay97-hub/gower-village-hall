@@ -130,17 +130,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const inviteAdminUser = async (email: string) => {
         if (!checkIsMasterAdmin(user?.email)) return { error: new Error('Unauthorized') };
-        
+
         try {
             const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-                redirectTo: 'https://gower-village-hall-real.vercel.app/'
+                redirectTo: 'https://gower-village-hall-real.vercel.app/admin/login'
             });
             if (error) return { error };
-            
+
             if (data.user) {
-                // Add to admin_users allowlist
-                const { error: dbError } = await supabase.from('admin_users').insert([{ user_id: data.user.id }]);
-                if (dbError) return { error: dbError };
+                // Add to admin_users allowlist — use service role to bypass RLS
+                const { error: dbError } = await supabaseAdmin.from('admin_users').insert([{ user_id: data.user.id }]);
+                // Ignore unique-constraint violations (user already granted access)
+                if (dbError && !dbError.message?.includes('duplicate') && !dbError.code?.includes('23505')) {
+                    return { error: dbError };
+                }
             }
 
             await fetchAdminUsers();
