@@ -2,19 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { Lock, Mail, AlertCircle, Loader2, User as UserIcon, ArrowLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
-// Hardcoded available users for quick switching
-const AVAILABLE_USERS = [
-    {
-        id: '1',
-        name: 'Owen James',
-        email: 'owenjames97@outlook.com',
-        role: 'Administrator',
-        avatarColor: 'bg-blue-100 text-blue-700',
-        initials: 'OJ'
-    }
-];
+type AdminUser = { id: string; email: string; name: string; initials: string };
 
 function getErrorMessage(error: Error): string {
     const msg = error.message?.toLowerCase() ?? '';
@@ -42,16 +33,27 @@ function getErrorMessage(error: Error): string {
 export function AdminLogin() {
     type LoginStep = 'select-user' | 'enter-password' | 'manual-login' | 'set-password';
 
-    // Capture invite/recovery token from URL hash before Supabase clears it
+    // Detect invite/recovery flow from URL before Supabase clears the params.
+    // Supabase v2 PKCE flow uses ?code= query param; older implicit flow uses #type=invite hash.
+    // On the admin login page, any ?code= must be from an invite or recovery email
+    // (regular email+password logins never produce a code param).
     const [isInviteFlow] = useState(() => {
         const hash = window.location.hash;
-        return hash.includes('type=invite') || hash.includes('type=recovery');
+        const search = window.location.search;
+        return (
+            hash.includes('type=invite') ||
+            hash.includes('type=recovery') ||
+            search.includes('code=')
+        );
     });
 
+    const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+    const [loadingUsers, setLoadingUsers] = useState(true);
     const [step, setStep] = useState<LoginStep>('select-user');
-    const [selectedUser, setSelectedUser] = useState<typeof AVAILABLE_USERS[0] | null>(null);
+    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [displayName, setDisplayName] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -67,6 +69,40 @@ export function AdminLogin() {
 
     const from = location.state?.from?.pathname || '/hall/events';
 
+    // Fetch the list of admin users to populate "Choose an Account"
+    useEffect(() => {
+        async function loadAdminUsers() {
+            try {
+                // Use service role for both queries to bypass RLS on the login page
+                const { data: adminData } = await supabaseAdmin.from('admin_users').select('user_id');
+                if (!adminData?.length) return;
+
+                const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
+                if (!authData) return;
+
+                const adminIds = new Set(adminData.map((a: { user_id: string }) => a.user_id));
+                const users: AdminUser[] = authData.users
+                    // Only show users who have completed setup (logged in at least once)
+                    .filter(u => adminIds.has(u.id) && u.email && u.last_sign_in_at)
+                    .map(u => {
+                        const name: string = u.user_metadata?.name || u.user_metadata?.full_name || '';
+                        return {
+                            id: u.id,
+                            email: u.email!,
+                            name,
+                            initials: (name || u.email!).charAt(0).toUpperCase(),
+                        };
+                    });
+                setAdminUsers(users);
+            } catch (e) {
+                console.error('Failed to load admin users:', e);
+            } finally {
+                setLoadingUsers(false);
+            }
+        }
+        loadAdminUsers();
+    }, []);
+
     // Auto-redirect if already authenticated; for invite flow, prompt password setup first
     useEffect(() => {
         if (!isLoading && isAdmin) {
@@ -81,6 +117,10 @@ export function AdminLogin() {
     const handleSetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        if (!displayName.trim()) {
+            setError('Please enter your name.');
+            return;
+        }
         if (newPassword.length < 8) {
             setError('Password must be at least 8 characters.');
             return;
@@ -90,7 +130,10 @@ export function AdminLogin() {
             return;
         }
         setSettingPassword(true);
-        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+        const { error: updateError } = await supabase.auth.updateUser({
+            password: newPassword,
+            data: { name: displayName.trim() }
+        });
         setSettingPassword(false);
         if (updateError) {
             setError(updateError.message);
@@ -125,7 +168,7 @@ export function AdminLogin() {
         }
     };
 
-    const handleUserSelect = (user: typeof AVAILABLE_USERS[0]) => {
+    const handleUserSelect = (user: AdminUser) => {
         setSelectedUser(user);
         setPassword('');
         setError(null);
@@ -169,28 +212,34 @@ export function AdminLogin() {
                                 Choose an Account
                             </h3>
                             <div className="space-y-3">
-                                {AVAILABLE_USERS.map((user) => (
-                                    <button
-                                        key={user.id}
-                                        onClick={() => handleUserSelect(user)}
-                                        className="w-full group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-all duration-200 text-left"
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${user.avatarColor}`}>
-                                                {user.initials}
-                                            </div>
-                                            <div>
-                                                <div className="font-semibold text-gray-900 group-hover:text-primary-800 transition-colors">
-                                                    {user.name}
+                                {loadingUsers ? (
+                                    <div className="flex justify-center py-4">
+                                        <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                                    </div>
+                                ) : (
+                                    adminUsers.map((user) => (
+                                        <button
+                                            key={user.id}
+                                            onClick={() => handleUserSelect(user)}
+                                            className="w-full group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-all duration-200 text-left"
+                                        >
+                                            <div className="flex items-center space-x-4">
+                                                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                                                    {user.initials}
                                                 </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {user.role}
+                                                <div>
+                                                    <div className="font-semibold text-gray-900 group-hover:text-primary-800 transition-colors">
+                                                        {user.name || user.email}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {user.name ? user.email : 'Administrator'}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
-                                    </button>
-                                ))}
+                                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+                                        </button>
+                                    ))
+                                )}
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-gray-100">
@@ -222,11 +271,11 @@ export function AdminLogin() {
 
                             {step === 'enter-password' && selectedUser && (
                                 <div className="text-center mb-8">
-                                    <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center font-bold text-3xl mb-4 shadow-sm ${selectedUser.avatarColor}`}>
+                                    <div className="w-20 h-20 mx-auto rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-3xl mb-4 shadow-sm">
                                         {selectedUser.initials}
                                     </div>
                                     <h3 className="text-xl font-bold text-gray-900">
-                                        Welcome back, {selectedUser.name.split(' ')[0]}
+                                        {selectedUser.name ? `Welcome back, ${selectedUser.name}` : 'Welcome back'}
                                     </h3>
                                     <p className="text-sm text-gray-500 mt-1">
                                         {selectedUser.email}
@@ -356,6 +405,27 @@ export function AdminLogin() {
 
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
+                                        <UserIcon className="h-4 w-4 text-gray-500" />
+                                        <label htmlFor="display-name" className="block text-sm font-medium text-gray-700">
+                                            Your Name
+                                        </label>
+                                    </div>
+                                    <input
+                                        id="display-name"
+                                        type="text"
+                                        autoComplete="name"
+                                        required
+                                        autoFocus
+                                        value={displayName}
+                                        onChange={(e) => setDisplayName(e.target.value)}
+                                        className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                        placeholder="e.g. Claire Cotter"
+                                        disabled={settingPassword}
+                                    />
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
                                         <Lock className="h-4 w-4 text-gray-500" />
                                         <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
                                             New Password
@@ -366,7 +436,6 @@ export function AdminLogin() {
                                         type="password"
                                         autoComplete="new-password"
                                         required
-                                        autoFocus
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-lg tracking-widest placeholder:tracking-normal"

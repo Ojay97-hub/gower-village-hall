@@ -104,17 +104,20 @@ export function AdminUsers() {
                                                 <td className="p-4 pl-6">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
-                                                            {u.email.charAt(0).toUpperCase()}
+                                                            {(u.name || u.email).charAt(0).toUpperCase()}
                                                         </div>
                                                         <div>
                                                             <div className="font-medium text-gray-900 flex items-center gap-2">
-                                                                {u.email}
+                                                                {u.name || u.email}
                                                                 {u.id === user?.id && (
                                                                     <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">
                                                                         You
                                                                     </span>
                                                                 )}
                                                             </div>
+                                                            {u.name && (
+                                                                <div className="text-sm text-gray-500">{u.email}</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </td>

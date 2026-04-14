@@ -12,7 +12,7 @@ type AuthContextType = {
     isMasterAdmin: boolean;
     isLoading: boolean;
     userEmail: string | null;
-    adminUsersList: { id: string; email: string; created_at: string }[];
+    adminUsersList: { id: string; email: string; name: string; created_at: string }[];
     fetchAdminUsers: () => Promise<void>;
     inviteAdminUser: (email: string) => Promise<{ error: Error | null }>;
     removeAdminUser: (id: string) => Promise<{ error: Error | null }>;
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isMasterAdmin, setIsMasterAdmin] = useState(false);
-    const [adminUsersList, setAdminUsersList] = useState<{ id: string; email: string; created_at: string }[]>([]);
+    const [adminUsersList, setAdminUsersList] = useState<{ id: string; email: string; name: string; created_at: string }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -118,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     return {
                         id: u.id,
                         email: u.email || '',
+                        name: u.user_metadata?.name || u.user_metadata?.full_name || '',
                         created_at: adminRecord?.created_at || u.created_at
                     };
                 });
