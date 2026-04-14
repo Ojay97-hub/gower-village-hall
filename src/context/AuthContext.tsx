@@ -105,8 +105,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers();
             if (authError) throw authError;
 
-            // Get admin allowed list
-            const { data: adminData, error: adminError } = await supabase.from('admin_users').select('*');
+            // Get admin allowed list — use service role to bypass RLS (users can only
+            // see their own row, so the anon client would only return Owen's entry)
+            const { data: adminData, error: adminError } = await supabaseAdmin.from('admin_users').select('*');
             if (adminError) throw adminError;
 
             // Map and combine
