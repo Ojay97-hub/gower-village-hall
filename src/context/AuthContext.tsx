@@ -165,8 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             if (id === user?.id) return { error: new Error('Cannot remove yourself.') };
             
-            // Remove from allowlist
-            const { error: dbError } = await supabase.from('admin_users').delete().eq('user_id', id);
+            // Remove from allowlist — use service role to bypass RLS
+            const { error: dbError } = await supabaseAdmin.from('admin_users').delete().eq('user_id', id);
             if (dbError) return { error: dbError };
             
             await fetchAdminUsers();
