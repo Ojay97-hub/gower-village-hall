@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users } from 'lucide-react';
+import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users, Facebook } from 'lucide-react';
 
 const hallGateEntrance = '/images/edited-hall-gate.webp';
 const hallSideView = '/images/edited-side-hall.webp';
@@ -458,6 +458,25 @@ export function Hall() {
           </div>
         </div>
 
+        {/* Floor Plan Section */}
+        <div className="mb-16 pt-8">
+          <div className="text-left max-w-3xl mb-8">
+            <h2 className="mb-4">Hall Floor Plan</h2>
+            <p className="text-lg text-gray-700 leading-relaxed">
+              View the layout of our village hall including facilities, access points, and capacity information.
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 md:p-10 border border-gray-200 shadow-sm">
+            <img
+              src="/images/hall-floor-plan.png"
+              alt="Village Hall Floor Plan showing main hall with max capacity of 80, kitchen, male and female W/C, disabled W/C, south facing lawn, ramp access, and defibrillator location"
+              className="w-full h-auto rounded-lg"
+              style={{ maxWidth: '800px', margin: '0 auto', display: 'block' }}
+              loading="lazy"
+            />
+          </div>
+        </div>
+
         {/* Activities Section */}
         <div id="activities" className="mb-20 pt-8">
           <div className="flex justify-between items-center mb-12">
@@ -490,8 +509,11 @@ export function Hall() {
                 <Palette className="w-6 h-6 text-gray-700 group-hover:text-primary-600" />
               </div>
               <h3 className="text-xl font-serif mb-4">Art Classes</h3>
-              <p className="text-gray-600 mb-8 text-sm leading-relaxed text-left">
+              <p className="text-gray-600 mb-4 text-sm leading-relaxed text-left">
                 Creative art sessions for all skill levels in a welcoming environment.
+              </p>
+              <p className="text-amber-600 text-xs italic mb-8">
+                Coming soon — no sessions currently scheduled, but planned for the near future.
               </p>
               <div className="mt-auto">
                 <Link to="/hall/events" className="text-sm font-medium text-gray-700 bg-gray-50 px-6 py-2 rounded-full hover:bg-gray-100 transition-colors p-2">
@@ -508,13 +530,25 @@ export function Hall() {
               <p className="text-gray-600 mb-8 text-sm leading-relaxed text-left">
                 Beautiful harmonies and community singing led by Kate Davies.
               </p>
-              <div className="mt-auto">
-                <Link
-                  to="/hall/events"
-                  className="text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center group/link transition-colors p-2"
+              <div className="mt-auto flex flex-col gap-2 w-full">
+                <a
+                  href="https://katedaviessinging.co.uk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base font-medium text-gray-600 hover:text-gray-800 flex items-center group/link transition-colors p-2"
                 >
-                  Learn more <span className="ml-1 transform group-hover/link:translate-x-1 transition-transform">→</span>
-                </Link>
+                  katedaviessinging.co.uk <span className="ml-1 transform group-hover/link:translate-x-1 transition-transform">→</span>
+                </a>
+                <a
+                  href="https://www.facebook.com/katedaviessinging"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-blue-600 transition-colors p-2 flex items-center gap-2"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-6 h-6" />
+                  <span className="text-base font-medium">View Facebook page</span>
+                </a>
               </div>
             </div>
           </div>
@@ -523,235 +557,237 @@ export function Hall() {
       </div>
 
       {/* Join Friends Email Modal */}
-      {showFriendsModal && createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-          }}
-        >
-          {/* Backdrop */}
+      {
+        showFriendsModal && createPortal(
           <div
-            onClick={handleCloseFriendsModal}
             style={{
-              position: 'absolute',
+              position: 'fixed',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
-              backdropFilter: 'blur(4px)',
-            }}
-          />
-
-          {/* Modal */}
-          <div
-            className="relative rounded-2xl mx-auto overflow-hidden"
-            style={{
-              width: '100%',
-              maxWidth: '28rem',
-              backgroundColor: 'white',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
             }}
           >
-            {/* Green header strip */}
+            {/* Backdrop */}
             <div
-              className="text-center"
+              onClick={handleCloseFriendsModal}
               style={{
-                padding: '2rem 2rem 1.5rem',
-                background: 'linear-gradient(135deg, #3d5a3e 0%, #5a7d52 100%)',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                backdropFilter: 'blur(4px)',
+              }}
+            />
+
+            {/* Modal */}
+            <div
+              className="relative rounded-2xl mx-auto overflow-hidden"
+              style={{
+                width: '100%',
+                maxWidth: '28rem',
+                backgroundColor: 'white',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
               }}
             >
-              <button
-                onClick={handleCloseFriendsModal}
-                className="rounded-lg"
-                style={{
-                  position: 'absolute',
-                  top: '0.75rem',
-                  right: '0.75rem',
-                  padding: '0.375rem',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <X className="w-5 h-5" />
-              </button>
-
+              {/* Green header strip */}
               <div
-                className="rounded-full flex items-center justify-center mx-auto"
-                style={{ width: '3.5rem', height: '3.5rem', backgroundColor: 'rgba(255, 255, 255, 0.15)', marginBottom: '1rem' }}
-              >
-                <Users style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
-              </div>
-              <h3
+                className="text-center"
                 style={{
-                  fontSize: '1.25rem',
-                  fontFamily: 'var(--font-family-serif)',
-                  color: 'white',
-                  marginBottom: '0.25rem',
+                  padding: '2rem 2rem 1.5rem',
+                  background: 'linear-gradient(135deg, #3d5a3e 0%, #5a7d52 100%)',
                 }}
               >
-                Welcome to Friends of<br />Gower Village Hall
-              </h3>
-              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                Join our community and stay connected
-              </p>
-            </div>
+                <button
+                  onClick={handleCloseFriendsModal}
+                  className="rounded-lg"
+                  style={{
+                    position: 'absolute',
+                    top: '0.75rem',
+                    right: '0.75rem',
+                    padding: '0.375rem',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X className="w-5 h-5" />
+                </button>
 
-            {/* Form area */}
-            <div style={{ padding: '1.5rem 2rem' }}>
-              {friendsSubmitted ? (
-                <div className="text-center" style={{ padding: '1rem 0' }}>
-                  <div
-                    className="rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#dcfce7' }}
-                  >
-                    <CheckCircle style={{ width: '1.75rem', height: '1.75rem', color: '#16a34a' }} />
-                  </div>
-                  <h4 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
-                    Welcome Aboard!
-                  </h4>
-                  <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>
-                    Thank you for your interest! We'll be in touch soon with more
-                    information about upcoming events and how you can get involved.
-                  </p>
-                  <button
-                    onClick={handleCloseFriendsModal}
-                    className="rounded-lg text-sm"
-                    style={{
-                      marginTop: '1.5rem',
-                      padding: '0.625rem 1.5rem',
-                      backgroundColor: 'var(--color-primary-600)',
-                      color: 'white',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 500,
-                    }}
-                  >
-                    Close
-                  </button>
+                <div
+                  className="rounded-full flex items-center justify-center mx-auto"
+                  style={{ width: '3.5rem', height: '3.5rem', backgroundColor: 'rgba(255, 255, 255, 0.15)', marginBottom: '1rem' }}
+                >
+                  <Users style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
                 </div>
-              ) : (
-                <>
-                  <p className="text-sm text-center leading-relaxed" style={{ color: '#4b5563', marginBottom: '1.25rem' }}>
-                    Enter your details below and we'll keep you updated on community news,
-                    events, and hall activities.
-                  </p>
+                <h3
+                  style={{
+                    fontSize: '1.25rem',
+                    fontFamily: 'var(--font-family-serif)',
+                    color: 'white',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  Welcome to Friends of<br />Gower Village Hall
+                </h3>
+                <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  Join our community and stay connected
+                </p>
+              </div>
 
-                  {friendsError && (
-                    <div className="rounded-lg" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
-                      <p className="text-sm" style={{ color: '#b91c1c' }}>{friendsError}</p>
+              {/* Form area */}
+              <div style={{ padding: '1.5rem 2rem' }}>
+                {friendsSubmitted ? (
+                  <div className="text-center" style={{ padding: '1rem 0' }}>
+                    <div
+                      className="rounded-full flex items-center justify-center mx-auto mb-4"
+                      style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#dcfce7' }}
+                    >
+                      <CheckCircle style={{ width: '1.75rem', height: '1.75rem', color: '#16a34a' }} />
                     </div>
-                  )}
-
-                  <form
-                    onSubmit={handleFriendsSubmit}
-                    className="flex flex-col"
-                    style={{ marginTop: '1rem', gap: '1rem' }}
-                  >
-                    <div>
-                      <label
-                        htmlFor="friends-name"
-                        className="block text-sm"
-                        style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
-                      >
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="friends-name"
-                        value={friendsName}
-                        onChange={(e) => setFriendsName(e.target.value)}
-                        placeholder="Your name"
-                        className="w-full border border-gray-200 rounded-lg text-sm"
-                        style={{
-                          padding: '0.75rem 1rem',
-                          backgroundColor: '#f9fafb',
-                          outline: 'none',
-                        }}
-                        disabled={friendsSubmitting}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="friends-email"
-                        className="block text-sm"
-                        style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
-                      >
-                        Email Address <span style={{ color: '#ef4444' }}>*</span>
-                      </label>
-                      <input
-                        type="email"
-                        id="friends-email"
-                        value={friendsEmail}
-                        onChange={(e) => setFriendsEmail(e.target.value)}
-                        placeholder="your@email.com"
-                        className="w-full border border-gray-200 rounded-lg text-sm"
-                        style={{
-                          padding: '0.75rem 1rem',
-                          backgroundColor: '#f9fafb',
-                          outline: 'none',
-                        }}
-                        required
-                        disabled={friendsSubmitting}
-                      />
-                    </div>
+                    <h4 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
+                      Welcome Aboard!
+                    </h4>
+                    <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>
+                      Thank you for your interest! We'll be in touch soon with more
+                      information about upcoming events and how you can get involved.
+                    </p>
                     <button
-                      type="submit"
-                      disabled={friendsSubmitting}
-                      className="w-full rounded-lg text-sm flex items-center justify-center gap-4"
+                      onClick={handleCloseFriendsModal}
+                      className="rounded-lg text-sm"
                       style={{
-                        marginTop: '0.5rem',
-                        padding: '0.75rem 1.5rem',
-                        backgroundColor: '#3d5a3e',
+                        marginTop: '1.5rem',
+                        padding: '0.625rem 1.5rem',
+                        backgroundColor: 'var(--color-primary-600)',
                         color: 'white',
-                        fontWeight: 500,
                         border: 'none',
-                        cursor: friendsSubmitting ? 'not-allowed' : 'pointer',
-                        opacity: friendsSubmitting ? 0.6 : 1,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!friendsSubmitting) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#4a6741';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#3d5a3e';
+                        cursor: 'pointer',
+                        fontWeight: 500,
                       }}
                     >
-                      {friendsSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4" style={{ animation: 'spin 1s linear infinite' }} />
-                          Joining...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="w-4 h-4" />
-                          Join Friends
-                        </>
-                      )}
+                      Close
                     </button>
-                  </form>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-center leading-relaxed" style={{ color: '#4b5563', marginBottom: '1.25rem' }}>
+                      Enter your details below and we'll keep you updated on community news,
+                      events, and hall activities.
+                    </p>
 
-                  <p className="text-center mt-4" style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                    We respect your privacy. Unsubscribe at any time.
-                  </p>
-                </>
-              )}
+                    {friendsError && (
+                      <div className="rounded-lg" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
+                        <p className="text-sm" style={{ color: '#b91c1c' }}>{friendsError}</p>
+                      </div>
+                    )}
+
+                    <form
+                      onSubmit={handleFriendsSubmit}
+                      className="flex flex-col"
+                      style={{ marginTop: '1rem', gap: '1rem' }}
+                    >
+                      <div>
+                        <label
+                          htmlFor="friends-name"
+                          className="block text-sm"
+                          style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
+                        >
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          id="friends-name"
+                          value={friendsName}
+                          onChange={(e) => setFriendsName(e.target.value)}
+                          placeholder="Your name"
+                          className="w-full border border-gray-200 rounded-lg text-sm"
+                          style={{
+                            padding: '0.75rem 1rem',
+                            backgroundColor: '#f9fafb',
+                            outline: 'none',
+                          }}
+                          disabled={friendsSubmitting}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="friends-email"
+                          className="block text-sm"
+                          style={{ marginBottom: '0.375rem', color: '#374151', fontWeight: 500 }}
+                        >
+                          Email Address <span style={{ color: '#ef4444' }}>*</span>
+                        </label>
+                        <input
+                          type="email"
+                          id="friends-email"
+                          value={friendsEmail}
+                          onChange={(e) => setFriendsEmail(e.target.value)}
+                          placeholder="your@email.com"
+                          className="w-full border border-gray-200 rounded-lg text-sm"
+                          style={{
+                            padding: '0.75rem 1rem',
+                            backgroundColor: '#f9fafb',
+                            outline: 'none',
+                          }}
+                          required
+                          disabled={friendsSubmitting}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={friendsSubmitting}
+                        className="w-full rounded-lg text-sm flex items-center justify-center gap-4"
+                        style={{
+                          marginTop: '0.5rem',
+                          padding: '0.75rem 1.5rem',
+                          backgroundColor: '#3d5a3e',
+                          color: 'white',
+                          fontWeight: 500,
+                          border: 'none',
+                          cursor: friendsSubmitting ? 'not-allowed' : 'pointer',
+                          opacity: friendsSubmitting ? 0.6 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!friendsSubmitting) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#4a6741';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#3d5a3e';
+                        }}
+                      >
+                        {friendsSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4" style={{ animation: 'spin 1s linear infinite' }} />
+                            Joining...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="w-4 h-4" />
+                            Join Friends
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    <p className="text-center mt-4" style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                      We respect your privacy. Unsubscribe at any time.
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )
+      }
 
-    </div>
+    </div >
   );
 }

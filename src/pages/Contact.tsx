@@ -62,25 +62,19 @@ export function Contact() {
                     info@penmaenvillagehall.org
                   </a>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Phone</p>
-                  <a
-                    href="tel:01792123456"
-                    className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                  >
-                    01792 123 456
-                  </a>
-                </div>
               </div>
+              <p className="text-xs text-gray-500 mt-4">
+                For any enquiries, please contact us at the email address above and we'll get back to you as soon as possible.
+              </p>
             </div>
 
-            {/* Office Hours Card */}
+            {/* Operating Hours Card */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-primary-600" />
                 </div>
-                <h2 className="text-lg font-semibold">Office Hours</h2>
+                <h2 className="text-lg font-semibold">Operating Hours</h2>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-700">
@@ -97,7 +91,7 @@ export function Contact() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-4">
-                * Hall bookings available outside these hours
+                * These hours are a guide only. If you're looking to make a booking, we're happy to negotiate and accommodate specific requirements — just get in touch.
               </p>
             </div>
           </div>
