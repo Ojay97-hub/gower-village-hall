@@ -2,7 +2,9 @@ import { useState, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users, Facebook } from 'lucide-react';
+import { BookingCalendar } from '../components/hall/BookingCalendar';
+import '../components/hall/BookingCalendar.css';
+import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users, Facebook, Sunrise, Sun, Moon, CalendarDays } from 'lucide-react';
 
 const hallGateEntrance = '/images/edited-hall-gate.webp';
 const hallSideView = '/images/edited-side-hall.webp';
@@ -15,6 +17,7 @@ export function Hall() {
     phone: '',
     date: '',
     endDate: '',
+    sessions: [] as ('morning' | 'afternoon' | 'evening' | 'allday')[],
     details: '',
   });
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
@@ -128,6 +131,7 @@ export function Hall() {
       phone: bookingForm.phone.trim() || '',
       date: bookingForm.date,
       endDate: bookingForm.endDate || '',
+      session: bookingForm.sessions.join(', '),
       details: bookingForm.details.trim(),
     };
 
@@ -145,7 +149,7 @@ export function Hall() {
 
       if (response.ok && data.success) {
         setBookingStatus('success');
-        setBookingForm({ name: '', email: '', phone: '', date: '', endDate: '', details: '' });
+        setBookingForm({ name: '', email: '', phone: '', date: '', endDate: '', sessions: [], details: '' });
       } else {
         setBookingStatus('error');
         setBookingError(data.error || 'Something went wrong. Please try again.');
@@ -216,66 +220,96 @@ export function Hall() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
 
-        {/* Book the Hall Section */}
+        {/* ===== SECTION 1: Floor Plan + Booking Info ===== */}
+        <div className="mb-16 pt-8">
+          {/* Floor Plan */}
+          <div className="mb-10">
+            <div className="text-left max-w-3xl mb-8">
+              <h2 className="mb-4">Hall Floor Plan</h2>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                View the layout of our village hall including facilities, access points, and capacity information.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 md:p-10 border border-gray-200 shadow-sm">
+              <img
+                src="/images/hall-floor-plan.png"
+                alt="Village Hall Floor Plan showing main hall with max capacity of 80, kitchen, male and female W/C, disabled W/C, south facing lawn, ramp access, and defibrillator location"
+                className="w-full h-auto rounded-lg"
+                style={{ maxWidth: '800px', margin: '0 auto', display: 'block' }}
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          {/* Booking Info Cards - Underneath Floor Plan */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Opening Hours Card */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-gray-700" />
+              </div>
+              <h3 className="mb-3">Opening Hours</h3>
+              <p className="text-gray-600 text-sm">
+                Available for hire 7 days a week.<br />
+                Sessions can be broken into morning / afternoon / evening.
+              </p>
+            </div>
+
+            {/* Hire Rates Card */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <PoundSterling className="w-6 h-6 text-gray-700" />
+              </div>
+              <h3 className="mb-3">Hire Rates</h3>
+              <p className="text-gray-600 text-sm">
+                £40 a session + electricity<br />
+                or £120 a day.
+              </p>
+            </div>
+
+            {/* Parking Card */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Car className="w-6 h-6 text-gray-700" />
+              </div>
+              <h3 className="mb-3">Parking</h3>
+              <p className="text-gray-600 text-sm">
+                £10 parking fee for field council.<br />
+                Parking for up to 20 vehicles.
+              </p>
+            </div>
+
+            {/* Capacity Card */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl text-gray-700 font-semibold">80</span>
+              </div>
+              <h3 className="mb-3">Capacity</h3>
+              <p className="text-gray-600 text-sm">
+                Max capacity: 80
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== SECTION 2: Booking Calendar + Booking Form ===== */}
         <div id="booking" className="mb-16 pt-8">
           <div className="text-left max-w-3xl mb-12">
             <h2 className="mb-6">Book the Hall</h2>
             <p className="text-lg text-gray-700 leading-relaxed">
               Our village hall is available for hire for a variety of events including parties,
-              meetings, workshops, and celebrations. The hall offers a flexible space with
-              kitchen facilities and parking.
+              meetings, workshops, and celebrations. Check availability below and submit your enquiry.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Side - Info Cards */}
-            <div className="space-y-6 flex flex-col">
-              {/* Opening Hours Card */}
-              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Clock className="w-6 h-6 text-gray-700" />
-                </div>
-                <h3 className="mb-3">Opening Hours</h3>
-                <p className="text-gray-600 text-sm">
-                  Available for hire 7 days a week.<br />
-                  Sessions can be broken into morning / afternoon / evening.
-                </p>
-              </div>
-
-              {/* Hire Rates Card */}
-              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <PoundSterling className="w-6 h-6 text-gray-700" />
-                </div>
-                <h3 className="mb-3">Hire Rates</h3>
-                <p className="text-gray-600 text-sm">
-                  £40 a session + electricity<br />
-                  or £120 a day.
-                </p>
-              </div>
-
-              {/* Parking Card */}
-              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Car className="w-6 h-6 text-gray-700" />
-                </div>
-                <h3 className="mb-3">Parking</h3>
-                <p className="text-gray-600 text-sm">
-                  £10 parking fee for field council.<br />
-                  Parking for up to 20 vehicles.
-                </p>
-              </div>
-
-              {/* Capacity Card */}
-              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex-grow">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl text-gray-700 font-semibold">80</span>
-                </div>
-                <h3 className="mb-3">Capacity</h3>
-                <p className="text-gray-600 text-sm">
-                  Max capacity: 80
-                </p>
-              </div>
+            {/* Left Side - Booking Calendar */}
+            <div className="flex flex-col">
+              <BookingCalendar
+                selectedDate={bookingForm.date}
+                selectedEndDate={bookingForm.endDate}
+                onDateSelect={(date, endDate) => setBookingForm(prev => ({ ...prev, date, endDate }))}
+              />
             </div>
 
             {/* Right Side - Booking Form */}
@@ -368,38 +402,73 @@ export function Hall() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="date" className="block text-sm mb-2 text-gray-700 font-medium">
-                        Start Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        id="date"
-                        name="date"
-                        value={bookingForm.date}
-                        onChange={handleBookingChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        required
-                        disabled={bookingSubmitting}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="endDate" className="block text-sm mb-2 text-gray-700 font-medium">
-                        End Date <span className="text-gray-500 font-normal">(optional)</span>
-                      </label>
-                      <input
-                        type="date"
-                        id="endDate"
-                        name="endDate"
-                        value={bookingForm.endDate}
-                        min={bookingForm.date || undefined}
-                        onChange={handleBookingChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        disabled={bookingSubmitting}
-                      />
+                  {/* Selected Dates - from calendar */}
+                  <div>
+                    <label className="block text-sm mb-2 text-gray-700 font-medium">
+                      Selected Date(s) <span className="text-red-500">*</span>
+                    </label>
+                    <div className={`w-full px-4 py-3 rounded-lg border text-sm ${
+                      bookingForm.date
+                        ? 'bg-green-50 border-green-200 text-green-800'
+                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                    }`}>
+                      {bookingForm.date ? (
+                        <span className="font-medium">
+                          {new Date(bookingForm.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                          {bookingForm.endDate && (
+                            <>
+                              {' → '}
+                              {new Date(bookingForm.endDate + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                            </>
+                          )}
+                        </span>
+                      ) : (
+                        '← Select your dates on the calendar'
+                      )}
                     </div>
                   </div>
+
+                  {/* Session Time Selector */}
+                  <div>
+                    <label className="block text-sm mb-2 text-gray-700 font-medium">
+                      Session Time <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { value: 'morning', label: 'Morning', Icon: Sunrise, desc: '8am – 12pm' },
+                        { value: 'afternoon', label: 'Afternoon', Icon: Sun, desc: '12pm – 5pm' },
+                        { value: 'evening', label: 'Evening', Icon: Moon, desc: '5pm – 10pm' },
+                        { value: 'allday', label: 'All Day', Icon: CalendarDays, desc: 'Full day' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setBookingForm(prev => {
+                            const val = opt.value as 'morning' | 'afternoon' | 'evening' | 'allday';
+                            if (val === 'allday') {
+                              return { ...prev, sessions: prev.sessions.includes('allday') ? [] : ['allday'] };
+                            }
+                            const without = prev.sessions.filter(s => s !== 'allday');
+                            return {
+                              ...prev,
+                              sessions: without.includes(val) ? without.filter(s => s !== val) : [...without, val],
+                            };
+                          })}
+                          disabled={bookingSubmitting}
+                          className={`flex flex-col items-center gap-1 px-3 py-3 rounded-lg border-2 transition-all text-center ${
+                            bookingForm.sessions.includes(opt.value as 'morning' | 'afternoon' | 'evening' | 'allday')
+                              ? 'border-primary-500 bg-primary-50 text-primary-800 shadow-sm'
+                              : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          <opt.Icon className="w-5 h-5" />
+                          <span className="text-xs font-semibold">{opt.label}</span>
+                          <span className="text-[0.65rem] opacity-70">{opt.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <label htmlFor="details" className="block text-sm mb-2 text-gray-700 font-medium">
                       Event Details <span className="text-red-500">*</span>
@@ -416,6 +485,33 @@ export function Hall() {
                       disabled={bookingSubmitting}
                     />
                   </div>
+
+                  {/* Booking summary confirmation */}
+                  {(bookingForm.date || bookingForm.sessions.length > 0) && (
+                    <div className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 space-y-1">
+                      <p className="font-medium text-gray-600 mb-1">You're enquiring about:</p>
+                      {bookingForm.date && (
+                        <p>
+                          <span className="text-gray-400">Date: </span>
+                          {new Date(bookingForm.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                          {bookingForm.endDate && (
+                            <> → {new Date(bookingForm.endDate + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</>
+                          )}
+                        </p>
+                      )}
+                      {bookingForm.sessions.length > 0 && (
+                        <p>
+                          <span className="text-gray-400">Session: </span>
+                          {bookingForm.sessions.map(s => ({
+                            morning: 'Morning (8am – 12pm)',
+                            afternoon: 'Afternoon (12pm – 5pm)',
+                            evening: 'Evening (5pm – 10pm)',
+                            allday: 'All Day',
+                          }[s])).join(' + ')}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -455,25 +551,6 @@ export function Hall() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Floor Plan Section */}
-        <div className="mb-16 pt-8">
-          <div className="text-left max-w-3xl mb-8">
-            <h2 className="mb-4">Hall Floor Plan</h2>
-            <p className="text-lg text-gray-700 leading-relaxed">
-              View the layout of our village hall including facilities, access points, and capacity information.
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 md:p-10 border border-gray-200 shadow-sm">
-            <img
-              src="/images/hall-floor-plan.png"
-              alt="Village Hall Floor Plan showing main hall with max capacity of 80, kitchen, male and female W/C, disabled W/C, south facing lawn, ramp access, and defibrillator location"
-              className="w-full h-auto rounded-lg"
-              style={{ maxWidth: '800px', margin: '0 auto', display: 'block' }}
-              loading="lazy"
-            />
           </div>
         </div>
 
