@@ -12,6 +12,7 @@ import { EventProvider } from './context/EventContext';
 import { GalleryProvider } from './context/GalleryContext';
 import { BlogProvider } from './context/BlogContext';
 import { CommitteeProvider } from './context/CommitteeContext';
+import { CoffeeMorningProvider } from './context/CoffeeMorningContext';
 
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
 const Hall = lazy(() => import('./pages/Hall').then(m => ({ default: m.Hall })));
@@ -28,6 +29,8 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers').then(m => ({ default:
 const AdminBookings = lazy(() => import('./pages/AdminBookings').then(m => ({ default: m.AdminBookings })));
 const AdminCommittee = lazy(() => import('./pages/AdminCommittee').then(m => ({ default: m.AdminCommittee })));
 const CoffeeMorning = lazy(() => import('./pages/CoffeeMorning').then(m => ({ default: m.CoffeeMorning })));
+const CoffeeMorningArticle = lazy(() => import('./pages/CoffeeMorningArticle').then(m => ({ default: m.CoffeeMorningArticle })));
+const AdminCoffeeMorning = lazy(() => import('./pages/AdminCoffeeMorning').then(m => ({ default: m.AdminCoffeeMorning })));
 const ForFamilies = lazy(() => import('./pages/ForFamilies').then(m => ({ default: m.ForFamilies })));
 
 /** Reverse guard: redirects to /hall/events if already logged in */
@@ -40,6 +43,7 @@ export default function App() {
         <EventProvider>
           <GalleryProvider>
             <BlogProvider>
+            <CoffeeMorningProvider>
             <CommitteeProvider>
               <ScrollToTop />
               <CanonicalUrl />
@@ -52,6 +56,7 @@ export default function App() {
                     <Route path="/hall" element={<Hall />} />
                     <Route path="/hall/events" element={<Events />} />
                     <Route path="/hall/coffee-morning" element={<CoffeeMorning />} />
+                    <Route path="/hall/coffee-morning/:slug" element={<CoffeeMorningArticle />} />
                     <Route path="/hall/for-families" element={<ForFamilies />} />
                     <Route path="/churches" element={<Churches />} />
                     <Route path="/committee" element={<Committee />} />
@@ -74,6 +79,9 @@ export default function App() {
                     <Route element={<AdminRoute requiredRole="committee" />}>
                       <Route path="/admin/committee" element={<AdminCommittee />} />
                     </Route>
+                    <Route element={<AdminRoute requiredRole="coffee_mornings" />}>
+                      <Route path="/admin/coffee-morning" element={<AdminCoffeeMorning />} />
+                    </Route>
 
                     {/* Master Admin restricted route */}
                     <Route element={<MasterAdminRoute />}>
@@ -86,6 +94,7 @@ export default function App() {
                 <AdminToolbar />
               </div>
             </CommitteeProvider>
+            </CoffeeMorningProvider>
             </BlogProvider>
           </GalleryProvider>
         </EventProvider>

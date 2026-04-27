@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Coffee, Clock, CalendarDays, Users, Plus, Edit2, Trash2, AlertTriangle, X } from 'lucide-react';
+import { Coffee, Clock, CalendarDays, Users, Plus, Edit2, Trash2, AlertTriangle, X, Heart, ArrowRight, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useGallery, GalleryImage } from '../context/GalleryContext';
 import { useAuth } from '../context/AuthContext';
+import { useCoffeeMorning } from '../context/CoffeeMorningContext';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { GalleryImageForm } from '../components/gallery/GalleryImageForm';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import cakeDisplay from '../assets/cake-display.jpg';
 import flowerArrangement from '../assets/flower-arrangement.jpg';
+import cakeMorningSummer from '../assets/cake-morning-summer.webp';
 
 const defaultGalleryImages = [
   { id: 'default-1', image_url: cakeDisplay, label: 'Cake display', display_order: 1, created_at: '', grid_size: 'large' as const },
@@ -82,7 +84,9 @@ function useCountdown(target: Date) {
 
 export function CoffeeMorning() {
   const { galleryImages, loading: galleryLoading, deleteGalleryImage, reorderGalleryImages } = useGallery();
-  const { isAdmin } = useAuth();
+  const { updates, loading: updatesLoading } = useCoffeeMorning();
+  const { isAdmin, hasRole } = useAuth();
+  const navigate = useNavigate();
 
   const nextDate = getNextCoffeeMorning();
   const countdown = useCountdown(nextDate);
@@ -95,6 +99,8 @@ export function CoffeeMorning() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [draggedImage, setDraggedImage] = useState<GalleryImage | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [updatesPage, setUpdatesPage] = useState(0);
+  const UPDATES_PER_PAGE = 3;
 
   const displayImages = (isAdmin || galleryImages.length > 0) ? galleryImages : defaultGalleryImages;
 
@@ -272,6 +278,208 @@ export function CoffeeMorning() {
         </div>
       </section>
 
+      {/* Latest Updates */}
+      <section className="py-16 border-b border-gray-100" style={{ backgroundColor: '#f8f7f4' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+            <div>
+              <p className="text-sm font-medium text-primary-600 uppercase tracking-widest mb-2">Latest news</p>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-family-serif)',
+                  fontSize: 'clamp(1.75rem, 3vw, 2.25rem)',
+                  fontWeight: 400,
+                  color: '#2d2d2d',
+                  marginBottom: '6px',
+                }}
+              >
+                Recent Updates
+              </h2>
+              <p className="text-gray-600">See what we've been raising money for and how each morning went.</p>
+            </div>
+            {isAdmin && hasRole('coffee_mornings') && (
+              <button
+                onClick={() => navigate('/admin/coffee-morning')}
+                className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm self-start md:self-auto"
+              >
+                <Settings className="w-4 h-4" />
+                Manage Updates
+              </button>
+            )}
+          </div>
+
+          {updatesLoading && updates.length === 0 ? (
+            <div className="flex justify-center items-center py-16">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
+            </div>
+          ) : updates.length === 0 ? (
+            <div
+              className="rounded-2xl text-center"
+              style={{ backgroundColor: 'white', border: '1px dashed #d1d5db', padding: '48px 24px' }}
+            >
+              <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Coffee className="w-6 h-6 text-primary-600" />
+              </div>
+              <p className="text-gray-700 font-medium mb-1">No updates yet</p>
+              <p className="text-sm text-gray-500">
+                Check back after our next coffee morning to see what we raised.
+              </p>
+            </div>
+          ) : (() => {
+            const totalPages = Math.ceil(updates.length / UPDATES_PER_PAGE);
+            const pageUpdates = updates.slice(updatesPage * UPDATES_PER_PAGE, (updatesPage + 1) * UPDATES_PER_PAGE);
+            return (
+              <>
+                <div
+                  className="grid"
+                  style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}
+                >
+                  {pageUpdates.map((u) => (
+                    <Link
+                      key={u.id}
+                      to={`/hall/coffee-morning/${u.slug}`}
+                      className="rounded-2xl overflow-hidden flex flex-col group"
+                      style={{
+                        backgroundColor: 'white',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                        textDecoration: 'none',
+                        transition: 'box-shadow 0.3s, transform 0.3s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div className="relative overflow-hidden bg-gray-100" style={{ height: '220px' }}>
+                        <img
+                          src={u.hero_image_url || cakeMorningSummer}
+                          alt={u.title}
+                          className="w-full h-full"
+                          style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }}
+                        />
+                        {!u.published && (
+                          <span className="absolute top-3 left-3 bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide">
+                            DRAFT
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col flex-1" style={{ padding: '24px' }}>
+                        <div className="flex items-center text-xs text-gray-500 mb-3" style={{ gap: '12px' }}>
+                          {u.event_date && (
+                            <span className="inline-flex items-center" style={{ gap: '6px' }}>
+                              <CalendarDays className="w-3.5 h-3.5" />
+                              {new Date(u.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
+                        <h3
+                          style={{
+                            fontFamily: 'var(--font-family-serif)',
+                            fontSize: '1.2rem',
+                            lineHeight: 1.35,
+                            fontWeight: 400,
+                            color: '#2d2d2d',
+                            marginBottom: '10px',
+                          }}
+                        >
+                          {u.title}
+                        </h3>
+                        <p
+                          className="text-sm flex-1"
+                          style={{
+                            color: '#666',
+                            lineHeight: 1.6,
+                            marginBottom: '16px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {u.excerpt}
+                        </p>
+                        {(u.fundraising_for || u.amount_raised != null) && (
+                          <div
+                            className="flex items-center gap-2 rounded-lg mb-4"
+                            style={{
+                              backgroundColor: 'rgba(107, 117, 100, 0.08)',
+                              padding: '8px 12px',
+                              border: '1px solid rgba(107, 117, 100, 0.15)',
+                            }}
+                          >
+                            <Heart className="w-4 h-4 flex-shrink-0" style={{ color: '#5c6555' }} />
+                            <p className="text-xs flex-1 truncate" style={{ color: '#3f463b' }}>
+                              {u.amount_raised != null ? (
+                                <>
+                                  <span className="font-semibold">£{Number(u.amount_raised).toFixed(2)}</span>
+                                  {u.fundraising_for && <> raised for {u.fundraising_for}</>}
+                                </>
+                              ) : (
+                                <>Raising money for <span className="font-semibold">{u.fundraising_for}</span></>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                        <span
+                          className="inline-flex items-center text-sm font-medium mt-auto"
+                          style={{ color: '#5c6555', gap: '6px' }}
+                        >
+                          Read update
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-8">
+                    <button
+                      onClick={() => setUpdatesPage(p => p - 1)}
+                      disabled={updatesPage === 0}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: 'white', borderColor: '#d1d5db', color: '#374151' }}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Newer
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: totalPages }).map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setUpdatesPage(i)}
+                          className="rounded-full transition-all"
+                          style={{
+                            width: i === updatesPage ? '24px' : '8px',
+                            height: '8px',
+                            backgroundColor: i === updatesPage ? '#5c6555' : '#d1d5db',
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setUpdatesPage(p => p + 1)}
+                      disabled={updatesPage === totalPages - 1}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: 'white', borderColor: '#d1d5db', color: '#374151' }}
+                    >
+                      Older
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      </section>
+
       {/* Gallery */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -332,7 +540,7 @@ export function CoffeeMorning() {
                   className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4"
                   style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
                 >
-                  {displayImages.map((image, index) => (
+                  {displayImages.map((image) => (
                     <div
                       key={image.id}
                       className="group relative flex-none w-72 snap-start overflow-hidden rounded-2xl shadow-md"

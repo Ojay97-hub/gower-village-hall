@@ -37,7 +37,7 @@ export function Header() {
       label: "Hall",
       path: "/hall",
       children: [
-        { label: "The Hall", path: "/hall" },
+        { label: "Book the Hall", path: "/hall" },
         { label: "Events Schedule", path: "/hall/events" },
         { label: "Coffee Mornings", path: "/hall/coffee-morning" },
         { label: "For Families", path: "/hall/for-families" }
@@ -106,7 +106,7 @@ export function Header() {
                       {activeDropdown === item.label && (
                         <div className="absolute top-full left-0 w-48 pt-2">
                           <div className="bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden py-2">
-                            {item.children.filter(child => child.path !== item.path).map((child) => (
+                            {item.children.map((child) => (
                               <Link
                                 key={child.path}
                                 to={child.path}
