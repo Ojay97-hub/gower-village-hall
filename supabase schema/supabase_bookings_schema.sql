@@ -19,7 +19,12 @@ create table if not exists public.bookings (
 
 alter table public.bookings enable row level security;
 
--- Admins can read all bookings
+-- Public (unauthenticated) users can read confirmed bookings only
+create policy "Public can read confirmed bookings"
+  on public.bookings for select
+  using (status = 'confirmed');
+
+-- Admins can read all bookings (pending, confirmed, declined)
 create policy "Admins can read bookings"
   on public.bookings for select
   using (exists (select 1 from public.admin_users where user_id = auth.uid()));

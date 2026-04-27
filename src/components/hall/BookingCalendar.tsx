@@ -5,14 +5,10 @@ import { supabase } from '../../lib/supabaseClient';
 interface Booking {
   id: string;
   name: string;
-  email: string;
-  phone: string | null;
   event_type: string | null;
   date: string;
   end_date: string | null;
-  message: string | null;
   status: 'pending' | 'confirmed' | 'declined';
-  created_at: string;
 }
 
 interface BookingCalendarProps {
@@ -102,7 +98,7 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
     // Fetch bookings whose date range overlaps with this month
     const { data, error } = await supabase
       .from('bookings')
-      .select('*')
+      .select('id, name, event_type, date, end_date, status')
       .eq('status', 'confirmed')
       .lte('date', monthEnd)
       .or(`end_date.gte.${monthStart},and(end_date.is.null,date.gte.${monthStart})`)
