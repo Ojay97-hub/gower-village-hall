@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, UserRoundCog, ChevronDown, ChevronUp, Shield, BookOpen, Users, CalendarDays, UsersRound, Coffee, Landmark } from 'lucide-react';
+import { LogOut, UserRoundCog, ChevronDown, ChevronUp, Shield, BookOpen, Users, CalendarDays, UsersRound, Coffee, Landmark, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function AdminToolbar() {
@@ -16,6 +16,65 @@ export function AdminToolbar() {
     }, [isAdmin]);
 
     if (!isAdmin) return null;
+
+    const adminActions = [
+        isMasterAdmin ? {
+            key: 'users',
+            label: 'Manage Users',
+            title: 'Manage Users',
+            to: '/admin/users',
+            icon: Users,
+            className: 'bg-purple-50 border border-purple-100 hover:bg-purple-100 text-purple-700',
+        } : null,
+        hasRole('blog') ? {
+            key: 'blog',
+            label: 'Manage Blog',
+            title: 'Manage Blog',
+            to: '/admin/blog',
+            icon: BookOpen,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+        hasRole('blog') ? {
+            key: 'events',
+            label: 'Manage Events',
+            title: 'Manage Events',
+            to: '/hall/events',
+            icon: Calendar,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+        hasRole('bookings') ? {
+            key: 'bookings',
+            label: 'Manage Bookings',
+            title: 'Manage Bookings',
+            to: '/admin/bookings',
+            icon: CalendarDays,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+        hasRole('committee') ? {
+            key: 'committee',
+            label: 'Manage Committee',
+            title: 'Manage Committee',
+            to: '/admin/committee',
+            icon: UsersRound,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+        hasRole('coffee_mornings') ? {
+            key: 'coffee-morning',
+            label: 'Manage Coffee Morning',
+            title: 'Manage Coffee Morning',
+            to: '/admin/coffee-morning',
+            icon: Coffee,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+        hasRole('churches') ? {
+            key: 'churches',
+            label: 'Manage Churches',
+            title: 'Manage Churches',
+            to: '/churches',
+            icon: Landmark,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+    ].filter(Boolean);
 
     return (
         <div
@@ -66,66 +125,21 @@ export function AdminToolbar() {
 
                         {/* Action Buttons */}
                         <div className="flex flex-col gap-2">
-                            {isMasterAdmin && (
-                                <button
-                                    onClick={() => navigate('/admin/users')}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-100 text-purple-700 transition-all cursor-pointer shadow-sm"
-                                    title="Manage Users"
-                                >
-                                    <Users className="h-4 w-4" />
-                                    Manage Users
-                                </button>
-                            )}
-                            {hasRole('blog') && (
-                                <button
-                                    onClick={() => navigate('/admin/blog')}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white transition-all cursor-pointer shadow-sm"
-                                    title="Manage Blog"
-                                >
-                                    <BookOpen className="h-4 w-4" />
-                                    Manage Blog
-                                </button>
-                            )}
-                            {hasRole('bookings') && (
-                                <button
-                                    onClick={() => navigate('/admin/bookings')}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white transition-all cursor-pointer shadow-sm"
-                                    title="Manage Bookings"
-                                >
-                                    <CalendarDays className="h-4 w-4" />
-                                    Manage Bookings
-                                </button>
-                            )}
-                            {hasRole('committee') && (
-                                <button
-                                    onClick={() => navigate('/admin/committee')}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white transition-all cursor-pointer shadow-sm"
-                                    title="Manage Committee"
-                                >
-                                    <UsersRound className="h-4 w-4" />
-                                    Manage Committee
-                                </button>
-                            )}
-                            {hasRole('coffee_mornings') && (
-                                <button
-                                    onClick={() => navigate('/admin/coffee-morning')}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white transition-all cursor-pointer shadow-sm"
-                                    title="Manage Coffee Morning"
-                                >
-                                    <Coffee className="h-4 w-4" />
-                                    Manage Coffee Morning
-                                </button>
-                            )}
-                            {hasRole('churches') && (
-                                <button
-                                    onClick={() => navigate('/churches')}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white transition-all cursor-pointer shadow-sm"
-                                    title="Manage Churches"
-                                >
-                                    <Landmark className="h-4 w-4" />
-                                    Manage Churches
-                                </button>
-                            )}
+                            {adminActions.map((action) => {
+                                const Icon = action.icon;
+
+                                return (
+                                    <button
+                                        key={action.key}
+                                        onClick={() => navigate(action.to)}
+                                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-all cursor-pointer shadow-sm ${action.className}`}
+                                        title={action.title}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {action.label}
+                                    </button>
+                                );
+                            })}
                             <button
                                 onClick={switchUser}
                                 className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-white border border-primary-200 hover:bg-primary-50 hover:border-primary-300 text-gray-700 transition-all cursor-pointer shadow-sm"

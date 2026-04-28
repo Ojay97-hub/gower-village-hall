@@ -4,7 +4,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 // that is a documented vitest limitation. These tests cover the validation
 // and routing logic that executes before any email is sent.
 
-import handler from '../../api/send-newsletter.js'
+import handler from '../api/send-newsletter.js'
 
 function makeRes() {
   const res = { statusCode: 200, _body: null }
