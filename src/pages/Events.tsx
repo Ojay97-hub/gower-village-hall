@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useEvents, Event, RegularActivity } from '../context/EventContext';
 import { useAuth } from '../context/AuthContext';
 import { EventForm } from '../components/events/EventForm';
 import { RegularActivityForm } from '../components/events/RegularActivityForm';
-import { ActivityCalendar } from '../components/events/ActivityCalendar';
+import { ActivityCalendar, PrivateBooking } from '../components/events/ActivityCalendar';
+import { supabase } from '../lib/supabaseClient';
 import {
     Calendar, Clock, MapPin, Plus, Edit2, Trash2, AlertTriangle, X,
-    Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile
+    Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile, Lock, User, Phone, Mail
 } from 'lucide-react';
 
 // Icon mapping helper
@@ -69,10 +70,54 @@ const colorMap: Record<string, {
     },
 };
 
+interface BookingRecord extends PrivateBooking {
+    email: string;
+    phone: string | null;
+    message: string | null;
+}
+
+function getBookingDateStrings(date: string, endDate: string | null): string[] {
+    const [sy, sm, sd] = date.split('-').map(Number);
+    const start = new Date(sy, sm - 1, sd);
+    const end = endDate ? (() => { const [ey, em, ed] = endDate.split('-').map(Number); return new Date(ey, em - 1, ed); })() : start;
+    const dates: string[] = [];
+    const cur = new Date(start);
+    while (cur <= end) {
+        dates.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`);
+        cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+}
+
+function sessionOverlapsEvent(eventType: string | null, eventStartTime: string | null): boolean {
+    if (!eventType || eventType === 'allday') return true;
+    if (!eventStartTime) return true;
+    const hours = parseInt(eventStartTime.split(':')[0]);
+    return eventType.split(',').map(s => s.trim()).some(s => {
+        if (s === 'allday') return true;
+        if (s === 'morning' && hours < 12) return true;
+        if (s === 'afternoon' && hours >= 12 && hours < 17) return true;
+        if (s === 'evening' && hours >= 17) return true;
+        return false;
+    });
+}
+
+function formatSession(eventType: string | null): string {
+    if (!eventType) return 'Session TBC';
+    const labels: Record<string, string> = {
+        morning: 'Morning (8am–12pm)',
+        afternoon: 'Afternoon (12pm–5pm)',
+        evening: 'Evening (5pm–10pm)',
+        allday: 'All Day',
+    };
+    return eventType.split(',').map(s => labels[s.trim()] ?? s.trim()).join(' + ');
+}
+
 export function Events() {
     const { events, regularActivities, loading, deleteEvent, deleteRegularActivity } = useEvents();
-    const { hasRole } = useAuth();
+    const { hasRole, isMasterAdmin } = useAuth();
     const canManageEvents = hasRole('events');
+    const canViewPrivateBookings = isMasterAdmin || hasRole('events') || hasRole('bookings');
 
     // Event State
     const [showEventForm, setShowEventForm] = useState(false);
@@ -87,6 +132,39 @@ export function Events() {
     const [activityToDelete, setActivityToDelete] = useState<RegularActivity | null>(null);
 
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Private bookings
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'private'>('upcoming');
+    const [privateBookings, setPrivateBookings] = useState<BookingRecord[]>([]);
+    const [bookingsLoading, setBookingsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!canViewPrivateBookings) return;
+        setBookingsLoading(true);
+        supabase
+            .from('bookings')
+            .select('id, name, email, phone, date, end_date, event_type, message')
+            .eq('status', 'confirmed')
+            .order('date', { ascending: true })
+            .then(({ data }) => {
+                setPrivateBookings(data ?? []);
+                setBookingsLoading(false);
+            });
+    }, [canViewPrivateBookings]);
+
+    const conflicts = useMemo(() => {
+        if (!canViewPrivateBookings) return [];
+        const results: Array<{ booking: BookingRecord; event: Event; date: string }> = [];
+        privateBookings.forEach(booking => {
+            const bookingDates = new Set(getBookingDateStrings(booking.date, booking.end_date));
+            events.forEach(event => {
+                if (bookingDates.has(event.date) && sessionOverlapsEvent(booking.event_type, event.start_time)) {
+                    results.push({ booking, event, date: event.date });
+                }
+            });
+        });
+        return results;
+    }, [privateBookings, events, canViewPrivateBookings]);
 
     // --- Event Handlers ---
     const handleEdit = (event: Event) => {
@@ -229,13 +307,44 @@ export function Events() {
                             <h2 className="text-2xl font-bold text-gray-900">Activity Calendar</h2>
                         </div>
                     </div>
-                    <ActivityCalendar />
+                    <ActivityCalendar privateBookings={canViewPrivateBookings ? privateBookings : []} />
                 </div>
 
                 <div className="flex justify-between items-center mb-12">
-                    <h2 className="text-2xl font-bold text-gray-900">Upcoming Events</h2>
+                    {canViewPrivateBookings ? (
+                        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+                            <button
+                                onClick={() => setActiveTab('upcoming')}
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                    activeTab === 'upcoming'
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Upcoming Events
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('private')}
+                                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                    activeTab === 'private'
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                <Lock className="w-3.5 h-3.5" />
+                                Private Bookings
+                                {conflicts.length > 0 && (
+                                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                                        {conflicts.length}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    ) : (
+                        <h2 className="text-2xl font-bold text-gray-900">Upcoming Events</h2>
+                    )}
 
-                    {canManageEvents && (
+                    {canManageEvents && activeTab === 'upcoming' && (
                         <button
                             onClick={handleCreate}
                             className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
@@ -246,17 +355,145 @@ export function Events() {
                     )}
                 </div>
 
-                {loading ? (
+                {/* Double-booking warning banner */}
+                {activeTab === 'private' && canViewPrivateBookings && conflicts.length > 0 && (
+                    <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-amber-900 mb-2">
+                                    {conflicts.length} potential double-booking{conflicts.length > 1 ? 's' : ''} detected
+                                </h4>
+                                <div className="space-y-1.5">
+                                    {conflicts.map((c, i) => (
+                                        <div key={i} className="text-sm text-amber-800">
+                                            <span className="font-medium">{c.booking.name}</span>
+                                            {' '}overlaps with public event{' '}
+                                            <span className="font-medium">"{c.event.title}"</span>
+                                            {' '}on{' '}
+                                            <span className="font-medium">
+                                                {(() => { const [y,m,d] = c.date.split('-').map(Number); return new Date(y, m-1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }); })()}
+                                            </span>
+                                            {c.booking.email && (
+                                                <> — <a href={`mailto:${c.booking.email}`} className="underline hover:text-amber-900">contact hirer</a></>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-amber-700 mt-3">
+                                    Contact hirers to reschedule or confirm the arrangement is intentional.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Private Bookings Tab */}
+                {activeTab === 'private' && canViewPrivateBookings && (
+                    bookingsLoading ? (
+                        <div className="flex justify-center items-center py-20 min-h-[400px]">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+                        </div>
+                    ) : privateBookings.filter(b => new Date(b.date) >= new Date(new Date().toDateString())).length === 0 ? (
+                        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-200">
+                            <Lock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming private bookings</h3>
+                            <p className="text-gray-500">Confirmed hall hire bookings will appear here.</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-6">
+                            {privateBookings
+                                .filter(b => new Date(b.date) >= new Date(new Date().toDateString()))
+                                .map(booking => {
+                                    const isMultiDay = !!booking.end_date;
+                                    const [bY, bM, bD] = booking.date.split('-').map(Number);
+                                    const startDate = new Date(bY, bM - 1, bD);
+                                    return (
+                                        <div
+                                            key={booking.id}
+                                            className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-purple-100 overflow-hidden"
+                                        >
+                                            <div className="p-4 sm:p-6 md:p-8 flex gap-4 sm:gap-6 md:gap-8">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-purple-50 rounded-2xl flex flex-col items-center justify-center border border-purple-100 group-hover:bg-purple-600 group-hover:border-purple-600 transition-colors duration-300 shadow-sm">
+                                                        <span className="text-xl md:text-2xl font-bold text-purple-600 group-hover:text-white transition-colors duration-300">
+                                                            {startDate.getDate()}
+                                                        </span>
+                                                        <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-purple-700 group-hover:text-purple-100 transition-colors duration-300">
+                                                            {startDate.toLocaleDateString('en-GB', { month: 'short' })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex-grow min-w-0">
+                                                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4 w-full">
+                                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                            <Lock className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                                                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight group-hover:text-purple-600 transition-colors min-w-0">
+                                                                {booking.name}
+                                                            </h3>
+                                                        </div>
+                                                        <span className="inline-flex items-center px-4 mt-2 md:mt-0 py-1 md:py-2 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 uppercase tracking-wide self-start md:self-auto">
+                                                            Private Hire
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+                                                        {booking.email && (
+                                                            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                                                                <Mail className="w-3.5 h-3.5 text-purple-400" />
+                                                                <a href={`mailto:${booking.email}`} className="font-medium hover:text-purple-600 transition-colors">{booking.email}</a>
+                                                            </div>
+                                                        )}
+                                                        {booking.phone && (
+                                                            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                                                                <Phone className="w-3.5 h-3.5 text-purple-400" />
+                                                                <span className="font-medium">{booking.phone}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                                                        <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                                                            <Clock className="w-4 h-4 text-purple-400" />
+                                                            <span className="font-medium">{formatSession(booking.event_type)}</span>
+                                                        </div>
+                                                        {isMultiDay && booking.end_date && (
+                                                            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                                                                <Calendar className="w-4 h-4 text-purple-400" />
+                                                                <span className="font-medium">
+                                                                    Until {new Date(booking.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {booking.message && (
+                                                        <p className="mt-4 text-gray-500 text-sm leading-relaxed line-clamp-2 italic">
+                                                            "{booking.message}"
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    )
+                )}
+
+                {/* Upcoming Events Tab */}
+                {activeTab === 'upcoming' && loading ? (
                     <div className="flex justify-center items-center py-20 min-h-[400px]">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                     </div>
-                ) : events.filter(event => new Date(event.date) >= new Date(new Date().toDateString())).length === 0 ? (
+                ) : activeTab === 'upcoming' && events.filter(event => new Date(event.date) >= new Date(new Date().toDateString())).length === 0 ? (
                     <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-200">
                         <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming events</h3>
                         <p className="text-gray-500">Check back soon for updates!</p>
                     </div>
-                ) : (
+                ) : activeTab === 'upcoming' ? (
                     <div className="grid gap-6">
                         {events.filter(event => new Date(event.date) >= new Date(new Date().toDateString())).map((event) => (
                             <div
@@ -337,7 +574,7 @@ export function Events() {
                             </div>
                         ))}
                     </div>
-                )}
+                ) : null}
 
                 {/* Inline Event Form */}
                 {showEventForm && (

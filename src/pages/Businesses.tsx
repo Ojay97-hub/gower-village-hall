@@ -162,7 +162,7 @@ export function Businesses() {
           <div className="h-64 lg:h-auto bg-gray-200 relative min-h-[256px]">
             {mapLoaded ? (
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d9889.724353445883!2d-4.140629!3d51.569167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x486ef3e8c8c8c8c9%3A0x8c8c8c8c8c8c8c8c!2sPenmaen%2C%20Swansea!5e0!3m2!1sen!2suk!4v1234567890"
+                src="https://maps.google.com/maps?q=51.575396,-4.129141&t=k&z=17&output=embed"
                 title="Map of Penmaen and Nicholaston, Gower"
                 width="100%"
                 height="100%"

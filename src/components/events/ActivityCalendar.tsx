@@ -1,17 +1,15 @@
 import { useState, useMemo } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { useEvents } from '../../context/EventContext';
-import { Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile } from 'lucide-react';
 import 'react-day-picker/dist/style.css';
 import './ActivityCalendar.css';
 
-// Icon mapping helper
 const iconMap: Record<string, React.ElementType> = {
     Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile
 };
 
-// Color theme mapping - reusing from Events.tsx
 const colorMap: Record<string, {
     bgColor: string,
     textColor: string,
@@ -28,13 +26,25 @@ const colorMap: Record<string, {
     warm: { bgColor: '#fef3c7', textColor: '#78350f', borderColor: '#b45309', dotColor: '#f59e0b' },
 };
 
-// Event color (for one-time events)
 const eventColor = { bgColor: '#eff6ff', textColor: '#1e40af', borderColor: '#3b82f6', dotColor: '#3b82f6' };
+const bookingColor = { bgColor: '#f3e8ff', textColor: '#6b21a8', borderColor: '#9333ea', dotColor: '#9333ea' };
+
+export interface PrivateBooking {
+    id: string;
+    name: string;
+    date: string;
+    end_date: string | null;
+    event_type: string | null;
+}
+
+interface ActivityCalendarProps {
+    privateBookings?: PrivateBooking[];
+}
 
 interface CalendarItem {
     id: string;
     title: string;
-    type: 'event' | 'activity';
+    type: 'event' | 'activity' | 'booking';
     date: Date;
     startTime: string | null;
     endTime: string | null;
@@ -42,9 +52,9 @@ interface CalendarItem {
     schedule?: string | null;
     icon?: string;
     colorTheme: string;
+    sessionType?: string | null;
 }
 
-// Day of week mapping
 const dayOfWeekMap: Record<string, number> = {
     'sunday': 0, 'sundays': 0,
     'monday': 1, 'mondays': 1,
@@ -55,7 +65,6 @@ const dayOfWeekMap: Record<string, number> = {
     'saturday': 6, 'saturdays': 6,
 };
 
-// Ordinal mapping for "first", "second", etc.
 const ordinalMap: Record<string, number> = {
     'first': 1, '1st': 1,
     'second': 2, '2nd': 2,
@@ -64,59 +73,41 @@ const ordinalMap: Record<string, number> = {
     'last': -1,
 };
 
-// Parse time from schedule string (e.g., "10am", "2pm", "10:30am")
 function parseTimeFromSchedule(schedule: string): string | null {
     const timeMatch = schedule.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
     if (timeMatch) {
         let hours = parseInt(timeMatch[1]);
         const minutes = timeMatch[2] || '00';
         const period = timeMatch[3].toLowerCase();
-
         if (period === 'pm' && hours !== 12) hours += 12;
         if (period === 'am' && hours === 12) hours = 0;
-
         return `${hours.toString().padStart(2, '0')}:${minutes}`;
     }
     return null;
 }
 
-// Get all occurrences of a day of week in a month
 function getDayOccurrencesInMonth(year: number, month: number, dayOfWeek: number): Date[] {
     const dates: Date[] = [];
     const date = new Date(year, month, 1);
-
-    // Find first occurrence
     while (date.getDay() !== dayOfWeek) {
         date.setDate(date.getDate() + 1);
     }
-
-    // Get all occurrences
     while (date.getMonth() === month) {
         dates.push(new Date(date));
         date.setDate(date.getDate() + 7);
     }
-
     return dates;
 }
 
-// Get the nth occurrence of a day in a month
 function getNthDayOfMonth(year: number, month: number, dayOfWeek: number, n: number): Date | null {
     const occurrences = getDayOccurrencesInMonth(year, month, dayOfWeek);
-
-    if (n === -1) {
-        // Last occurrence
-        return occurrences[occurrences.length - 1] || null;
-    }
-
+    if (n === -1) return occurrences[occurrences.length - 1] || null;
     return occurrences[n - 1] || null;
 }
 
-// Generate dates for a recurring activity in a given month
 function generateRecurringDates(schedule: string, year: number, month: number): Date[] {
     const scheduleLower = schedule.toLowerCase();
     const dates: Date[] = [];
-
-    // Check for ordinal patterns first (e.g., "First Saturday", "Last Wednesday")
     for (const [ordinalWord, ordinalNum] of Object.entries(ordinalMap)) {
         if (scheduleLower.includes(ordinalWord)) {
             for (const [dayWord, dayNum] of Object.entries(dayOfWeekMap)) {
@@ -128,34 +119,59 @@ function generateRecurringDates(schedule: string, year: number, month: number): 
             }
         }
     }
-
-    // Check for weekly patterns (e.g., "Thursdays", "Every Thursday")
     for (const [dayWord, dayNum] of Object.entries(dayOfWeekMap)) {
         if (scheduleLower.includes(dayWord)) {
             return getDayOccurrencesInMonth(year, month, dayNum);
         }
     }
-
     return dates;
 }
 
-export function ActivityCalendar() {
+function generateDateRange(startDate: string, endDate: string | null): Date[] {
+    const [sy, sm, sd] = startDate.split('-').map(Number);
+    const start = new Date(sy, sm - 1, sd);
+    if (!endDate) return [start];
+    const [ey, em, ed] = endDate.split('-').map(Number);
+    const end = new Date(ey, em - 1, ed);
+    const dates: Date[] = [];
+    const current = new Date(start);
+    while (current <= end) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
+function formatSession(eventType: string | null): string {
+    if (!eventType) return '';
+    const labels: Record<string, string> = {
+        morning: 'Morning (8am–12pm)',
+        afternoon: 'Afternoon (12pm–5pm)',
+        evening: 'Evening (5pm–10pm)',
+        allday: 'All Day',
+    };
+    return eventType.split(',').map(s => labels[s.trim()] ?? s.trim()).join(' + ');
+}
+
+function getTheme(item: CalendarItem) {
+    if (item.colorTheme === 'event') return eventColor;
+    if (item.colorTheme === 'booking') return bookingColor;
+    return colorMap[item.colorTheme] || colorMap.sage;
+}
+
+export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps) {
     const { events, regularActivities, loading } = useEvents();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
-    // Combine events and activities into a unified format
     const calendarItems = useMemo(() => {
         const items: CalendarItem[] = [];
         const year = currentMonth.getFullYear();
         const month = currentMonth.getMonth();
 
-        // Add one-time events
         events.forEach(event => {
-            // Parse YYYY-MM-DD exactly to avoid timezone shift pushing it to the previous day
             const [y, m, d] = (event.date as string).split('-');
             const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-
             items.push({
                 id: event.id,
                 title: event.title,
@@ -168,9 +184,7 @@ export function ActivityCalendar() {
             });
         });
 
-        // Add regular activities
         regularActivities.forEach(activity => {
-            // If there's a specific schedule_date, use it
             if (activity.schedule_date) {
                 items.push({
                     id: activity.id,
@@ -184,12 +198,9 @@ export function ActivityCalendar() {
                     icon: activity.icon,
                     colorTheme: activity.color_theme,
                 });
-            }
-            // Otherwise, try to generate dates from the schedule pattern
-            else if (activity.schedule) {
+            } else if (activity.schedule) {
                 const generatedDates = generateRecurringDates(activity.schedule, year, month);
                 const parsedTime = parseTimeFromSchedule(activity.schedule);
-
                 generatedDates.forEach((date, index) => {
                     items.push({
                         id: `${activity.id}-${index}`,
@@ -207,34 +218,44 @@ export function ActivityCalendar() {
             }
         });
 
-        return items;
-    }, [events, regularActivities, currentMonth]);
+        privateBookings.forEach(booking => {
+            generateDateRange(booking.date, booking.end_date).forEach((date, index) => {
+                items.push({
+                    id: `booking-${booking.id}-${index}`,
+                    title: booking.name,
+                    type: 'booking',
+                    date,
+                    startTime: null,
+                    endTime: null,
+                    description: null,
+                    colorTheme: 'booking',
+                    sessionType: booking.event_type,
+                });
+            });
+        });
 
-    // Group items by date for quick lookup
+        return items;
+    }, [events, regularActivities, currentMonth, privateBookings]);
+
     const itemsByDate = useMemo(() => {
         const map = new Map<string, CalendarItem[]>();
         calendarItems.forEach(item => {
-            // Safely format local date to YYYY-MM-DD
             const year = item.date.getFullYear();
             const month = String(item.date.getMonth() + 1).padStart(2, '0');
             const day = String(item.date.getDate()).padStart(2, '0');
             const dateKey = `${year}-${month}-${day}`;
-
             const existing = map.get(dateKey) || [];
             map.set(dateKey, [...existing, item]);
         });
         return map;
     }, [calendarItems]);
 
-    // Get all dates that have events/activities
     const datesWithItems = useMemo(() => {
         return calendarItems.map(item => item.date);
     }, [calendarItems]);
 
-    // Get items for selected date
     const selectedDateItems = useMemo(() => {
         if (!selectedDate) return [];
-        // Safely format local date to YYYY-MM-DD
         const year = selectedDate.getFullYear();
         const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
         const day = String(selectedDate.getDate()).padStart(2, '0');
@@ -247,14 +268,11 @@ export function ActivityCalendar() {
         return timeString.substring(0, 5);
     };
 
-    // Custom day content to show activity dots
     const renderDay = (date: Date) => {
-        // Safely format local date to YYYY-MM-DD
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         const dateKey = `${year}-${month}-${day}`;
-
         const dayItems = itemsByDate.get(dateKey) || [];
 
         return (
@@ -262,18 +280,13 @@ export function ActivityCalendar() {
                 <span>{date.getDate()}</span>
                 {dayItems.length > 0 && (
                     <div className="calendar-dots">
-                        {dayItems.slice(0, 3).map((item, idx) => {
-                            const theme = item.colorTheme === 'event'
-                                ? eventColor
-                                : (colorMap[item.colorTheme] || colorMap.sage);
-                            return (
-                                <span
-                                    key={idx}
-                                    className="calendar-dot"
-                                    style={{ backgroundColor: theme.dotColor }}
-                                />
-                            );
-                        })}
+                        {dayItems.slice(0, 3).map((item, idx) => (
+                            <span
+                                key={idx}
+                                className="calendar-dot"
+                                style={{ backgroundColor: getTheme(item).dotColor }}
+                            />
+                        ))}
                         {dayItems.length > 3 && (
                             <span className="calendar-dot-more">+{dayItems.length - 3}</span>
                         )}
@@ -300,12 +313,8 @@ export function ActivityCalendar() {
                     onSelect={setSelectedDate}
                     month={currentMonth}
                     onMonthChange={setCurrentMonth}
-                    modifiers={{
-                        hasItems: datesWithItems,
-                    }}
-                    modifiersClassNames={{
-                        hasItems: 'day-has-items',
-                    }}
+                    modifiers={{ hasItems: datesWithItems }}
+                    modifiersClassNames={{ hasItems: 'day-has-items' }}
                     components={{
                         DayContent: ({ date }) => renderDay(date),
                         IconLeft: () => <ChevronLeft className="w-5 h-5" />,
@@ -316,7 +325,6 @@ export function ActivityCalendar() {
                 />
             </div>
 
-            {/* Selected day panel */}
             <div className="calendar-details">
                 {selectedDate ? (
                     <>
@@ -332,10 +340,10 @@ export function ActivityCalendar() {
                         {selectedDateItems.length > 0 ? (
                             <div className="details-list">
                                 {selectedDateItems.map(item => {
-                                    const theme = item.colorTheme === 'event'
-                                        ? eventColor
-                                        : (colorMap[item.colorTheme] || colorMap.sage);
-                                    const IconComponent = item.icon ? iconMap[item.icon] : CalendarIcon;
+                                    const theme = getTheme(item);
+                                    const IconComponent = item.type === 'booking'
+                                        ? Lock
+                                        : (item.icon ? iconMap[item.icon] : CalendarIcon);
 
                                     return (
                                         <div
@@ -357,13 +365,29 @@ export function ActivityCalendar() {
                                                     <IconComponent className="w-4 h-4" />
                                                 </div>
                                                 <div className="item-info">
-                                                    <span
-                                                        className="item-title"
-                                                        style={{ color: theme.textColor }}
-                                                    >
-                                                        {item.title}
-                                                    </span>
-                                                    {(item.startTime || item.endTime) && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span
+                                                            className="item-title"
+                                                            style={{ color: theme.textColor }}
+                                                        >
+                                                            {item.title}
+                                                        </span>
+                                                        {item.type === 'booking' && (
+                                                            <span
+                                                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide"
+                                                                style={{ backgroundColor: theme.borderColor, color: '#fff' }}
+                                                            >
+                                                                Private Hire
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {item.type === 'booking' && item.sessionType && (
+                                                        <span className="item-time">
+                                                            <Clock className="w-3 h-3" />
+                                                            {formatSession(item.sessionType)}
+                                                        </span>
+                                                    )}
+                                                    {item.type !== 'booking' && (item.startTime || item.endTime) && (
                                                         <span className="item-time">
                                                             <Clock className="w-3 h-3" />
                                                             {formatTime(item.startTime)}

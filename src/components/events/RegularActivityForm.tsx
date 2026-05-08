@@ -63,6 +63,7 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
     };
 
     const inputClasses = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 text-gray-900";
+    const selectClasses = "w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 text-gray-900";
     const labelClasses = "block text-sm font-medium text-gray-700 mb-2";
 
     const icons = [
@@ -258,7 +259,7 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                         name="action_type"
                         value={formData.action_type || 'none'}
                         onChange={(e) => setFormData({ ...formData, action_type: e.target.value })}
-                        className={inputClasses}
+                        className={selectClasses}
                     >
                         <option value="none">None</option>
                         <option value="text">Just Text (non-clickable)</option>
