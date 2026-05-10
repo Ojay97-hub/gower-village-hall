@@ -557,7 +557,7 @@ export function AdminLogin() {
                                             value={displayName}
                                             onChange={(e) => setDisplayName(e.target.value)}
                                             className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                            placeholder="e.g. Claire Cotter"
+                                            placeholder="e.g. Joe Bloggs"
                                             disabled={settingPassword}
                                         />
                                     </div>
