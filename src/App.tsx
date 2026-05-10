@@ -36,6 +36,9 @@ const AdminSubscribers = lazy(() => import('./pages/AdminSubscribers').then(m =>
 const AdminChurches = lazy(() => import('./pages/AdminChurches').then(m => ({ default: m.AdminChurches })));
 const ForFamilies = lazy(() => import('./pages/ForFamilies').then(m => ({ default: m.ForFamilies })));
 const ChurchPage = lazy(() => import('./pages/ChurchPage').then(m => ({ default: m.ChurchPage })));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsConditions = lazy(() => import('./pages/TermsConditions').then(m => ({ default: m.TermsConditions })));
+const CookiesPolicy = lazy(() => import('./pages/CookiesPolicy').then(m => ({ default: m.CookiesPolicy })));
 
 /** Reverse guard: redirects to /hall/events if already logged in */
 
@@ -69,6 +72,9 @@ export default function App() {
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/blog/:slug" element={<ArticlePage />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-conditions" element={<TermsConditions />} />
+                    <Route path="/cookies" element={<CookiesPolicy />} />
 
                     {/* Admin login */}
                     <Route path="/admin/login" element={<AdminLogin />} />

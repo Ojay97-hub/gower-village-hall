@@ -1,4 +1,5 @@
 import { MapPin, Mail, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Illustration Components (SVG Icons)
 const CliffIcon = ({ className }: { className?: string }) => (
@@ -101,9 +102,9 @@ export function Footer() {
             &copy; 2026 Nova Forma Designs Ltd. All rights reserved.
           </p>
           <div className="flex items-center space-x-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms Conditions</a>
-            <a href="#" className="hover:text-white transition-colors">Cookies</a>
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms-conditions" className="hover:text-white transition-colors">Terms &amp; Conditions</Link>
+            <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link>
           </div>
         </div>
       </div>
