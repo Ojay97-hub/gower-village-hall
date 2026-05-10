@@ -98,14 +98,14 @@ module.exports = async (req, res) => {
   try {
     await Promise.all([
       transporter.sendMail({
-        from: `"Gower Village Hall Website" <${fromEmail}>`,
+        from: `"Penmaen & Nicholaston Village Hall" <${fromEmail}>`,
         to: toEmail,
         replyTo: email,
         subject: `${displayGroup} — New Member Interest from ${name || email}`,
         html: adminHtml,
       }),
       transporter.sendMail({
-        from: `"Gower Village Hall Website" <${fromEmail}>`,
+        from: `"Penmaen & Nicholaston Village Hall" <${fromEmail}>`,
         to: email,
         subject: `Thanks for joining ${displayGroup}`,
         html: confirmationHtml,
