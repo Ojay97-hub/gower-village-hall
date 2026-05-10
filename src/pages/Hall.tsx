@@ -824,7 +824,7 @@ export function Hall() {
                     marginBottom: '0.25rem',
                   }}
                 >
-                  Welcome to Friends of<br />Gower Village Hall
+                  Welcome to Friends of<br />Penmaen and Nicholaston VH
                 </h3>
                 <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
                   Join our community and stay connected

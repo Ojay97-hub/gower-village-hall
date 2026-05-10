@@ -25,7 +25,7 @@ const STATUS_DOT: Record<SubscriberStatus, string> = {
 };
 
 const GROUP_LABEL: Record<'hall' | 'churches', string> = {
-    hall: 'Friends of Gower Village Hall',
+    hall: 'Friends of Penmaen and Nicholaston VH',
     churches: "Friends of St. John's & St. Nicholas",
 };
 

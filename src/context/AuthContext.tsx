@@ -152,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         try {
             const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-                redirectTo: 'https://gower-village-hall-real.vercel.app/admin/login',
+                redirectTo: 'https://www.penmaenandnicholastonvh.co.uk/admin/login',
             });
             if (error) return { error };
 
