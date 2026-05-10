@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const BASE_URL = 'https://gower-village-hall-real.vercel.app';
+const BASE_URL = 'https://www.penmaenandnicholastonvh.co.uk';
 
 export function CanonicalUrl() {
   const { pathname } = useLocation();
