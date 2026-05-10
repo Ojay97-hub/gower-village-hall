@@ -65,18 +65,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return masterEmails.includes(email.toLowerCase());
     };
 
-    // Resolve admin status + roles whenever user changes
+    // Resolve admin status + roles whenever user changes.
+    // IMPORTANT: We do NOT reset isAdmin/roles to false while re-resolving —
+    // doing so causes a brief flicker where AdminRoute sees isAdmin=false and
+    // redirects to /admin/login, destroying any open forms (e.g. BlogPostForm).
+    // We only clear admin state on actual sign-out (user becomes null).
     useEffect(() => {
         let cancelled = false;
 
         async function resolve() {
             if (!user) {
+                // Actual sign-out — clear everything
                 setIsAdmin(false);
                 setIsMasterAdmin(false);
                 setAdminRoles([]);
                 setIsLoading(false);
                 return;
             }
+
+            // Keep existing isAdmin/roles values while re-resolving
+            // (e.g. during TOKEN_REFRESHED after returning to tab)
             setIsLoading(true);
             const { isAdmin: admin, roles, isMasterAdmin: dbMasterAdmin } = await fetchAdminRecord(user.id);
             if (!cancelled) {
@@ -100,7 +108,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (_event, session) => {
                 setSession(session);
-                setUser(session?.user ?? null);
+                // Only update user if the actual identity changed (sign-in/out).
+                // TOKEN_REFRESHED produces a new object reference for the same user,
+                // which would trigger the admin-resolve useEffect and cause a loading
+                // flicker that can unmount open forms like BlogPostForm.
+                setUser(prev => {
+                    const newUser = session?.user ?? null;
+                    if (prev?.id === newUser?.id) return prev;   // same user — keep stable ref
+                    return newUser;
+                });
             }
         );
 

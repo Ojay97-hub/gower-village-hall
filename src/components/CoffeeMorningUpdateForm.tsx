@@ -1,8 +1,40 @@
-import { useState, useRef } from "react";
-import { X, ImagePlus, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { X, ImagePlus, Loader2, RotateCcw } from "lucide-react";
 import type { CoffeeMorningUpdate } from "../context/CoffeeMorningContext";
 
 const MAX_WORDS = 500;
+const DRAFT_STORAGE_KEY = "coffee_morning_draft";
+const DRAFT_SAVE_DELAY = 1000;
+
+type DraftData = {
+    title: string;
+    slug: string;
+    excerpt: string;
+    contentMarkdown: string;
+    eventDate: string;
+    fundraisingFor: string;
+    amountRaised: string;
+    published: boolean;
+    heroImageUrl: string;
+    editingUpdateId?: string;
+    savedAt: number;
+};
+
+function loadDraft(editingUpdateId?: string): DraftData | null {
+    try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return null;
+        const draft: DraftData = JSON.parse(raw);
+        if (draft.editingUpdateId !== editingUpdateId) return null;
+        return draft;
+    } catch {
+        return null;
+    }
+}
+
+function clearDraft() {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+}
 
 function countWords(text: string): number {
     const trimmed = text.trim();
@@ -20,21 +52,72 @@ type Props = {
 };
 
 export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
-    const [title, setTitle] = useState(update?.title || "");
-    const [slug, setSlug] = useState(update?.slug || "");
-    const [excerpt, setExcerpt] = useState(update?.excerpt || "");
-    const [contentMarkdown, setContentMarkdown] = useState(update?.content_markdown || "");
-    const [eventDate, setEventDate] = useState(update?.event_date || "");
-    const [fundraisingFor, setFundraisingFor] = useState(update?.fundraising_for || "");
+    const savedDraft = loadDraft(update?.id);
+    const hasSavedDraft = !!savedDraft;
+
+    const [title, setTitle] = useState(savedDraft?.title ?? update?.title ?? "");
+    const [slug, setSlug] = useState(savedDraft?.slug ?? update?.slug ?? "");
+    const [excerpt, setExcerpt] = useState(savedDraft?.excerpt ?? update?.excerpt ?? "");
+    const [contentMarkdown, setContentMarkdown] = useState(savedDraft?.contentMarkdown ?? update?.content_markdown ?? "");
+    const [eventDate, setEventDate] = useState(savedDraft?.eventDate ?? update?.event_date ?? "");
+    const [fundraisingFor, setFundraisingFor] = useState(savedDraft?.fundraisingFor ?? update?.fundraising_for ?? "");
     const [amountRaised, setAmountRaised] = useState<string>(
-        update?.amount_raised != null ? String(update.amount_raised) : ""
+        savedDraft?.amountRaised ?? (update?.amount_raised != null ? String(update.amount_raised) : "")
     );
-    const [published, setPublished] = useState(update?.published || false);
-    const [heroImageUrl, setHeroImageUrl] = useState(update?.hero_image_url || "");
+    const [published, setPublished] = useState(savedDraft?.published ?? update?.published ?? false);
+    const [heroImageUrl, setHeroImageUrl] = useState(savedDraft?.heroImageUrl ?? update?.hero_image_url ?? "");
     const [newImageFile, setNewImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(update?.hero_image_url || null);
+    const [imagePreview, setImagePreview] = useState<string | null>(
+        hasSavedDraft ? (savedDraft!.heroImageUrl || null) : (update?.hero_image_url || null)
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showDraftBanner, setShowDraftBanner] = useState(hasSavedDraft);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    const saveDraft = useCallback(() => {
+        const draft: DraftData = {
+            title,
+            slug,
+            excerpt,
+            contentMarkdown,
+            eventDate,
+            fundraisingFor,
+            amountRaised,
+            published,
+            heroImageUrl,
+            editingUpdateId: update?.id,
+            savedAt: Date.now(),
+        };
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    }, [title, slug, excerpt, contentMarkdown, eventDate, fundraisingFor, amountRaised, published, heroImageUrl, update?.id]);
+
+    useEffect(() => {
+        const hasContent = title || excerpt || contentMarkdown;
+        if (!hasContent) return;
+
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(saveDraft, DRAFT_SAVE_DELAY);
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, [saveDraft]);
+
+    const handleDiscardDraft = () => {
+        clearDraft();
+        setTitle(update?.title ?? "");
+        setSlug(update?.slug ?? "");
+        setExcerpt(update?.excerpt ?? "");
+        setContentMarkdown(update?.content_markdown ?? "");
+        setEventDate(update?.event_date ?? "");
+        setFundraisingFor(update?.fundraising_for ?? "");
+        setAmountRaised(update?.amount_raised != null ? String(update.amount_raised) : "");
+        setPublished(update?.published ?? false);
+        setHeroImageUrl(update?.hero_image_url ?? "");
+        setImagePreview(update?.hero_image_url || null);
+        setNewImageFile(null);
+        setShowDraftBanner(false);
+    };
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newTitle = e.target.value;
@@ -93,6 +176,7 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
                 },
                 newImageFile
             );
+            clearDraft();
         } catch (error) {
             console.error("Failed to submit update:", error);
             alert("Failed to save. Please check the slug is unique and try again.");
@@ -109,7 +193,7 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
                         {update ? "Edit Update" : "New Coffee Morning Update"}
                     </h2>
                     <button
-                        onClick={onClose}
+                        onClick={() => { clearDraft(); onClose(); }}
                         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X className="w-5 h-5" />
@@ -117,6 +201,22 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6">
+                    {showDraftBanner && (
+                        <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm">
+                            <RotateCcw className="w-4 h-4 flex-shrink-0" />
+                            <span className="flex-1">
+                                <strong>Draft restored.</strong> Your unsaved changes from{" "}
+                                {new Date(savedDraft!.savedAt).toLocaleString()} were recovered.
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleDiscardDraft}
+                                className="text-xs font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2"
+                            >
+                                Discard draft
+                            </button>
+                        </div>
+                    )}
                     <form id="coffee-morning-update-form" onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -264,7 +364,7 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex-shrink-0">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={() => { clearDraft(); onClose(); }}
                         disabled={isSubmitting}
                         className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"
                     >

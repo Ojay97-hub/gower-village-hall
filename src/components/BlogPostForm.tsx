@@ -1,13 +1,46 @@
-import { useState, useRef } from "react";
-import { X, ImagePlus, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { X, ImagePlus, Loader2, RotateCcw } from "lucide-react";
 import type { BlogPostRow } from "../context/BlogContext";
 
 const MAX_WORDS = 500;
+const DRAFT_STORAGE_KEY = "blog_post_draft";
+const DRAFT_SAVE_DELAY = 1000; // ms debounce
+
+type DraftData = {
+    title: string;
+    slug: string;
+    excerpt: string;
+    contentMarkdown: string;
+    category: string;
+    published: boolean;
+    featured: boolean;
+    heroImageUrl: string;
+    editingPostId?: string;
+    savedAt: number;
+};
 
 function countWords(text: string): number {
     const trimmed = text.trim();
     if (!trimmed) return 0;
     return trimmed.split(/\s+/).length;
+}
+
+function loadDraft(editingPostId?: string): DraftData | null {
+    try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return null;
+        const draft: DraftData = JSON.parse(raw);
+        // Only restore if the draft matches the same editing context
+        // (new post → no editingPostId, edit → matching id)
+        if (draft.editingPostId !== editingPostId) return null;
+        return draft;
+    } catch {
+        return null;
+    }
+}
+
+function clearDraft() {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
 }
 
 type BlogPostFormProps = {
@@ -17,18 +50,69 @@ type BlogPostFormProps = {
 };
 
 export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
-    const [title, setTitle] = useState(post?.title || "");
-    const [slug, setSlug] = useState(post?.slug || "");
-    const [excerpt, setExcerpt] = useState(post?.excerpt || "");
-    const [contentMarkdown, setContentMarkdown] = useState(post?.content_markdown || "");
-    const [category, setCategory] = useState<BlogPostRow["category"]>(post?.category || "Community");
-    const [published, setPublished] = useState(post?.published || false);
-    const [featured, setFeatured] = useState(post?.featured || false);
-    const [heroImageUrl, setHeroImageUrl] = useState(post?.hero_image_url || "");
+    const savedDraft = loadDraft(post?.id);
+    const hasSavedDraft = !!savedDraft;
+
+    const [title, setTitle] = useState(savedDraft?.title ?? post?.title ?? "");
+    const [slug, setSlug] = useState(savedDraft?.slug ?? post?.slug ?? "");
+    const [excerpt, setExcerpt] = useState(savedDraft?.excerpt ?? post?.excerpt ?? "");
+    const [contentMarkdown, setContentMarkdown] = useState(savedDraft?.contentMarkdown ?? post?.content_markdown ?? "");
+    const [category, setCategory] = useState<BlogPostRow["category"]>((savedDraft?.category as BlogPostRow["category"]) ?? post?.category ?? "Community");
+    const [published, setPublished] = useState(savedDraft?.published ?? post?.published ?? false);
+    const [featured, setFeatured] = useState(savedDraft?.featured ?? post?.featured ?? false);
+    const [heroImageUrl, setHeroImageUrl] = useState(savedDraft?.heroImageUrl ?? post?.hero_image_url ?? "");
     const [newImageFile, setNewImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(post?.hero_image_url || null);
+    const [imagePreview, setImagePreview] = useState<string | null>(
+        hasSavedDraft ? (savedDraft!.heroImageUrl || null) : (post?.hero_image_url || null)
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showDraftBanner, setShowDraftBanner] = useState(hasSavedDraft);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    // Auto-save draft to localStorage (debounced)
+    const saveDraft = useCallback(() => {
+        const draft: DraftData = {
+            title,
+            slug,
+            excerpt,
+            contentMarkdown,
+            category,
+            published,
+            featured,
+            heroImageUrl,
+            editingPostId: post?.id,
+            savedAt: Date.now(),
+        };
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    }, [title, slug, excerpt, contentMarkdown, category, published, featured, heroImageUrl, post?.id]);
+
+    useEffect(() => {
+        // Don't auto-save if form is completely empty (just opened, no input yet)
+        const hasContent = title || excerpt || contentMarkdown;
+        if (!hasContent) return;
+
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(saveDraft, DRAFT_SAVE_DELAY);
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, [saveDraft]);
+
+    const handleDiscardDraft = () => {
+        clearDraft();
+        setTitle(post?.title ?? "");
+        setSlug(post?.slug ?? "");
+        setExcerpt(post?.excerpt ?? "");
+        setContentMarkdown(post?.content_markdown ?? "");
+        setCategory(post?.category ?? "Community");
+        setPublished(post?.published ?? false);
+        setFeatured(post?.featured ?? false);
+        setHeroImageUrl(post?.hero_image_url ?? "");
+        setImagePreview(post?.hero_image_url || null);
+        setNewImageFile(null);
+        setShowDraftBanner(false);
+    };
 
     // Auto-generate slug from title if it's a new post and slug is untouched
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +172,7 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
                 },
                 newImageFile
             );
+            clearDraft(); // Clean up saved draft on successful submit
         } catch (error) {
             console.error("Failed to submit post:", error);
             // In a real app, you'd show a toast here
@@ -107,7 +192,7 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
                         {post ? "Edit Post" : "New Post"}
                     </h2>
                     <button
-                        onClick={onClose}
+                        onClick={() => { clearDraft(); onClose(); }}
                         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X className="w-5 h-5" />
@@ -116,6 +201,22 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6">
+                    {showDraftBanner && (
+                        <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm">
+                            <RotateCcw className="w-4 h-4 flex-shrink-0" />
+                            <span className="flex-1">
+                                <strong>Draft restored.</strong> Your unsaved changes from{" "}
+                                {new Date(savedDraft!.savedAt).toLocaleString()} were recovered.
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleDiscardDraft}
+                                className="text-xs font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2"
+                            >
+                                Discard draft
+                            </button>
+                        </div>
+                    )}
                     <form id="blog-post-form" onSubmit={handleSubmit} className="space-y-6">
                             
                             {/* Title & Slug */}
@@ -268,7 +369,7 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex-shrink-0">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={() => { clearDraft(); onClose(); }}
                         disabled={isSubmitting}
                         className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"
                     >
