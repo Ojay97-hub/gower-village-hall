@@ -37,7 +37,7 @@ const SESSION_COLORS: Record<string, { bg: string; text: string; border: string;
 // Colours for scheduled events and recurring activities
 const SCHEDULE_COLORS = {
   event:    { bg: '#eff6ff', text: '#1e40af', border: '#3b82f6', label: 'Event' },
-  activity: { bg: '#f0fdf4', text: '#166534', border: '#22c55e', label: 'Activity' },
+  activity: { bg: '#fdf4e7', text: '#7c3a00', border: '#b45309', label: 'Activity' },
 };
 
 function getSessionColor(eventType: string | null) {
@@ -409,11 +409,11 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
                         color: color.text,
                         borderLeft: isFirstInRow ? `3px solid ${color.border}` : 'none',
                       }}
-                      title={`${booking.name}${booking.end_date && booking.end_date !== booking.date ? ` (${formatDateDisplay(booking.date)} – ${formatDateDisplay(booking.end_date)})` : ''}${booking.event_type ? ` · ${booking.event_type}` : ''}`}
+                      title={`Booked${booking.end_date && booking.end_date !== booking.date ? ` (${formatDateDisplay(booking.date)} – ${formatDateDisplay(booking.end_date)})` : ''}${booking.event_type ? ` · ${booking.event_type}` : ''}`}
                     >
                       {isFirstInRow ? (
                         <>
-                          <span className="booking-cal-event-name">{booking.name}</span>
+                          <span className="booking-cal-event-name">Booked</span>
                           {sessionTag && <span className="booking-cal-event-session">{sessionTag}</span>}
                         </>
                       ) : (

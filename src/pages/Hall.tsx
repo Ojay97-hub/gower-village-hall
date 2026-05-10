@@ -1,15 +1,81 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { BookingCalendar } from '../components/hall/BookingCalendar';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from '../components/ui/carousel';
 import '../components/hall/BookingCalendar.css';
 import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users, Facebook, Sunrise, Sun, Moon, CalendarDays, ArrowRight, ExternalLink } from 'lucide-react';
 
 const hallGateEntrance = '/images/edited-hall-gate.webp';
 const hallSideView = '/images/edited-side-hall.webp';
 
+const hallGallerySlides = [
+  {
+    src: '/images/hall-in-view.jpeg',
+    alt: 'Main hall interior looking towards the stage end, with wooden floor and chairs along both sides',
+    label: 'Main Hall',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/hall-out-view.jpeg',
+    alt: 'Main hall interior looking back towards the entrance end with vaulted ceiling',
+    label: 'Main Hall — Full Length',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/fire-exit.jpeg',
+    alt: 'Exit door with views over the Gower countryside and sea',
+    label: 'Sea Views',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/kitchen-left.jpeg',
+    alt: 'Commercial kitchen with stainless steel island, range cooker, and preparation surfaces',
+    label: 'Kitchen',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/kitchen-right.jpeg',
+    alt: 'Kitchen with stainless steel surfaces, sink area and storage units',
+    label: 'Kitchen Facilities',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/tables.jpeg',
+    alt: 'Storage area with folding tables on trolleys and stacked chairs',
+    label: 'Tables & Storage',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/entrance-view.jpeg',
+    alt: 'Front of the village hall with wheelchair access ramp, defibrillator and sea views behind',
+    label: 'Hall Entrance',
+    isFloorPlan: false,
+  },
+  {
+    src: '/images/hall-floor-plan.png',
+    alt: 'Village Hall Floor Plan showing main hall with max capacity of 80, kitchen, male and female W/C, disabled W/C, south facing lawn, ramp access, and defibrillator location',
+    label: 'Floor Plan',
+    isFloorPlan: true,
+  },
+];
+
 export function Hall() {
+  // Gallery carousel state
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideCount, setSlideCount] = useState(0);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    setSlideCount(carouselApi.scrollSnapList().length);
+    setCurrentSlide(carouselApi.selectedScrollSnap());
+    carouselApi.on('select', () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap());
+    });
+  }, [carouselApi]);
+
   // Booking form state
   const [bookingForm, setBookingForm] = useState({
     name: '',
@@ -227,22 +293,59 @@ export function Hall() {
 
         {/* ===== SECTION 1: Floor Plan + Booking Info ===== */}
         <div className="mb-16 pt-8">
-          {/* Floor Plan */}
+          {/* Gallery Carousel: Interior + Floor Plan */}
           <div className="mb-10">
             <div className="text-left max-w-3xl mb-8">
-              <h2 className="mb-4">Hall Floor Plan</h2>
+              <h2 className="mb-4">Hall Interior and Floor Plan</h2>
               <p className="text-lg text-gray-700 leading-relaxed">
-                View the layout of our village hall including facilities, access points, and capacity information.
+                Explore the interior of our village hall and view the floor plan including facilities, access points, and capacity information.
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-6 md:p-10 border border-gray-200 shadow-sm">
-              <img
-                src="/images/hall-floor-plan.png"
-                alt="Village Hall Floor Plan showing main hall with max capacity of 80, kitchen, male and female W/C, disabled W/C, south facing lawn, ramp access, and defibrillator location"
-                className="w-full h-auto rounded-lg"
-                style={{ maxWidth: '800px', margin: '0 auto', display: 'block' }}
-                loading="lazy"
-              />
+            <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-200 shadow-sm">
+              <Carousel
+                setApi={setCarouselApi}
+                opts={{ loop: true }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {hallGallerySlides.map((slide, index) => (
+                    <CarouselItem key={index}>
+                      <div className="relative overflow-hidden rounded-lg">
+                        <img
+                          src={slide.src}
+                          alt={slide.alt}
+                          className={`w-full rounded-lg ${
+                            slide.isFloorPlan
+                              ? 'h-auto object-contain bg-gray-50'
+                              : 'h-[340px] sm:h-[480px] object-cover'
+                          }`}
+                          style={slide.isFloorPlan ? { maxWidth: '800px', margin: '0 auto', display: 'block' } : {}}
+                          loading="lazy"
+                        />
+                        <span className="absolute bottom-3 left-3 bg-black/50 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
+                          {slide.label}
+                        </span>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-3 bg-white/80 hover:bg-white border-gray-300 shadow-sm" />
+                <CarouselNext className="right-3 bg-white/80 hover:bg-white border-gray-300 shadow-sm" />
+              </Carousel>
+              {slideCount > 1 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  {Array.from({ length: slideCount }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => carouselApi?.scrollTo(i)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        i === currentSlide ? 'bg-gray-700' : 'bg-gray-300'
+                      }`}
+                      aria-label={`Go to slide ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

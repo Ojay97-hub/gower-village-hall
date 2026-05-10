@@ -56,10 +56,10 @@ export function Contact() {
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
                   <a
-                    href="mailto:info@penmaenvillagehall.org"
+                    href="mailto:info@penmaenandnicholastonvh.co.uk"
                     className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                   >
-                    info@penmaenvillagehall.org
+                    info@penmaenandnicholastonvh.co.uk
                   </a>
                 </div>
               </div>

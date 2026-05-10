@@ -62,10 +62,10 @@ export function Footer() {
               <div className="flex items-start space-x-3">
                 <Mail className="w-5 h-5 text-white/70 flex-shrink-0" />
                 <a
-                  href="mailto:info@penmaenvillagehall.org"
+                  href="mailto:info@penmaenandnicholastonvh.co.uk"
                   className="hover:text-white transition-colors"
                 >
-                  info@penmaenvillagehall.org
+                  info@penmaenandnicholastonvh.co.uk
                 </a>
               </div>
             </div>
