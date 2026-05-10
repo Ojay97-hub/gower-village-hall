@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { Lock, Mail, AlertCircle, Loader2, User as UserIcon, ArrowLeft, ChevronRight, CheckCircle, MailCheck } from 'lucide-react';
 
 type AdminUser = { id: string; email: string; name: string; initials: string };
@@ -80,26 +79,15 @@ export function AdminLogin() {
     useEffect(() => {
         async function loadAdminUsers() {
             try {
-                // Use service role for both queries to bypass RLS on the login page
-                const { data: adminData } = await supabaseAdmin.from('admin_users').select('user_id');
-                if (!adminData?.length) return;
-
-                const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
-                if (!authData) return;
-
-                const adminIds = new Set(adminData.map((a: { user_id: string }) => a.user_id));
-                const users: AdminUser[] = authData.users
-                    // Only show users who have completed setup (logged in at least once)
-                    .filter(u => adminIds.has(u.id) && u.email && u.last_sign_in_at)
-                    .map(u => {
-                        const name: string = u.user_metadata?.name || u.user_metadata?.full_name || '';
-                        return {
-                            id: u.id,
-                            email: u.email!,
-                            name,
-                            initials: (name || u.email!).charAt(0).toUpperCase(),
-                        };
-                    });
+                const res = await fetch('/api/admin/list-login-users');
+                if (!res.ok) return;
+                const { users: raw } = await res.json();
+                const users: AdminUser[] = (raw || []).map((u: { id: string; email: string; name: string }) => ({
+                    id: u.id,
+                    email: u.email,
+                    name: u.name,
+                    initials: (u.name || u.email).charAt(0).toUpperCase(),
+                }));
                 setAdminUsers(users);
             } catch (e) {
                 console.error('Failed to load admin users:', e);

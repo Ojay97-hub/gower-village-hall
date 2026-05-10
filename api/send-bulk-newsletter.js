@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const { createClient } = require('@supabase/supabase-js');
+const { authenticateAdmin } = require('./_lib/supabase');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
@@ -11,22 +11,19 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const supabaseAdmin = process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-  ? createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_SERVICE_ROLE_KEY)
-  : null;
-
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const ctx = await authenticateAdmin(req, res, { requireRole: 'newsletter' });
+  if (!ctx) return;
+  const { supabase: supabaseAdmin } = ctx;
+
   const { group, subject, body } = req.body || {};
 
   if (!subject || !body) {
     return res.status(400).json({ error: 'Subject and body are required' });
-  }
-  if (!supabaseAdmin) {
-    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   const fromEmail = process.env.BREVO_FROM_EMAIL;

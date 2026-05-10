@@ -57,9 +57,15 @@ function ComposeModal({
         setSending(true);
         setSendError(null);
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) throw new Error('Not signed in');
             const res = await fetch('/api/send-bulk-newsletter', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({ group, subject: subject.trim(), body: body.trim() }),
             });
             const data = await res.json();
