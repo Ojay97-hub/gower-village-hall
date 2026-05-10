@@ -98,20 +98,23 @@ function getDowOccurrences(year: number, month: number, dow: number): Date[] {
 
 function generateRecurringDates(schedule: string, year: number, month: number): Date[] {
   const lower = schedule.toLowerCase();
+  const dates: Date[] = [];
 
   for (const [ord, ordNum] of Object.entries(ORDINAL_MAP)) {
-    if (lower.includes(ord)) {
+    if (new RegExp(`\\b${ord}\\b`).test(lower)) {
       for (const [dayWord, dow] of Object.entries(DOW_MAP)) {
         if (lower.includes(dayWord)) {
           const occurrences = getDowOccurrences(year, month, dow);
           const date = ordNum === -1
             ? occurrences[occurrences.length - 1]
             : occurrences[ordNum - 1];
-          return date ? [date] : [];
+          if (date) dates.push(date);
+          break;
         }
       }
     }
   }
+  if (dates.length > 0) return dates;
 
   for (const [dayWord, dow] of Object.entries(DOW_MAP)) {
     if (lower.includes(dayWord)) {

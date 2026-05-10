@@ -109,16 +109,17 @@ function generateRecurringDates(schedule: string, year: number, month: number): 
     const scheduleLower = schedule.toLowerCase();
     const dates: Date[] = [];
     for (const [ordinalWord, ordinalNum] of Object.entries(ordinalMap)) {
-        if (scheduleLower.includes(ordinalWord)) {
+        if (new RegExp(`\\b${ordinalWord}\\b`).test(scheduleLower)) {
             for (const [dayWord, dayNum] of Object.entries(dayOfWeekMap)) {
                 if (scheduleLower.includes(dayWord)) {
                     const date = getNthDayOfMonth(year, month, dayNum, ordinalNum);
                     if (date) dates.push(date);
-                    return dates;
+                    break;
                 }
             }
         }
     }
+    if (dates.length > 0) return dates;
     for (const [dayWord, dayNum] of Object.entries(dayOfWeekMap)) {
         if (scheduleLower.includes(dayWord)) {
             return getDayOccurrencesInMonth(year, month, dayNum);
@@ -186,11 +187,12 @@ export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps
 
         regularActivities.forEach(activity => {
             if (activity.schedule_date) {
+                const [ay, am, ad] = (activity.schedule_date as string).split('-').map(Number);
                 items.push({
                     id: activity.id,
                     title: activity.title,
                     type: 'activity',
-                    date: new Date(activity.schedule_date),
+                    date: new Date(ay, am - 1, ad),
                     startTime: activity.start_time,
                     endTime: activity.end_time,
                     description: activity.description,

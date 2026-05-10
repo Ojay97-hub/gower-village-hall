@@ -208,7 +208,7 @@ export function AdminLogin() {
         });
         setResetLoading(false);
         if (resetError) {
-            sessionStorage.removeItem('supabase_pending_recovery');
+            localStorage.removeItem('supabase_pending_recovery');
             setError(resetError.message);
         } else {
             setResetSent(true);

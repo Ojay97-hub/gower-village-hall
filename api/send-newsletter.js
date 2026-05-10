@@ -23,10 +23,11 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, email, group } = req.body || {};
+  const { name: rawName, email, group } = req.body || {};
+  const name = rawName ? String(rawName).replace(/[\r\n]/g, '') : rawName;
 
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' });
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
   }
 
   const toEmail = process.env.NOTIFICATION_EMAIL;
@@ -40,7 +41,7 @@ module.exports = async (req, res) => {
   const displayName = name ? escapeHtml(name) : 'Someone';
   const displayGroup = group === 'churches'
     ? "Friends of St. John's & St. Nicholas"
-    : 'Friends of Gower Village Hall';
+    : 'Friends of Penmaen & Nicholaston Village Hall';
 
   const adminHtml = `
     <h2>New Member Interest — ${displayGroup}</h2>
@@ -128,5 +129,6 @@ function escapeHtml(str) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

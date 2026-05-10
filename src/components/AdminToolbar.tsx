@@ -106,9 +106,9 @@ export function AdminToolbar() {
                         </span>
                     </div>
                     {collapsed ? (
-                        <ChevronUp className="h-4 w-4 text-gray-400" />
-                    ) : (
                         <ChevronDown className="h-4 w-4 text-gray-400" />
+                    ) : (
+                        <ChevronUp className="h-4 w-4 text-gray-400" />
                     )}
                 </button>
 

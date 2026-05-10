@@ -8,7 +8,7 @@ export const ADMIN_ROLES = [
     {
         id: 'events',
         label: 'Events',
-        description: 'Access the Manage Events area and maintain upcoming events and regular activities.',
+        description: 'Access the Events page to add, edit, and remove upcoming events and regular activities.',
         color: 'rose',
     },
     {

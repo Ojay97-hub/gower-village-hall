@@ -17,6 +17,8 @@ interface Booking {
     created_at: string;
 }
 
+const localDate = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
 const STATUS_STYLES: Record<BookingStatus, string> = {
     pending: 'bg-amber-50 text-amber-700 border-amber-200',
     confirmed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -173,10 +175,10 @@ export function AdminBookings() {
 
                                         {/* Date(s) */}
                                         <td className="p-4 text-sm text-gray-700">
-                                            <p>{new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                            <p>{localDate(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                             {booking.end_date && (
                                                 <p className="text-xs text-gray-400 mt-0.5">
-                                                    to {new Date(booking.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    to {localDate(booking.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </p>
                                             )}
                                         </td>
