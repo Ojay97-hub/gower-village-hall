@@ -53,7 +53,8 @@ create table if not exists public.blog_posts (
   author text null
 );
 
--- Migration: add author column for existing installs
+-- Migrations: add columns for existing installs where the table predates them
+alter table public.blog_posts add column if not exists featured boolean not null default false;
 alter table public.blog_posts add column if not exists author text null;
 
 alter table public.blog_posts enable row level security;
