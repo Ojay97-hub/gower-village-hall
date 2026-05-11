@@ -26,6 +26,7 @@ const ArticlePage = lazy(() => import('./pages/ArticlePage').then(m => ({ defaul
 const AdminLogin = lazy(() => import('./pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
 const AdminBlog = lazy(() => import('./pages/AdminBlog').then(m => ({ default: m.AdminBlog })));
 const AdminAccount = lazy(() => import('./pages/AdminAccount').then(m => ({ default: m.AdminAccount })));
+const AdminMailbox = lazy(() => import('./pages/AdminMailbox').then(m => ({ default: m.AdminMailbox })));
 const AdminUsers = lazy(() => import('./pages/AdminUsers').then(m => ({ default: m.AdminUsers })));
 const AdminBookings = lazy(() => import('./pages/AdminBookings').then(m => ({ default: m.AdminBookings })));
 const AdminCommittee = lazy(() => import('./pages/AdminCommittee').then(m => ({ default: m.AdminCommittee })));
@@ -83,6 +84,7 @@ export default function App() {
                     {/* Role-gated admin routes */}
                     <Route element={<AdminRoute />}>
                       <Route path="/admin/account" element={<AdminAccount />} />
+                      <Route path="/admin/mailbox" element={<AdminMailbox />} />
                     </Route>
                     <Route element={<AdminRoute requiredRole="blog" />}>
                       <Route path="/admin/blog" element={<AdminBlog />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, UserRoundCog, ChevronDown, ChevronUp, Shield, BookOpen, Users, CalendarDays, UsersRound, Coffee, Landmark, Calendar, Settings, Mail, Activity } from 'lucide-react';
+import { LogOut, UserRoundCog, ChevronDown, ChevronUp, Shield, BookOpen, Users, CalendarDays, UsersRound, Coffee, Landmark, Calendar, Settings, Mail, Activity, Inbox } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function AdminToolbar() {
@@ -28,6 +28,14 @@ export function AdminToolbar() {
             icon: Users,
             className: 'bg-purple-50 border border-purple-100 hover:bg-purple-100 text-purple-700',
         } : null,
+        {
+            key: 'mailbox',
+            label: 'Mailbox',
+            title: 'Open shared mailbox',
+            to: '/admin/mailbox',
+            icon: Inbox,
+            className: 'bg-purple-50 border border-purple-100 hover:bg-purple-100 text-purple-700',
+        },
         hasRole('blog') ? {
             key: 'blog',
             label: 'Manage Blog',
