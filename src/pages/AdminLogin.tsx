@@ -257,7 +257,7 @@ export function AdminLogin() {
                                             className="w-full group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-all duration-200 text-left"
                                         >
                                             <div className="flex items-center space-x-4">
-                                                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                                                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg shrink-0">
                                                     {user.initials}
                                                 </div>
                                                 <div>
@@ -330,7 +330,7 @@ export function AdminLogin() {
                             <form onSubmit={handleSubmit}>
                                 {error && (
                                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 mb-6 animate-in fade-in slide-in-from-top-2">
-                                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
                                         <p className="text-sm text-red-600">{error}</p>
                                     </div>
                                 )}
@@ -459,7 +459,7 @@ export function AdminLogin() {
                                     <form onSubmit={handleForgotPassword}>
                                         {error && (
                                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 mb-6 animate-in fade-in slide-in-from-top-2">
-                                                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                                <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
                                                 <p className="text-sm text-red-600">{error}</p>
                                             </div>
                                         )}
@@ -523,7 +523,7 @@ export function AdminLogin() {
                             <form onSubmit={handleSetPassword} className="space-y-5">
                                 {error && (
                                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
                                         <p className="text-sm text-red-600">{error}</p>
                                     </div>
                                 )}

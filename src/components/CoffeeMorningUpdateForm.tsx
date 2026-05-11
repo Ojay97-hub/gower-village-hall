@@ -188,7 +188,7 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto">
             <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col max-h-full">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
                     <h2 className="text-xl font-bold font-serif text-gray-900">
                         {update ? "Edit Update" : "New Coffee Morning Update"}
                     </h2>
@@ -203,7 +203,7 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
                 <div className="flex-1 overflow-y-auto p-6">
                     {showDraftBanner && (
                         <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm">
-                            <RotateCcw className="w-4 h-4 flex-shrink-0" />
+                            <RotateCcw className="w-4 h-4 shrink-0" />
                             <span className="flex-1">
                                 <strong>Draft restored.</strong> Your unsaved changes from{" "}
                                 {new Date(savedDraft!.savedAt).toLocaleString()} were recovered.
@@ -361,7 +361,7 @@ export function CoffeeMorningUpdateForm({ update, onSubmit, onClose }: Props) {
                     </form>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex-shrink-0">
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl shrink-0">
                     <button
                         type="button"
                         onClick={() => { clearDraft(); onClose(); }}

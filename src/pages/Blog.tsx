@@ -290,7 +290,7 @@ export function Blog() {
                                     e.currentTarget.style.transform = "translateY(0)";
                                 }}
                             >
-                                <div className="relative overflow-hidden flex-shrink-0 bg-gray-100" style={{ height: "340px" }}>
+                                <div className="relative overflow-hidden shrink-0 bg-gray-100" style={{ height: "340px" }}>
                                     <img
                                         src={featuredPost.hero_image_url || categoryFallbackImages[featuredPost.category as Exclude<Category, "All">]}
                                         alt={featuredPost.title}
@@ -350,7 +350,7 @@ export function Blog() {
                                     }}
                                 >
                                     <div
-                                        className="rounded-lg overflow-hidden flex-shrink-0 bg-gray-100"
+                                        className="rounded-lg overflow-hidden shrink-0 bg-gray-100"
                                         style={{ width: "140px", height: "120px" }}
                                     >
                                         <img

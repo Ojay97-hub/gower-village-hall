@@ -211,7 +211,7 @@ function ContentBlockRow({ block, onSaved }: { block: ContentBlock; onSaved: () 
         </div>
         <button
           onClick={openEdit}
-          className="text-gray-400 hover:text-primary-600 flex-shrink-0 p-1 rounded hover:bg-primary-50 transition-colors"
+          className="text-gray-400 hover:text-primary-600 shrink-0 p-1 rounded hover:bg-primary-50 transition-colors"
           title="Edit"
         >
           <Edit2 className="w-4 h-4" />
@@ -366,13 +366,13 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
           className="flex items-center gap-2 text-left flex-1 min-w-0"
         >
           {open
-            ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+            ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+            : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
           <h2 className="text-lg font-bold font-serif text-gray-900 truncate">{church.name}</h2>
         </button>
         <button
           onClick={() => setEditDetails(true)}
-          className="flex items-center gap-1.5 text-sm px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ml-4 flex-shrink-0"
+          className="flex items-center gap-1.5 text-sm px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ml-4 shrink-0"
         >
           <Edit2 className="w-3.5 h-3.5" />
           Edit Details
@@ -404,7 +404,7 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
                       : ` — ${new Date(s.date_time).toLocaleDateString('en-GB')}`}
                   </span>
                   {confirmDelSvc === s.id ? (
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                       <span className="text-xs text-red-600 font-medium">Delete?</span>
                       <button
                         onClick={() => handleDeleteService(s.id)}
@@ -426,7 +426,7 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
                     <button
                       onClick={() => setConfirmDelSvc(s.id)}
                       disabled={saving}
-                      className="text-gray-300 hover:text-red-500 flex-shrink-0 disabled:opacity-50"
+                      className="text-gray-300 hover:text-red-500 shrink-0 disabled:opacity-50"
                       title="Delete service"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -491,7 +491,7 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
                       {expired && <span className="ml-1 text-xs italic">expired</span>}
                     </span>
                     {confirmDelAnn === a.id ? (
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs text-red-600 font-medium">Delete?</span>
                         <button
                           onClick={() => handleDeleteAnnouncement(a.id)}
@@ -513,7 +513,7 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
                       <button
                         onClick={() => setConfirmDelAnn(a.id)}
                         disabled={saving}
-                        className="text-gray-300 hover:text-red-500 flex-shrink-0 mt-0.5 disabled:opacity-50"
+                        className="text-gray-300 hover:text-red-500 shrink-0 mt-0.5 disabled:opacity-50"
                         title="Delete announcement"
                       >
                         <Trash2 className="w-4 h-4" />

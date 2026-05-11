@@ -229,7 +229,7 @@ export function AdminCoffeeMorning() {
                                     <tr key={u.id} className="hover:bg-gray-50/50 transition-colors group">
                                         <td className="p-4 pl-6">
                                             <div className="flex items-start gap-4">
-                                                <div className="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-200">
+                                                <div className="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-gray-200">
                                                     {u.hero_image_url ? (
                                                         <img src={u.hero_image_url} alt="" className="w-full h-full object-cover" />
                                                     ) : (

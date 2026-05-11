@@ -138,7 +138,7 @@ export function Contact() {
                     rel="noopener noreferrer"
                     className="flex flex-row items-center gap-3 bg-white border border-gray-200 text-gray-800 font-semibold px-6 py-4 rounded-xl shadow-sm hover:border-blue-300 hover:text-blue-600 hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
-                    <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-6 h-6 shrink-0" viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M46 10c-14.36 0-26 11.64-26 26 0 6.5 2.38 12.45 6.32 17.02L46 82l19.68-28.98A25.88 25.88 0 0072 36c0-14.36-11.64-26-26-26z" fill="#4285F4" />
                       <path d="M46 10v72l19.68-28.98A25.88 25.88 0 0072 36c0-14.36-11.64-26-26-26z" fill="#34A853" />
                       <path d="M20 36c0-6.5 2.38-12.45 6.32-17.02L46 10 26.32 53.02A25.88 25.88 0 0120 36z" fill="#FBBC04" />
@@ -155,7 +155,7 @@ export function Contact() {
                     rel="noopener noreferrer"
                     className="flex flex-row items-center gap-3 bg-white border border-gray-200 text-gray-800 font-semibold px-6 py-4 rounded-xl shadow-sm hover:border-gray-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
-                    <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 2C7.58 2 4 5.58 4 10c0 5.5 8 12 8 12s8-6.5 8-12c0-4.42-3.58-8-8-8z" fill="#28CD41" />
                       <path d="M12 2v20s8-6.5 8-12c0-4.42-3.58-8-8-8z" fill="#00A818" />
                       <circle cx="12" cy="10" r="3.5" fill="white" />
@@ -171,7 +171,7 @@ export function Contact() {
                     rel="noopener noreferrer"
                     className="flex flex-row items-center gap-3 bg-white border border-gray-200 text-gray-800 font-semibold px-6 py-4 rounded-xl shadow-sm hover:border-sky-300 hover:text-sky-600 hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
-                    <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 2C7 2 3 6 3 11c0 2.5 1 4.8 2.6 6.4.4.4.4 1.2 0 1.6-.8.8-.2 2 1 2h10.8c1.2 0 1.8-1.2 1-2-.4-.4-.4-1.2 0-1.6C20 15.8 21 13.5 21 11c0-5-4-9-9-9z" fill="#33CCFF" />
                       <circle cx="9" cy="10" r="1.5" fill="#333" />
                       <circle cx="15" cy="10" r="1.5" fill="#333" />

@@ -63,7 +63,7 @@ function EditRolesModal({
 
                 {isLockedMasterAdminTarget && (
                     <div className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-100 rounded-xl text-sm text-purple-700">
-                        <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                        <ShieldCheck className="w-5 h-5 shrink-0" />
                         This user is listed as a protected Master Admin and always has full access regardless of role assignments.
                     </div>
                 )}
@@ -175,7 +175,7 @@ function ConfirmRemoveModal({
                 </button>
 
                 <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                         <AlertTriangle className="w-5 h-5 text-red-600" />
                     </div>
                     <div>
@@ -259,7 +259,7 @@ function ConfirmActionModal({
                 </button>
 
                 <div className="flex items-center gap-3">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-full ${iconBg} flex items-center justify-center`}>
+                    <div className={`shrink-0 w-10 h-10 rounded-full ${iconBg} flex items-center justify-center`}>
                         {icon}
                     </div>
                     <div>
@@ -524,7 +524,7 @@ export function AdminUsers() {
                                                             <tr key={u.id} className="hover:bg-purple-50/40 transition-colors">
                                                                 <td className="p-4 pl-6">
                                                                     <div className="flex items-center gap-3">
-                                                                        <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold flex-shrink-0">
+                                                                        <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0">
                                                                             {(u.name || u.email).charAt(0).toUpperCase()}
                                                                         </div>
                                                                         <div>
@@ -613,7 +613,7 @@ export function AdminUsers() {
                                                             <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
                                                                 <td className="p-4 pl-6">
                                                                     <div className="flex items-center gap-3">
-                                                                        <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold flex-shrink-0">
+                                                                        <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold shrink-0">
                                                                             {(u.name || u.email).charAt(0).toUpperCase()}
                                                                         </div>
                                                                         <div>
@@ -751,7 +751,7 @@ export function AdminUsers() {
                                     const colors = ROLE_COLORS[role.color] ?? ROLE_COLORS['blue'];
                                     return (
                                         <div key={role.id} className="flex items-start gap-2">
-                                            <span className={`mt-1 inline-block w-2 h-2 rounded-full flex-shrink-0 ${colors.dot}`} />
+                                            <span className={`mt-1 inline-block w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
                                             <div>
                                                 <div className="text-sm font-medium text-gray-800">{role.label}</div>
                                                 <div className="text-xs text-gray-500">{role.description}</div>
@@ -762,7 +762,7 @@ export function AdminUsers() {
                             </div>
                             <div className="mt-4 pt-4 border-t border-gray-100">
                                 <div className="flex items-start gap-2">
-                                    <span className="mt-1 inline-block w-2 h-2 rounded-full flex-shrink-0 bg-purple-500" />
+                                    <span className="mt-1 inline-block w-2 h-2 rounded-full shrink-0 bg-purple-500" />
                                     <div>
                                         <div className="text-sm font-medium text-gray-800">Master Admin</div>
                                         <div className="text-xs text-gray-500">

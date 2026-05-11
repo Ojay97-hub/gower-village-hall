@@ -65,7 +65,7 @@ export function Committee() {
                 {/* Registered Charity Card */}
                 <div className="bg-white border-2 border-primary-200 rounded-2xl p-6 md:col-span-2 flex flex-col">
                   <div className="flex items-start mb-3">
-                    <FileText className="w-8 h-8 text-primary-600 mr-3 flex-shrink-0" />
+                    <FileText className="w-8 h-8 text-primary-600 mr-3 shrink-0" />
                     <div>
                       <h3 className="mb-2">
                         Registered Charity
@@ -97,7 +97,7 @@ export function Committee() {
                 {/* Ilston Community Council Card */}
                 <div className="bg-white border-2 border-primary-200 rounded-2xl p-6 md:col-span-2 flex flex-col">
                   <div className="flex items-start mb-3">
-                    <ExternalLink className="w-8 h-8 text-primary-600 mr-3 flex-shrink-0" />
+                    <ExternalLink className="w-8 h-8 text-primary-600 mr-3 shrink-0" />
                     <div>
                       <h3 className="mb-2">
                         Ilston Community Council
@@ -183,7 +183,7 @@ export function Committee() {
           </div>
 
           {/* Get Involved */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-500 rounded-2xl p-10 text-white">
+          <div className="bg-linear-to-r from-primary-600 to-primary-500 rounded-2xl p-10 text-white">
             <h2 className="mb-4 text-white">Get Involved</h2>
             <p className="text-lg mb-6 leading-relaxed">
               We're always looking for enthusiastic community

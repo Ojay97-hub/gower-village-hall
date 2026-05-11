@@ -43,9 +43,9 @@ export function AdminAccount() {
                 }`}
             >
                 {feedback.type === 'success' ? (
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                 ) : (
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 )}
                 <span>{feedback.message}</span>
             </div>

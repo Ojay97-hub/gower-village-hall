@@ -287,7 +287,7 @@ export function ArticlePage() {
                                 }}
                             >
                                 <div
-                                    className="rounded-lg overflow-hidden flex-shrink-0 bg-gray-100"
+                                    className="rounded-lg overflow-hidden shrink-0 bg-gray-100"
                                     style={{ width: "80px", height: "80px" }}
                                 >
                                     <img
@@ -367,7 +367,7 @@ export function ArticlePage() {
                                     </div>
                                 </div>
                                 <div
-                                    className="rounded-lg overflow-hidden flex-shrink-0 bg-gray-100"
+                                    className="rounded-lg overflow-hidden shrink-0 bg-gray-100"
                                     style={{ width: "80px", height: "80px" }}
                                 >
                                     <img

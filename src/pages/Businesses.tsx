@@ -247,9 +247,9 @@ export function Businesses() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="p-8 flex flex-col flex-grow">
+                    <div className="p-8 flex flex-col grow">
                       <h3 className="mb-3">{place.name}</h3>
-                      <p className="text-gray-600 text-sm mb-6 leading-relaxed flex-grow">
+                      <p className="text-gray-600 text-sm mb-6 leading-relaxed grow">
                         {place.description}
                       </p>
                       <a
@@ -285,9 +285,9 @@ export function Businesses() {
                         className="w-full h-full object-cover object-center"
                       />
                     </div>
-                    <div className="p-8 flex flex-col flex-grow">
+                    <div className="p-8 flex flex-col grow">
                       <h3 className="mb-4">{shop.name}</h3>
-                      <p className="text-gray-600 text-sm mb-8 leading-loose flex-grow">
+                      <p className="text-gray-600 text-sm mb-8 leading-loose grow">
                         {shop.description}
                       </p>
                       <a

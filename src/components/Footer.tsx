@@ -53,7 +53,7 @@ export function Footer() {
             </h4>
             <div className="space-y-4 text-sm text-white/90">
               <div className="flex items-start space-x-3">
-                <MapPin className="w-5 h-5 text-white/70 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-white/70 shrink-0" />
                 <div>
                   <p>Penmaen Parish Hall</p>
                   <p>Penmaen, Gower</p>
@@ -61,7 +61,7 @@ export function Footer() {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <Mail className="w-5 h-5 text-white/70 flex-shrink-0" />
+                <Mail className="w-5 h-5 text-white/70 shrink-0" />
                 <a
                   href="mailto:info@penmaenandnicholastonvh.co.uk"
                   className="hover:text-white transition-colors"
@@ -88,7 +88,7 @@ export function Footer() {
                   className="hover:text-white transition-colors flex items-center font-medium underline underline-offset-4"
                 >
                   1081661
-                  <ExternalLink className="w-3 h-3 ml-1.5 flex-shrink-0" />
+                  <ExternalLink className="w-3 h-3 ml-1.5 shrink-0" />
                 </a>
               </div>
             </div>

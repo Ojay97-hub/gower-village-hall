@@ -182,7 +182,7 @@ export function CoffeeMorningArticle() {
                         }}
                     >
                         <div
-                            className="rounded-xl flex items-center justify-center flex-shrink-0"
+                            className="rounded-xl flex items-center justify-center shrink-0"
                             style={{ width: "44px", height: "44px", backgroundColor: "white" }}
                         >
                             <Heart style={{ width: "20px", height: "20px", color: "#5c6555" }} />
@@ -245,7 +245,7 @@ export function CoffeeMorningArticle() {
                                         e.currentTarget.style.transform = "translateY(0)";
                                     }}
                                 >
-                                    <div className="rounded-lg overflow-hidden flex-shrink-0 bg-gray-100" style={{ width: "80px", height: "80px" }}>
+                                    <div className="rounded-lg overflow-hidden shrink-0 bg-gray-100" style={{ width: "80px", height: "80px" }}>
                                         <img
                                             src={prevPost.hero_image_url || cakeMorningSummer}
                                             alt={prevPost.title}
@@ -321,7 +321,7 @@ export function CoffeeMorningArticle() {
                                             </h4>
                                         </div>
                                     </div>
-                                    <div className="rounded-lg overflow-hidden flex-shrink-0 bg-gray-100" style={{ width: "80px", height: "80px" }}>
+                                    <div className="rounded-lg overflow-hidden shrink-0 bg-gray-100" style={{ width: "80px", height: "80px" }}>
                                         <img
                                             src={nextPost.hero_image_url || cakeMorningSummer}
                                             alt={nextPost.title}

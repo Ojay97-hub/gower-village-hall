@@ -181,7 +181,7 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
                 <button
                     type="submit"
                     disabled={loading}
-                    className="px-8 py-3 text-base font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 shadow-md hover:shadow-lg transform transition-all active:scale-95"
+                    className="px-8 py-3 text-base font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-all disabled:opacity-50 shadow-md hover:shadow-lg transform active:scale-95"
                 >
                     {loading ? 'Saving...' : initialData ? 'Update Event' : 'Create Event'}
                 </button>
