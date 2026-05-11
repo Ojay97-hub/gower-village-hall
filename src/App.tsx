@@ -34,6 +34,7 @@ const CoffeeMorningArticle = lazy(() => import('./pages/CoffeeMorningArticle').t
 const AdminCoffeeMorning = lazy(() => import('./pages/AdminCoffeeMorning').then(m => ({ default: m.AdminCoffeeMorning })));
 const AdminSubscribers = lazy(() => import('./pages/AdminSubscribers').then(m => ({ default: m.AdminSubscribers })));
 const AdminChurches = lazy(() => import('./pages/AdminChurches').then(m => ({ default: m.AdminChurches })));
+const AdminActivities = lazy(() => import('./pages/AdminActivities').then(m => ({ default: m.AdminActivities })));
 const ForFamilies = lazy(() => import('./pages/ForFamilies').then(m => ({ default: m.ForFamilies })));
 const ChurchPage = lazy(() => import('./pages/ChurchPage').then(m => ({ default: m.ChurchPage })));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
@@ -89,6 +90,7 @@ export default function App() {
                     </Route>
                     <Route element={<AdminRoute requiredRole="bookings" />}>
                       <Route path="/admin/bookings" element={<AdminBookings />} />
+                      <Route path="/admin/activities" element={<AdminActivities />} />
                     </Route>
                     <Route element={<AdminRoute requiredRole="committee" />}>
                       <Route path="/admin/committee" element={<AdminCommittee />} />

@@ -61,8 +61,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    <link rel="preload" as="image" href="/images/updated-penmaen-sign.webp" type="image/webp">
-    <link rel="preload" as="image" href="/images/left-hero-image.jpeg">
+    <!-- Hero images use loading="eager" + fetchpriority="high" in Home.tsx; global preload here fired on every route and warned when unused. -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">

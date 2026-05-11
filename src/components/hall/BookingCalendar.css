@@ -114,6 +114,12 @@
   border-color: #f87171;
 }
 
+/* Scroll container: lets the grid + day headers scroll horizontally on small screens */
+.booking-cal-scroll-area {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Day headers */
 .booking-cal-day-headers {
   display: grid;
@@ -397,6 +403,13 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 600px) {
+  .booking-cal-day-headers,
+  .booking-cal-grid {
+    min-width: 420px;
+  }
+}
+
 @media (max-width: 768px) {
   .booking-cal-header {
     padding: 1rem;
@@ -414,6 +427,13 @@
   .booking-cal-event {
     font-size: 0.58rem;
     padding: 1px 3px;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .booking-cal-event-session {
+    white-space: normal;
   }
 
   .booking-cal-date {
@@ -433,6 +453,9 @@
 
   .booking-cal-event {
     font-size: 0.52rem;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
   }
 
   .booking-cal-day-header {

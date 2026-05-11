@@ -10,7 +10,13 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
     setDidError(true)
   }
 
-  const { src, alt, style, className, ...rest } = props
+  const { src, alt, style, className, fetchPriority, ...rest } = props as React.ImgHTMLAttributes<HTMLImageElement> & {
+    fetchPriority?: 'high' | 'low' | 'auto'
+  }
+
+  // React 18 doesn't recognize the camelCase `fetchPriority` prop on DOM elements;
+  // pass the lowercase HTML attribute instead.
+  const imgProps = (fetchPriority ? { ...rest, fetchpriority: fetchPriority } : rest) as React.ImgHTMLAttributes<HTMLImageElement>
 
   return didError ? (
     <div
@@ -18,10 +24,10 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
       style={style}
     >
       <div className="flex items-center justify-center w-full h-full">
-        <img src={ERROR_IMG_SRC} alt="Error loading image" {...rest} data-original-url={src} />
+        <img src={ERROR_IMG_SRC} alt="Error loading image" {...imgProps} data-original-url={src} />
       </div>
     </div>
   ) : (
-    <img src={src} alt={alt} className={className} style={style} {...rest} onError={handleError} />
+    <img src={src} alt={alt} className={className} style={style} {...imgProps} onError={handleError} />
   )
 }

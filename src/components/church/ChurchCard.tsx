@@ -39,7 +39,7 @@ function ServiceTimetableBanner({ services }: { services: Service[] }) {
 
   return (
     <div className="mb-8 rounded-2xl overflow-hidden border border-primary-100 shadow-sm">
-      <div className="flex items-center gap-2 px-5 py-3 bg-primary-700">
+      <div className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-primary-700">
         <ListOrdered className="w-4 h-4 text-white/80" />
         <span className="text-xs font-bold uppercase tracking-widest text-white/90">
           Service Timetable
@@ -52,7 +52,7 @@ function ServiceTimetableBanner({ services }: { services: Service[] }) {
           return (
             <div
               key={s.id}
-              className={`flex items-center gap-4 px-5 py-3.5 ${
+              className={`flex items-start sm:items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 sm:py-3.5 ${
                 isNext
                   ? 'bg-primary-50'
                   : isPast
@@ -60,29 +60,31 @@ function ServiceTimetableBanner({ services }: { services: Service[] }) {
                   : 'bg-white'
               }`}
             >
-              <div className="flex-shrink-0 w-16">
+              <div className="flex-shrink-0 w-12 sm:w-16 pt-0.5 sm:pt-0">
                 {isNext ? (
-                  <span className="inline-block text-xs font-bold bg-primary-600 text-white px-2 py-0.5 rounded-full">
+                  <span className="inline-block text-[0.65rem] sm:text-xs font-bold bg-primary-600 text-white px-2 py-0.5 rounded-full">
                     NEXT
                   </span>
                 ) : (
                   <Clock className={`w-4 h-4 ${isPast ? 'text-gray-300' : 'text-primary-300'}`} />
                 )}
               </div>
-              <span
-                className={`flex-1 text-sm font-semibold ${
-                  isNext ? 'text-primary-800' : isPast ? 'text-gray-400' : 'text-gray-700'
-                }`}
-              >
-                {s.title}
-              </span>
-              <span
-                className={`text-sm text-right flex-shrink-0 ${
-                  isNext ? 'text-primary-700 font-medium' : isPast ? 'text-gray-400' : 'text-gray-500'
-                }`}
-              >
-                {getDayAndTime(s)}
-              </span>
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                <span
+                  className={`text-sm font-semibold ${
+                    isNext ? 'text-primary-800' : isPast ? 'text-gray-400' : 'text-gray-700'
+                  }`}
+                >
+                  {s.title}
+                </span>
+                <span
+                  className={`text-xs sm:text-sm sm:ml-auto sm:text-right mt-0.5 sm:mt-0 ${
+                    isNext ? 'text-primary-700 font-medium' : isPast ? 'text-gray-400' : 'text-gray-500'
+                  }`}
+                >
+                  {getDayAndTime(s)}
+                </span>
+              </div>
             </div>
           );
         })}

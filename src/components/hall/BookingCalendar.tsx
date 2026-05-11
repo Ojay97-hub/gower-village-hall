@@ -16,12 +16,15 @@ interface CalendarEventItem {
   id: string;
   title: string;
   type: 'event' | 'activity';
+  startTime?: string | null;
+  endTime?: string | null;
 }
 
 interface BookingCalendarProps {
   selectedDate?: string;
   selectedEndDate?: string;
   onDateSelect?: (date: string, endDate: string) => void;
+  onBookedSessionsChange?: (sessions: Set<string>) => void;
 }
 
 // Session-based colour coding for confirmed bookings
@@ -146,7 +149,7 @@ function formatDateDisplay(dateStr: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }: BookingCalendarProps) {
+export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, onBookedSessionsChange }: BookingCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,23 +208,92 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
 
     events.forEach(event => {
       const dateKey = (event.date as string).slice(0, 10);
-      map.set(dateKey, [...(map.get(dateKey) || []), { id: event.id, title: event.title, type: 'event' }]);
+      map.set(dateKey, [...(map.get(dateKey) || []), {
+        id: event.id, title: event.title, type: 'event',
+        startTime: event.start_time, endTime: event.end_time,
+      }]);
     });
 
     regularActivities.forEach(activity => {
       if (activity.schedule_date) {
         const dateKey = (activity.schedule_date as string).slice(0, 10);
-        map.set(dateKey, [...(map.get(dateKey) || []), { id: activity.id, title: activity.title, type: 'activity' }]);
+        map.set(dateKey, [...(map.get(dateKey) || []), {
+          id: activity.id, title: activity.title, type: 'activity',
+          startTime: activity.start_time, endTime: activity.end_time,
+        }]);
       } else if (activity.schedule) {
         generateRecurringDates(activity.schedule, year, month).forEach((date, idx) => {
           const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-          map.set(dateKey, [...(map.get(dateKey) || []), { id: `${activity.id}-${idx}`, title: activity.title, type: 'activity' }]);
+          map.set(dateKey, [...(map.get(dateKey) || []), {
+            id: `${activity.id}-${idx}`, title: activity.title, type: 'activity',
+            startTime: activity.start_time, endTime: activity.end_time,
+          }]);
         });
       }
     });
 
     return map;
   }, [events, regularActivities, year, month]);
+
+  // Returns which booking sessions a time range overlaps with
+  function getSessionsForTime(startTime: string | null | undefined, endTime: string | null | undefined): string[] {
+    if (!startTime) return [];
+    const toMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); };
+    const start = toMins(startTime);
+    const end = endTime ? toMins(endTime) : start + 60;
+    const sessions: string[] = [];
+    if (start < 720  && end > 480)  sessions.push('morning');   // 8am–12pm
+    if (start < 1020 && end > 720)  sessions.push('afternoon'); // 12pm–5pm
+    if (start < 1320 && end > 1020) sessions.push('evening');   // 5pm–10pm
+    return sessions;
+  }
+
+  // Notify parent of which sessions are already booked for the selected date range
+  useEffect(() => {
+    if (!onBookedSessionsChange) return;
+
+    if (!selectedDate) {
+      onBookedSessionsChange(new Set());
+      return;
+    }
+
+    const booked = new Set<string>();
+    const cur = new Date(selectedDate + 'T00:00:00');
+    const end = new Date((selectedEndDate || selectedDate) + 'T00:00:00');
+
+    while (cur <= end) {
+      const dateKey = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+      (bookingsByDate.get(dateKey) || []).forEach(({ booking }) => {
+        const s = (booking.event_type || '').toLowerCase().replace(/[\s-]/g, '');
+        if (s === 'allday' || s === 'fullday') {
+          ['morning', 'afternoon', 'evening', 'allday'].forEach(x => booked.add(x));
+        } else {
+          if (s.includes('morning'))   booked.add('morning');
+          if (s.includes('afternoon')) booked.add('afternoon');
+          if (s.includes('evening'))   booked.add('evening');
+        }
+      });
+
+      // Block sessions covered by events/activities on this date
+      (calendarEventsByDate.get(dateKey) || []).forEach(item => {
+        if (!item.startTime) {
+          // No time data stored — block all sessions to prevent double-booking
+          ['morning', 'afternoon', 'evening', 'allday'].forEach(s => booked.add(s));
+        } else {
+          getSessionsForTime(item.startTime, item.endTime).forEach(s => booked.add(s));
+        }
+      });
+
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    // Any individual session taken means allday is also unavailable
+    if (booked.has('morning') || booked.has('afternoon') || booked.has('evening')) {
+      booked.add('allday');
+    }
+
+    onBookedSessionsChange(booked);
+  }, [selectedDate, selectedEndDate, bookingsByDate, calendarEventsByDate, onBookedSessionsChange]);
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
@@ -281,11 +353,11 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
       <div className="booking-cal-header">
         <h3 className="booking-cal-month">{monthName}</h3>
         <div className="booking-cal-nav">
-          <button onClick={prevMonth} className="booking-cal-nav-btn" aria-label="Previous month">
+          <button type="button" onClick={prevMonth} className="booking-cal-nav-btn" aria-label="Previous month">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={goToToday} className="booking-cal-today-btn">Today</button>
-          <button onClick={nextMonth} className="booking-cal-nav-btn" aria-label="Next month">
+          <button type="button" onClick={goToToday} className="booking-cal-today-btn">Today</button>
+          <button type="button" onClick={nextMonth} className="booking-cal-nav-btn" aria-label="Next month">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -305,7 +377,7 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
           {selectedDate && selectedEndDate && (
             <span className="booking-cal-selection-hint">
               <strong>{formatDateDisplay(selectedDate)}</strong> → <strong>{formatDateDisplay(selectedEndDate)}</strong>
-              <button className="booking-cal-clear-btn" onClick={() => { onDateSelect('', ''); setSelectingEnd(false); }}>
+              <button type="button" className="booking-cal-clear-btn" onClick={() => { onDateSelect('', ''); setSelectingEnd(false); }}>
                 Clear
               </button>
             </span>
@@ -313,13 +385,16 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
           {selectedDate && !selectedEndDate && !selectingEnd && (
             <span className="booking-cal-selection-hint">
               <strong>{formatDateDisplay(selectedDate)}</strong>
-              <button className="booking-cal-clear-btn" onClick={() => { onDateSelect('', ''); setSelectingEnd(false); }}>
+              <button type="button" className="booking-cal-clear-btn" onClick={() => { onDateSelect('', ''); setSelectingEnd(false); }}>
                 Clear
               </button>
             </span>
           )}
         </div>
       )}
+
+      {/* Scrollable area: day headers + grid scroll together on mobile */}
+      <div className="booking-cal-scroll-area">
 
       {/* Day headers */}
       <div className="booking-cal-day-headers">
@@ -453,6 +528,7 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect }:
           );
         })}
       </div>
+      </div>{/* end booking-cal-scroll-area */}
 
       {/* Legend */}
       <div className="booking-cal-legend">

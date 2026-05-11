@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, UserRoundCog, ChevronDown, ChevronUp, Shield, BookOpen, Users, CalendarDays, UsersRound, Coffee, Landmark, Calendar, Settings, Mail } from 'lucide-react';
+import { LogOut, UserRoundCog, ChevronDown, ChevronUp, Shield, BookOpen, Users, CalendarDays, UsersRound, Coffee, Landmark, Calendar, Settings, Mail, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function AdminToolbar() {
@@ -50,6 +50,14 @@ export function AdminToolbar() {
             title: 'Manage Bookings',
             to: '/admin/bookings',
             icon: CalendarDays,
+            className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
+        } : null,
+        hasAssignedRole('bookings') || isMasterAdmin ? {
+            key: 'activities',
+            label: 'Manage Activities',
+            title: 'Manage Activities',
+            to: '/admin/activities',
+            icon: Activity,
             className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
         } : null,
         hasAssignedRole('committee') || isMasterAdmin ? {

@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -86,6 +86,12 @@ export function Hall() {
     sessions: [] as ('morning' | 'afternoon' | 'evening' | 'allday')[],
     details: '',
   });
+  const [bookedSessions, setBookedSessions] = useState<Set<string>>(new Set());
+
+  const handleBookedSessionsChange = useCallback((sessions: Set<string>) => {
+    setBookedSessions(sessions);
+  }, []);
+
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [bookingError, setBookingError] = useState('');
@@ -187,6 +193,33 @@ export function Hall() {
       console.warn('[BookingForm] Validation failed: date is empty');
       setBookingStatus('error');
       setBookingError('Please select a preferred date.');
+      setBookingSubmitting(false);
+      return;
+    }
+    if (bookingForm.sessions.length === 0) {
+      console.warn('[BookingForm] Validation failed: no session selected');
+      setBookingStatus('error');
+      setBookingError('Please select at least one session time.');
+      setBookingSubmitting(false);
+      return;
+    }
+
+    const SESSION_LABELS: Record<string, string> = {
+      morning: 'Morning',
+      afternoon: 'Afternoon',
+      evening: 'Evening',
+      allday: 'All Day',
+    };
+    const conflicts = bookingForm.sessions.filter(s => bookedSessions.has(s));
+    if (conflicts.length > 0) {
+      console.warn('[BookingForm] Validation failed: session conflicts:', conflicts);
+      setBookingStatus('error');
+      const conflictLabels = conflicts.map(c => SESSION_LABELS[c]).join(', ');
+      setBookingError(
+        conflicts.length > 1
+          ? `These sessions are already booked on your selected date(s): ${conflictLabels}. Please choose different sessions.`
+          : `The ${conflictLabels} session is already booked on your selected date(s). Please choose a different session.`
+      );
       setBookingSubmitting(false);
       return;
     }
@@ -452,7 +485,7 @@ export function Hall() {
                 </div>
               )}
 
-              <form className="space-y-5" onSubmit={handleBookingSubmit}>
+              <form className="space-y-5" onSubmit={handleBookingSubmit} noValidate>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label htmlFor="name" className="block text-sm mb-2 text-gray-700 font-medium">
@@ -511,6 +544,7 @@ export function Hall() {
                     selectedDate={bookingForm.date}
                     selectedEndDate={bookingForm.endDate}
                     onDateSelect={(date, endDate) => setBookingForm(prev => ({ ...prev, date, endDate }))}
+                    onBookedSessionsChange={handleBookedSessionsChange}
                   />
                 </div>
 
@@ -525,33 +559,42 @@ export function Hall() {
                       { value: 'afternoon', label: 'Afternoon', Icon: Sun, desc: '12pm – 5pm' },
                       { value: 'evening', label: 'Evening', Icon: Moon, desc: '5pm – 10pm' },
                       { value: 'allday', label: 'All Day', Icon: CalendarDays, desc: 'Full day' },
-                    ].map(opt => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setBookingForm(prev => {
-                          const val = opt.value as 'morning' | 'afternoon' | 'evening' | 'allday';
-                          if (val === 'allday') {
-                            return { ...prev, sessions: prev.sessions.includes('allday') ? [] : ['allday'] };
-                          }
-                          const without = prev.sessions.filter(s => s !== 'allday');
-                          return {
-                            ...prev,
-                            sessions: without.includes(val) ? without.filter(s => s !== val) : [...without, val],
-                          };
-                        })}
-                        disabled={bookingSubmitting}
-                        className={`flex flex-col items-center gap-1 px-3 py-3 rounded-lg border-2 transition-all text-center cursor-pointer ${
-                          bookingForm.sessions.includes(opt.value as 'morning' | 'afternoon' | 'evening' | 'allday')
-                            ? 'border-primary-500 bg-primary-50 text-primary-800 shadow-sm'
-                            : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        <opt.Icon className="w-5 h-5" />
-                        <span className="text-xs font-semibold">{opt.label}</span>
-                        <span className="text-[0.65rem] opacity-70">{opt.desc}</span>
-                      </button>
-                    ))}
+                    ].map(opt => {
+                      const isTaken = bookedSessions.has(opt.value);
+                      const isSelected = bookingForm.sessions.includes(opt.value as 'morning' | 'afternoon' | 'evening' | 'allday');
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            if (isTaken) return;
+                            setBookingForm(prev => {
+                              const val = opt.value as 'morning' | 'afternoon' | 'evening' | 'allday';
+                              if (val === 'allday') {
+                                return { ...prev, sessions: prev.sessions.includes('allday') ? [] : ['allday'] };
+                              }
+                              const without = prev.sessions.filter(s => s !== 'allday');
+                              return {
+                                ...prev,
+                                sessions: without.includes(val) ? without.filter(s => s !== val) : [...without, val],
+                              };
+                            });
+                          }}
+                          disabled={bookingSubmitting || isTaken}
+                          className={`flex flex-col items-center gap-1 px-3 py-3 rounded-lg border-2 transition-all text-center ${
+                            isTaken
+                              ? 'border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed'
+                              : isSelected
+                                ? 'border-primary-500 bg-primary-50 text-primary-800 shadow-sm cursor-pointer'
+                                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white cursor-pointer'
+                          } disabled:opacity-100`}
+                        >
+                          <opt.Icon className="w-5 h-5" />
+                          <span className="text-xs font-semibold">{opt.label}</span>
+                          <span className="text-[0.65rem] opacity-70">{isTaken ? 'Unavailable' : opt.desc}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
