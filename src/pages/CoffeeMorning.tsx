@@ -201,7 +201,7 @@ export function CoffeeMorning() {
       <section className="bg-primary-50 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="w-20 h-20 bg-white rounded-2xl shadow-sm flex items-center justify-center flex-shrink-0">
+            <div className="w-20 h-20 bg-white rounded-2xl shadow-sm flex items-center justify-center shrink-0">
               <Coffee className="w-10 h-10 text-primary-600" />
             </div>
             <div>
@@ -265,7 +265,7 @@ export function CoffeeMorning() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="bg-primary-50 rounded-2xl p-6 flex items-start gap-4">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
                 <CalendarDays className="w-5 h-5 text-primary-600" />
               </div>
               <div>
@@ -274,7 +274,7 @@ export function CoffeeMorning() {
               </div>
             </div>
             <div className="bg-primary-50 rounded-2xl p-6 flex items-start gap-4">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
                 <Clock className="w-5 h-5 text-primary-600" />
               </div>
               <div>
@@ -283,7 +283,7 @@ export function CoffeeMorning() {
               </div>
             </div>
             <div className="bg-primary-50 rounded-2xl p-6 flex items-start gap-4">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
                 <Users className="w-5 h-5 text-primary-600" />
               </div>
               <div>
@@ -428,7 +428,7 @@ export function CoffeeMorning() {
                               border: '1px solid rgba(107, 117, 100, 0.15)',
                             }}
                           >
-                            <Heart className="w-4 h-4 flex-shrink-0" style={{ color: '#5c6555' }} />
+                            <Heart className="w-4 h-4 shrink-0" style={{ color: '#5c6555' }} />
                             <p className="text-xs flex-1 truncate" style={{ color: '#3f463b' }}>
                               {u.amount_raised != null ? (
                                 <>
@@ -585,7 +585,7 @@ export function CoffeeMorning() {
                         </div>
                       )}
                       {image.label && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-4">
                           <p className="text-white text-sm font-medium">{image.label}</p>
                         </div>
                       )}
@@ -620,7 +620,7 @@ export function CoffeeMorning() {
                       src={image.image_url}
                       alt={image.label}
                       className={`w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105 ${
-                        image.grid_size === 'large' ? 'aspect-square' : 'aspect-[4/3]'
+                        image.grid_size === 'large' ? 'aspect-square' : 'aspect-4/3'
                       }`}
                       loading="lazy"
                     />
@@ -652,7 +652,7 @@ export function CoffeeMorning() {
                       </div>
                     )}
                     {image.label && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <p className="text-white text-sm font-medium">{image.label}</p>
                       </div>
                     )}

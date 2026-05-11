@@ -210,7 +210,7 @@ export function Churches() {
 
       {/* Join Friends Modal */}
       {showModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
             onClick={handleCloseModal}
@@ -221,8 +221,8 @@ export function Churches() {
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all scale-100">
             {/* Header */}
             <div className="px-8 py-10 text-center relative bg-[#3a4435] overflow-hidden">
-              <div className="absolute inset-0 z-0 bg-gradient-to-tr from-[#111827] via-[#2F3A29] to-[#6b7564] opacity-90 mix-blend-multiply" />
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full mix-blend-overlay filter blur-[40px] opacity-10" />
+              <div className="absolute inset-0 z-0 bg-linear-to-tr from-[#111827] via-[#2F3A29] to-[#6b7564] opacity-90 mix-blend-multiply" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full mix-blend-overlay filter blur-2xl opacity-10" />
               <button
                 onClick={handleCloseModal}
                 className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors z-10"
@@ -266,7 +266,7 @@ export function Churches() {
 
                   {error && (
                     <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
                       <p className="text-red-700 text-sm font-medium">{error}</p>
                     </div>
                   )}
@@ -304,7 +304,7 @@ export function Churches() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full flex items-center justify-center gap-3 bg-[#6b7564] hover:bg-[#5c6555] text-white font-medium rounded-full py-4 mt-2 transition-all transform hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                      className="w-full flex items-center justify-center gap-3 bg-[#6b7564] hover:bg-primary-700 text-white font-medium rounded-full py-4 mt-2 transition-all transform hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                     >
                       {submitting ? (
                         <>

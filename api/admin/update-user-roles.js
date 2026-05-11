@@ -4,6 +4,7 @@ const ALLOWED_ROLES = new Set([
   'blog',
   'events',
   'bookings',
+  'activities',
   'coffee_mornings',
   'committee',
   'churches',

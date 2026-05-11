@@ -370,7 +370,7 @@ export function Events() {
                 {activeTab === 'private' && canViewPrivateBookings && conflicts.length > 0 && (
                     <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-semibold text-amber-900 mb-2">
                                     {conflicts.length} potential double-booking{conflicts.length > 1 ? 's' : ''} detected
@@ -425,7 +425,7 @@ export function Events() {
                                             className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-purple-100 overflow-hidden"
                                         >
                                             <div className="p-4 sm:p-6 md:p-8 flex gap-4 sm:gap-6 md:gap-8">
-                                                <div className="flex-shrink-0">
+                                                <div className="shrink-0">
                                                     <div className="w-16 h-16 md:w-20 md:h-20 bg-purple-50 rounded-2xl flex flex-col items-center justify-center border border-purple-100 group-hover:bg-purple-600 group-hover:border-purple-600 transition-colors duration-300 shadow-sm">
                                                         <span className="text-xl md:text-2xl font-bold text-purple-600 group-hover:text-white transition-colors duration-300">
                                                             {startDate.getDate()}
@@ -436,10 +436,10 @@ export function Events() {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex-grow min-w-0">
+                                                <div className="grow min-w-0">
                                                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4 w-full">
                                                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                            <Lock className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                                                            <Lock className="w-4 h-4 text-purple-400 shrink-0" />
                                                             <h3 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight group-hover:text-purple-600 transition-colors min-w-0">
                                                                 {booking.name}
                                                             </h3>
@@ -513,7 +513,7 @@ export function Events() {
                             >
                                 <div className="p-4 sm:p-6 md:p-8 flex gap-4 sm:gap-6 md:gap-8">
                                     {/* Date Side - Always on left */}
-                                    <div className="flex-shrink-0">
+                                    <div className="shrink-0">
                                         <div className="w-16 h-16 md:w-20 md:h-20 bg-primary-50 rounded-2xl flex flex-col items-center justify-center border border-primary-100 group-hover:bg-primary-600 group-hover:border-primary-600 transition-colors duration-300 shadow-sm">
                                             <span className="text-xl md:text-2xl font-bold text-primary-600 group-hover:text-white transition-colors duration-300">
                                                 {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric' })}
@@ -525,13 +525,13 @@ export function Events() {
                                     </div>
 
                                     {/* Content Side */}
-                                    <div className="flex-grow min-w-0">
+                                    <div className="grow min-w-0">
                                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4 w-full">
                                             <h3 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors min-w-0 flex-1">
                                                 {event.title}
                                             </h3>
 
-                                            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                                            <div className="flex items-center gap-2 md:gap-3 shrink-0">
                                                 <span className="inline-flex items-center px-4 mt-2 md:mt-0 py-1 md:py-2 rounded-full text-xs font-semibold bg-primary-100 text-primary-800 uppercase tracking-wide">
                                                     {event.type || 'Event'}
                                                 </span>
@@ -616,7 +616,7 @@ export function Events() {
             </div>
 
             {/* Regular Activities Section */}
-            <section className="py-16 pb-64 relative flex-grow" style={{ backgroundColor: '#f0f4f0' }}>
+            <section className="py-16 pb-64 relative grow" style={{ backgroundColor: '#f0f4f0' }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center mb-12">
                         <div>
@@ -654,7 +654,7 @@ export function Events() {
                                         <div className="absolute inset-x-0 top-0 h-1.5 bg-primary-200" />
                                         <div className="mb-5 flex items-start gap-4">
                                             <div
-                                                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border shadow-sm"
+                                                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border shadow-sm"
                                                 style={{
                                                     backgroundColor: theme.bgColor,
                                                     borderColor: theme.borderColor,
@@ -664,7 +664,7 @@ export function Events() {
                                                 <IconComponent className="h-6 w-6" />
                                             </div>
 
-                                            <div className="min-w-0 flex-grow">
+                                            <div className="min-w-0 grow">
                                                 <h3 className="text-2xl font-bold leading-tight text-gray-900">
                                                     {featuredActivity.title}
                                                 </h3>
@@ -674,7 +674,7 @@ export function Events() {
                                             </div>
 
                                             {canManageEvents && (
-                                                <div className="flex flex-shrink-0 gap-2">
+                                                <div className="flex shrink-0 gap-2">
                                                     <button
                                                         onClick={() => handleActivityEdit(featuredActivity)}
                                                         className="rounded-xl p-2 text-gray-400 transition-all duration-200 hover:bg-primary-50 hover:text-primary-600"
@@ -759,7 +759,7 @@ export function Events() {
                                             <div className="flex items-start gap-4 mb-4">
                                                 {/* Icon Badge */}
                                                 <div
-                                                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105 border shadow-sm"
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 border shadow-sm"
                                                     style={{
                                                         backgroundColor: theme.bgColor,
                                                         borderColor: theme.borderColor,
@@ -770,13 +770,13 @@ export function Events() {
                                                 </div>
 
                                                 {/* Title */}
-                                                <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors duration-200 flex-grow pt-1">
+                                                <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors duration-200 grow pt-1">
                                                     {activity.title}
                                                 </h3>
 
                                                 {/* Admin Controls */}
                                                 {canManageEvents && (
-                                                    <div className="flex gap-2 flex-shrink-0">
+                                                    <div className="flex gap-2 shrink-0">
                                                         <button
                                                             onClick={() => handleActivityEdit(activity)}
                                                             className="p-2 text-gray-400 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-all duration-200"
@@ -796,7 +796,7 @@ export function Events() {
                                             </div>
 
                                             {/* Content Section */}
-                                            <div className="space-y-3 flex-grow">
+                                            <div className="space-y-3 grow">
                                                 {/* Description */}
                                                 {activity.description && (
                                                     <p className="text-gray-600 leading-relaxed line-clamp-2">

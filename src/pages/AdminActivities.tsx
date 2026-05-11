@@ -1,63 +1,56 @@
 import { useState } from 'react';
-import { Activity, Clock, Loader2, Check, X, Pencil } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Activity, Plus, Trash2, Edit2, AlertTriangle, X, Star, Loader2 } from 'lucide-react';
 import { useEvents, type RegularActivity } from '../context/EventContext';
-
-interface EditState {
-  schedule: string;
-  start_time: string;
-  end_time: string;
-}
-
-function formatTime(t: string | null) {
-  if (!t) return '—';
-  return t.substring(0, 5);
-}
-
-function timeInputValue(t: string | null) {
-  if (!t) return '';
-  return t.substring(0, 5);
-}
+import { RegularActivityForm } from '../components/events/RegularActivityForm';
 
 export function AdminActivities() {
-  const { regularActivities, loading, updateRegularActivity } = useEvents();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editState, setEditState] = useState<EditState>({ schedule: '', start_time: '', end_time: '' });
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [savedId, setSavedId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { regularActivities, loading, deleteRegularActivity } = useEvents();
 
-  function startEdit(activity: RegularActivity) {
-    setEditingId(activity.id);
-    setEditState({
-      schedule: activity.schedule ?? '',
-      start_time: timeInputValue(activity.start_time),
-      end_time: timeInputValue(activity.end_time),
-    });
-    setError(null);
-    setSavedId(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<RegularActivity | undefined>(undefined);
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<RegularActivity | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  function handleCreate() {
+    setEditingActivity(undefined);
+    setShowForm(true);
+    setTimeout(() => {
+      document.getElementById('activity-form-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   }
 
-  function cancelEdit() {
-    setEditingId(null);
-    setError(null);
+  function handleEdit(activity: RegularActivity) {
+    setEditingActivity(activity);
+    setShowForm(true);
+    setTimeout(() => {
+      document.getElementById('activity-form-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   }
 
-  async function saveEdit(id: string) {
-    setSavingId(id);
-    setError(null);
+  function handleClose() {
+    setShowForm(false);
+    setEditingActivity(undefined);
+  }
+
+  function handleDeleteClick(activity: RegularActivity) {
+    setActivityToDelete(activity);
+    setDeleteConfirmOpen(true);
+  }
+
+  async function handleDeleteConfirm() {
+    if (!activityToDelete) return;
+    setIsDeleting(true);
     try {
-      await updateRegularActivity(id, {
-        schedule: editState.schedule || null,
-        start_time: editState.start_time ? `${editState.start_time}:00` : null,
-        end_time: editState.end_time ? `${editState.end_time}:00` : null,
-      });
-      setEditingId(null);
-      setSavedId(id);
-      setTimeout(() => setSavedId(null), 2000);
-    } catch {
-      setError('Failed to save. Please try again.');
+      await deleteRegularActivity(activityToDelete.id);
+      setDeleteConfirmOpen(false);
+      setActivityToDelete(null);
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete activity.');
     } finally {
-      setSavingId(null);
+      setIsDeleting(false);
     }
   }
 
@@ -76,147 +69,172 @@ export function AdminActivities() {
         <div>
           <h1 className="text-3xl font-bold font-serif text-gray-900 mb-2">Regular Activities</h1>
           <p className="text-gray-500">
-            Edit the schedule and times for recurring hall activities. Times determine which booking sessions are blocked on those days.
+            Add, edit, and remove recurring hall activities. Times determine which booking sessions are blocked on those days.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 bg-white border border-gray-100 rounded-xl px-4 py-2 shadow-sm whitespace-nowrap">
-          <Activity className="w-4 h-4 text-primary-500" />
-          {regularActivities.length} {regularActivities.length === 1 ? 'activity' : 'activities'}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCreate}
+            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors shadow-sm text-sm font-medium whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            Add Activity
+          </button>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
+      {/* Activities table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100 text-sm font-medium text-gray-500">
-                <th className="p-4 pl-6">Activity</th>
-                <th className="p-4">Schedule</th>
-                <th className="p-4">Start Time</th>
-                <th className="p-4">End Time</th>
-                <th className="p-4 pr-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {regularActivities.map(activity => {
-                const isEditing = editingId === activity.id;
-                const isSaving = savingId === activity.id;
-                const justSaved = savedId === activity.id;
-
-                return (
-                  <tr key={activity.id} className={`transition-colors ${isEditing ? 'bg-primary-50/40' : 'hover:bg-gray-50/50'}`}>
-                    {/* Activity name */}
+        {regularActivities.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <Activity className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="font-medium">No activities yet</p>
+            <p className="text-sm mt-1">Click "Add Activity" to create your first one.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100 text-sm font-medium text-gray-500">
+                  <th className="p-4 pl-6">Activity</th>
+                  <th className="p-4">Schedule</th>
+                  <th className="p-4">Start</th>
+                  <th className="p-4">End</th>
+                  <th className="p-4 pr-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {regularActivities.map(activity => (
+                  <tr key={activity.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 pl-6">
-                      <p className="font-semibold text-gray-900">{activity.title}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-gray-900">{activity.title}</p>
+                        {activity.is_featured && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <Star className="w-2.5 h-2.5" />
+                            Featured
+                          </span>
+                        )}
+                      </div>
                       {activity.description && (
-                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{activity.description}</p>
+                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{activity.description}</p>
                       )}
                     </td>
-
-                    {/* Schedule */}
-                    <td className="p-4 min-w-[200px]">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editState.schedule}
-                          onChange={e => setEditState(prev => ({ ...prev, schedule: e.target.value }))}
-                          placeholder="e.g. First Saturday each month"
-                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                        />
-                      ) : (
-                        <span className="text-sm text-gray-700">{activity.schedule ?? <span className="text-gray-300">—</span>}</span>
-                      )}
+                    <td className="p-4 text-sm text-gray-600">
+                      {activity.schedule ?? <span className="text-gray-300">—</span>}
                     </td>
-
-                    {/* Start time */}
-                    <td className="p-4 min-w-[130px]">
-                      {isEditing ? (
-                        <input
-                          type="time"
-                          value={editState.start_time}
-                          onChange={e => setEditState(prev => ({ ...prev, start_time: e.target.value }))}
-                          className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                        />
-                      ) : (
-                        <span className={`inline-flex items-center gap-1.5 text-sm ${activity.start_time ? 'text-gray-700' : 'text-amber-500'}`}>
-                          <Clock className="w-3.5 h-3.5" />
-                          {activity.start_time ? formatTime(activity.start_time) : 'Not set'}
-                        </span>
-                      )}
+                    <td className="p-4 text-sm text-gray-600">
+                      {activity.start_time
+                        ? activity.start_time.substring(0, 5)
+                        : <span className="text-amber-500 text-xs">Not set</span>}
                     </td>
-
-                    {/* End time */}
-                    <td className="p-4 min-w-[130px]">
-                      {isEditing ? (
-                        <input
-                          type="time"
-                          value={editState.end_time}
-                          onChange={e => setEditState(prev => ({ ...prev, end_time: e.target.value }))}
-                          className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-                        />
-                      ) : (
-                        <span className={`inline-flex items-center gap-1.5 text-sm ${activity.end_time ? 'text-gray-700' : 'text-amber-500'}`}>
-                          <Clock className="w-3.5 h-3.5" />
-                          {activity.end_time ? formatTime(activity.end_time) : 'Not set'}
-                        </span>
-                      )}
+                    <td className="p-4 text-sm text-gray-600">
+                      {activity.end_time
+                        ? activity.end_time.substring(0, 5)
+                        : <span className="text-amber-500 text-xs">Not set</span>}
                     </td>
-
-                    {/* Actions */}
-                    <td className="p-4 pr-6 text-right whitespace-nowrap">
-                      {isEditing ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => saveEdit(activity.id)}
-                            disabled={isSaving}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                          >
-                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                            Save
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            disabled={isSaving}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
+                    <td className="p-4 pr-6">
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => startEdit(activity)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ml-auto ${
-                            justSaved
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
-                          }`}
+                          onClick={() => handleEdit(activity)}
+                          className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="Edit"
                         >
-                          {justSaved ? (
-                            <><Check className="w-3.5 h-3.5" /> Saved</>
-                          ) : (
-                            <><Pencil className="w-3.5 h-3.5" /> Edit</>
-                          )}
+                          <Edit2 className="w-4 h-4" />
                         </button>
-                      )}
+                        <button
+                          onClick={() => handleDeleteClick(activity)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <p className="mt-4 text-xs text-gray-400">
         Start and end times control which booking sessions are blocked on days this activity runs. Activities without times block all sessions as a precaution.
       </p>
+
+      {/* Inline form */}
+      {showForm && (
+        <div id="activity-form-section" className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-200 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <RegularActivityForm
+            initialData={editingActivity}
+            onSuccess={handleClose}
+            onCancel={handleClose}
+          />
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteConfirmOpen && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => !isDeleting && setDeleteConfirmOpen(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 w-80 mx-auto border border-gray-200">
+            <button
+              onClick={() => setDeleteConfirmOpen(false)}
+              disabled={isDeleting}
+              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+
+            <div className="text-center mb-6">
+              <h3 className="text-base font-bold text-gray-900 mb-2">Delete Activity?</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Are you sure you want to delete{' '}
+                <span className="font-semibold text-gray-900">"{activityToDelete?.title}"</span>?
+                This cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors text-sm disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-60"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

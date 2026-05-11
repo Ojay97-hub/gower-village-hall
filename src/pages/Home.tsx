@@ -22,7 +22,7 @@ export function Home() {
             fetchPriority="high"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center">
+          <div className="absolute inset-0 bg-linear-to-r from-black/60 to-black/40 flex items-center">
             <div className="px-6 py-12 md:px-10 lg:px-16 text-white max-w-2xl md:py-0">
               <h1 className="mb-4 text-white text-4xl md:text-5xl lg:text-6xl font-bold">
                 Welcome to Penmaen and Nicholaston Village Hall
@@ -57,7 +57,7 @@ export function Home() {
             fetchPriority="high"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-800/30"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-amber-900/20 to-orange-800/30"></div>
         </div>
       </section>
 
@@ -83,7 +83,7 @@ export function Home() {
                 alt="Tor Bay"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-4">
                 <p className="text-white">Tor Bay</p>
               </div>
             </div>
@@ -93,7 +93,7 @@ export function Home() {
                 alt="Three Cliffs"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-4">
                 <p className="text-white">Three Cliffs</p>
               </div>
             </div>
@@ -103,7 +103,7 @@ export function Home() {
                 alt="Coffee morning cakes"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-4">
                 <p className="text-white">Monthly coffee mornings</p>
               </div>
             </div>
@@ -112,7 +112,7 @@ export function Home() {
       </section>
 
       {/* Quick Links Cards */}
-      <section className="py-12 md:py-16 bg-primary-50 pt-[64px] pr-[0px] pb-[20px] pl-[0px]">
+      <section className="py-12 md:py-16 bg-primary-50 pt-[64px] pr-0 pb-[20px] pl-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {/* Book the Hall Card */}
@@ -187,11 +187,11 @@ export function Home() {
       </section>
 
       {/* Coffee Morning Highlight */}
-      <section className="py-6 bg-primary-50 pr-[0px] pb-[64px] pl-[0px]">
+      <section className="py-6 bg-primary-50 pr-0 pb-[64px] pl-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
                 <Coffee className="w-8 h-8 text-primary-600" />
               </div>
               <div className="flex-1">

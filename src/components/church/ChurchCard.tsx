@@ -60,7 +60,7 @@ function ServiceTimetableBanner({ services }: { services: Service[] }) {
                   : 'bg-white'
               }`}
             >
-              <div className="flex-shrink-0 w-12 sm:w-16 pt-0.5 sm:pt-0">
+              <div className="shrink-0 w-12 sm:w-16 pt-0.5 sm:pt-0">
                 {isNext ? (
                   <span className="inline-block text-[0.65rem] sm:text-xs font-bold bg-primary-600 text-white px-2 py-0.5 rounded-full">
                     NEXT
@@ -134,7 +134,7 @@ export function ChurchCard({
                   key={a.id}
                   className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl"
                 >
-                  <Megaphone className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <Megaphone className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                   <p className="text-sm text-amber-800 leading-snug">{a.message}</p>
                 </div>
               ))}
@@ -155,7 +155,7 @@ export function ChurchCard({
             {/* Visiting content block */}
             {visitingBlock && (
               <div className="flex items-start space-x-6">
-                <div className="bg-primary-50 p-3 rounded-xl flex-shrink-0 transition-transform duration-300 hover:scale-110 cursor-pointer">
+                <div className="bg-primary-50 p-3 rounded-xl shrink-0 transition-transform duration-300 hover:scale-110 cursor-pointer">
                   <Calendar className="w-6 h-6 text-primary-700" />
                 </div>
                 <div>
@@ -169,7 +169,7 @@ export function ChurchCard({
 
             {/* Location */}
             <div className="flex items-start space-x-6">
-              <div className="bg-primary-50 p-3 rounded-xl flex-shrink-0 transition-transform duration-300 hover:scale-110 cursor-pointer">
+              <div className="bg-primary-50 p-3 rounded-xl shrink-0 transition-transform duration-300 hover:scale-110 cursor-pointer">
                 <MapPin className="w-6 h-6 text-primary-700" />
               </div>
               <div>

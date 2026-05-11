@@ -406,7 +406,7 @@ export function ChurchPage() {
               {/* Header */}
               <div className="flex items-center justify-between gap-3 mb-10">
                 <div className="flex items-center gap-3">
-                  <div className="relative w-8 h-8 flex-shrink-0">
+                  <div className="relative w-8 h-8 shrink-0">
                     <div className="w-5 h-5 rounded-full bg-red-500 shadow-md absolute top-0 left-1/2 -translate-x-1/2 border-2 border-red-700" />
                     <div className="w-0.5 h-4 bg-red-400 absolute top-3 left-1/2 -translate-x-1/2" />
                   </div>
@@ -620,14 +620,14 @@ export function ChurchPage() {
                           className={`flex items-stretch group ${idx > 0 ? "border-t border-primary-700" : ""}`}
                         >
                           {/* Cross icon */}
-                          <div className="flex-shrink-0 w-14 flex items-center justify-center py-5">
+                          <div className="shrink-0 w-14 flex items-center justify-center py-5">
                             <div className="relative w-5 h-5 flex items-center justify-center">
                               <div className="absolute w-1 h-5 bg-white/50 rounded-full" />
                               <div className="absolute w-5 h-1 bg-white/50 rounded-full" />
                             </div>
                           </div>
                           {/* Vertical amber accent line */}
-                          <div className="w-0.5 bg-amber-400 flex-shrink-0 self-stretch" />
+                          <div className="w-0.5 bg-amber-400 shrink-0 self-stretch" />
                           {/* Content */}
                           <div className="flex-1 px-5 py-4 min-w-0">
                             <p className="font-bold text-white text-base leading-snug">
@@ -647,7 +647,7 @@ export function ChurchPage() {
                           </div>
                           {/* Admin delete */}
                           {isChurchAdmin && (
-                            <div className="flex items-center gap-2 pr-4 flex-shrink-0">
+                            <div className="flex items-center gap-2 pr-4 shrink-0">
                               {confirmDelSvc === service.id ? (
                                 <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
                                   <span className="text-xs text-red-300 font-medium">Delete?</span>
@@ -780,7 +780,7 @@ export function ChurchPage() {
                           return (
                             <div key={event.id} className="flex items-start gap-4 px-5 py-4 group">
                               {/* Date badge */}
-                              <div className="flex-shrink-0 w-12 text-center bg-primary-50 border border-primary-100 rounded-xl py-2 px-1">
+                              <div className="shrink-0 w-12 text-center bg-primary-50 border border-primary-100 rounded-xl py-2 px-1">
                                 <p className="text-xs font-bold text-primary-600 uppercase leading-none">{month}</p>
                                 <p className="text-xl font-black text-primary-800 leading-tight">{day}</p>
                                 <p className="text-xs text-primary-400 leading-none">{year}</p>
@@ -798,7 +798,7 @@ export function ChurchPage() {
                               </div>
                               {/* Admin delete */}
                               {isChurchAdmin && (
-                                <div className="flex-shrink-0 pt-1 flex items-center gap-1">
+                                <div className="shrink-0 pt-1 flex items-center gap-1">
                                   {confirmDelEvent === event.id ? (
                                     <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">
                                       <span className="text-xs text-red-600 font-medium">Remove?</span>
@@ -858,7 +858,7 @@ export function ChurchPage() {
                 {/* Visiting info */}
                 {visitingBlock && (
                   <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col gap-4 h-full">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
                       <Calendar className="w-6 h-6 text-primary-700" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900">{visitingBlock.title}</h3>
@@ -893,15 +893,15 @@ export function ChurchPage() {
 
       {/* ── JOIN FRIENDS MODAL ── */}
       {showModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
           <div
             onClick={handleCloseModal}
             className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
           />
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
             <div className="px-8 py-10 text-center relative bg-[#3a4435] overflow-hidden">
-              <div className="absolute inset-0 z-0 bg-gradient-to-tr from-[#111827] via-[#2F3A29] to-[#6b7564] opacity-90 mix-blend-multiply" />
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full mix-blend-overlay filter blur-[40px] opacity-10" />
+              <div className="absolute inset-0 z-0 bg-linear-to-tr from-[#111827] via-[#2F3A29] to-[#6b7564] opacity-90 mix-blend-multiply" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full mix-blend-overlay filter blur-2xl opacity-10" />
               <button
                 onClick={handleCloseModal}
                 className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors z-10"
@@ -943,7 +943,7 @@ export function ChurchPage() {
                   </p>
                   {formError && (
                     <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
                       <p className="text-red-700 text-sm font-medium">{formError}</p>
                     </div>
                   )}
@@ -980,7 +980,7 @@ export function ChurchPage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full flex items-center justify-center gap-3 bg-[#6b7564] hover:bg-[#5c6555] text-white font-medium rounded-full py-4 mt-2 transition-all transform hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                      className="w-full flex items-center justify-center gap-3 bg-[#6b7564] hover:bg-primary-700 text-white font-medium rounded-full py-4 mt-2 transition-all transform hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                     >
                       {submitting ? (
                         <>

@@ -90,6 +90,8 @@ export default function App() {
                     </Route>
                     <Route element={<AdminRoute requiredRole="bookings" />}>
                       <Route path="/admin/bookings" element={<AdminBookings />} />
+                    </Route>
+                    <Route element={<AdminRoute requiredRole="activities" />}>
                       <Route path="/admin/activities" element={<AdminActivities />} />
                     </Route>
                     <Route element={<AdminRoute requiredRole="committee" />}>

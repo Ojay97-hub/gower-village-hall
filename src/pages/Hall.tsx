@@ -281,7 +281,7 @@ export function Hall() {
             fetchPriority="high"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center">
+          <div className="absolute inset-0 bg-linear-to-r from-black/60 to-black/40 flex items-center">
             <div className="px-8 md:px-12 lg:px-16 text-white max-w-2xl py-12 md:py-0">
               <h1 className="mb-4 text-white text-4xl md:text-5xl">
                 The Hall
@@ -317,7 +317,7 @@ export function Hall() {
             fetchPriority="high"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-800/30"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-amber-900/20 to-orange-800/30"></div>
         </div>
       </section>
 
@@ -454,7 +454,7 @@ export function Hall() {
                   rel="noopener noreferrer"
                   title="Follow us on Facebook"
                   style={{ color: '#1877F2' }}
-                  className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  className="shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
                   <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
@@ -466,7 +466,7 @@ export function Hall() {
               {/* Success Message */}
               {bookingStatus === 'success' && (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 border-l-4 border-l-green-500 rounded-lg flex items-start gap-4">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-green-800 font-semibold text-sm">Enquiry sent successfully!</p>
                     <p className="text-green-700 text-sm mt-1">We'll get back to you as soon as possible.</p>
@@ -477,7 +477,7 @@ export function Hall() {
               {/* Error Message */}
               {bookingStatus === 'error' && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 border-l-4 border-l-red-500 rounded-lg flex items-start gap-4">
-                  <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-red-800 font-semibold text-sm">Failed to send enquiry</p>
                     <p className="text-red-700 text-sm mt-1">{bookingError}</p>

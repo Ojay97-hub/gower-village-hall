@@ -18,6 +18,12 @@ export const ADMIN_ROLES = [
         color: 'green',
     },
     {
+        id: 'activities',
+        label: 'Activities',
+        description: 'Access the Manage Activities area to add, edit, and remove regular hall activities.',
+        color: 'orange',
+    },
+    {
         id: 'coffee_mornings',
         label: 'Coffee Mornings',
         description: 'Access the Manage Coffee Morning area for updates, gallery items, and related content.',
@@ -53,5 +59,6 @@ export const ROLE_COLORS: Record<string, { badge: string; dot: string }> = {
     amber:  { badge: 'bg-amber-50 text-amber-700 border-amber-100',  dot: 'bg-amber-400' },
     teal:   { badge: 'bg-teal-50 text-teal-700 border-teal-100',     dot: 'bg-teal-400' },
     purple: { badge: 'bg-purple-50 text-purple-700 border-purple-100', dot: 'bg-purple-400' },
-    indigo: { badge: 'bg-indigo-50 text-indigo-700 border-indigo-100', dot: 'bg-indigo-400' },
+    indigo:  { badge: 'bg-indigo-50 text-indigo-700 border-indigo-100',  dot: 'bg-indigo-400' },
+    orange:  { badge: 'bg-orange-50 text-orange-700 border-orange-100', dot: 'bg-orange-400' },
 };

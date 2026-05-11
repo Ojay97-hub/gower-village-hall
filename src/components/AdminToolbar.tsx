@@ -52,7 +52,7 @@ export function AdminToolbar() {
             icon: CalendarDays,
             className: 'bg-primary-600 border border-primary-700 hover:bg-primary-700 text-white',
         } : null,
-        hasAssignedRole('bookings') || isMasterAdmin ? {
+        hasAssignedRole('activities') || isMasterAdmin ? {
             key: 'activities',
             label: 'Manage Activities',
             title: 'Manage Activities',
