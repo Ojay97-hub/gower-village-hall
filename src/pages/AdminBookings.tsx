@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarDays, Loader2, Inbox } from 'lucide-react';
+import { CalendarDays, Loader2, Inbox, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 type BookingStatus = 'pending' | 'confirmed' | 'declined';
@@ -37,6 +37,8 @@ export function AdminBookings() {
     const [error, setError] = useState<string | null>(null);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [updatingSessionId, setUpdatingSessionId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchBookings();
@@ -71,6 +73,22 @@ export function AdminBookings() {
             );
         }
         setUpdatingSessionId(null);
+    }
+
+    async function deleteBooking(id: string) {
+        setDeletingId(id);
+        const { error: deleteError } = await supabase
+            .from('bookings')
+            .delete()
+            .eq('id', id);
+
+        if (deleteError) {
+            setError(`Failed to delete booking: ${deleteError.message}`);
+        } else {
+            setBookings(prev => prev.filter(b => b.id !== id));
+        }
+        setDeletingId(null);
+        setConfirmDeleteId(null);
     }
 
     async function updateStatus(id: string, status: BookingStatus) {
@@ -215,6 +233,37 @@ export function AdminBookings() {
                                                             {s.charAt(0).toUpperCase() + s.slice(1)}
                                                         </button>
                                                     ))}
+                                                    <div className="mt-0.5 pt-1.5 border-t border-gray-100">
+                                                        {deletingId === booking.id ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+                                                        ) : confirmDeleteId === booking.id ? (
+                                                            <div className="flex flex-col gap-1">
+                                                                <p className="text-xs text-gray-500">Delete entry?</p>
+                                                                <div className="flex gap-1">
+                                                                    <button
+                                                                        onClick={() => deleteBooking(booking.id)}
+                                                                        className="text-xs px-2 py-0.5 rounded bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer"
+                                                                    >
+                                                                        Yes
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setConfirmDeleteId(null)}
+                                                                        className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
+                                                                    >
+                                                                        No
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setConfirmDeleteId(booking.id)}
+                                                                className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
                                         </td>

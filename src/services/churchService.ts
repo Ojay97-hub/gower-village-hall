@@ -89,7 +89,7 @@ export async function deleteChurchEvent(id: string): Promise<void> {
 
 export async function updateChurch(
   id: string,
-  updates: Partial<Pick<Church, 'name' | 'description' | 'address' | 'image_url' | 'image_position'>>
+  updates: Partial<Pick<Church, 'name' | 'description' | 'address' | 'image_url'>>
 ): Promise<void> {
   const { error } = await supabase.from('churches').update(updates).eq('id', id);
   if (error) throw error;
@@ -104,7 +104,7 @@ export async function updateContentBlock(
 }
 
 export async function addChurch(
-  payload: Pick<Church, 'name' | 'description' | 'address' | 'image_url'> & { image_position?: string | null }
+  payload: Pick<Church, 'name' | 'description' | 'address' | 'image_url'>
 ): Promise<void> {
   const { error } = await supabase.from('churches').insert([payload]);
   if (error) throw error;

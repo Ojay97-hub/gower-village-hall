@@ -37,7 +37,6 @@ export interface Church {
   description: string;
   address: string;
   image_url: string;
-  image_position?: string | null;
   services: Service[];
   content_blocks: ContentBlock[];
   announcements: Announcement[];

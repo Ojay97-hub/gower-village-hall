@@ -3,13 +3,14 @@ import { createPortal } from "react-dom";
 import { useParams, Navigate } from "react-router-dom";
 import {
   Users, X, CheckCircle, Loader2, Mail,
-  MapPin, Calendar, Plus, Trash2, Edit2,
+  MapPin, Calendar, Plus, Trash2, Edit2, Clock,
 } from "lucide-react";
 import {
   getChurchesWithRelations,
   addService, updateService, deleteService,
   addAnnouncement, deleteAnnouncement,
   addChurchEvent, updateChurchEvent, deleteChurchEvent,
+  updateContentBlock, updateChurch,
 } from "../services/churchService";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useAuth } from "../context/AuthContext";
@@ -22,15 +23,23 @@ const SLUG_TO_PATTERN: Record<string, RegExp> = {
 
 const SLUG_TO_MAP: Record<string, string> = {
   "st-johns":
-    "https://www.google.com/maps?q=St+John+the+Baptist+Penmaen+Swansea+SA3+2HQ&output=embed&z=16",
+    "https://www.google.com/maps?q=St+John+the+Baptist+Penmaen+Swansea+SA3+2HQ&output=embed&z=18&t=k",
   "st-nicholas":
-    "https://www.google.com/maps?q=St+Nicholas+Church+Nicholaston+Swansea+SA3+2HL&output=embed&z=16",
+    "https://www.google.com/maps?q=St+Nicholas+Church+Nicholaston+Swansea+SA3+2HL&output=embed&z=18&t=k",
 };
 
 function toDateTimeLocal(value: string) {
   const date = new Date(value);
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return offsetDate.toISOString().slice(0, 16);
+}
+
+// Parse a YYYY-MM-DD string from <input type="date"> as local end-of-day,
+// not UTC midnight — otherwise "expires 30 May" can flip a day early in
+// timezones west of UTC.
+function dateInputToEndOfDayISO(value: string): string {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
 }
 
 export function ChurchPage() {
@@ -71,9 +80,24 @@ export function ChurchPage() {
   const [eventTitle, setEventTitle] = useState("");
   const [eventDateTime, setEventDateTime] = useState("");
   const [eventDescription, setEventDescription] = useState("");
-  const [eventLocation, setEventLocation] = useState("");
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [confirmDelEvent, setConfirmDelEvent] = useState<string | null>(null);
+
+  // Admin: visiting block inline edit
+  const [editingVisiting, setEditingVisiting] = useState(false);
+  const [visitingTitle, setVisitingTitle] = useState("");
+  const [visitingContent, setVisitingContent] = useState("");
+  const [visitingSaving, setVisitingSaving] = useState(false);
+  const [visitingError, setVisitingError] = useState("");
+
+  // Admin: hero section inline edit (name / description / address / image)
+  const [editingHero, setEditingHero] = useState(false);
+  const [heroName, setHeroName] = useState("");
+  const [heroDescription, setHeroDescription] = useState("");
+  const [heroAddress, setHeroAddress] = useState("");
+  const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [heroSaving, setHeroSaving] = useState(false);
+  const [heroError, setHeroError] = useState("");
 
   // Admin: shared saving / error state
   const [adminSaving, setAdminSaving] = useState(false);
@@ -110,6 +134,82 @@ export function ChurchPage() {
   }, [fetchChurch]);
 
   // ── Admin handlers ──────────────────────────────────────────────────────────
+
+  const startEditVisiting = () => {
+    const block = church?.content_blocks.find((b) => b.type === "visiting");
+    if (!block) return;
+    setVisitingTitle(block.title);
+    setVisitingContent(block.content);
+    setVisitingError("");
+    setEditingVisiting(true);
+  };
+
+  const handleSaveVisiting = async () => {
+    const block = church?.content_blocks.find((b) => b.type === "visiting");
+    if (!block) return;
+    if (!visitingTitle.trim() || !visitingContent.trim()) {
+      setVisitingError("Title and content are required.");
+      return;
+    }
+    setVisitingSaving(true);
+    setVisitingError("");
+    try {
+      await updateContentBlock(block.id, {
+        title: visitingTitle.trim(),
+        content: visitingContent.trim(),
+      });
+      await fetchChurch();
+      setEditingVisiting(false);
+    } catch (err: unknown) {
+      setVisitingError(err instanceof Error ? err.message : "Failed to save.");
+    } finally {
+      setVisitingSaving(false);
+    }
+  };
+
+  const startEditHero = () => {
+    if (!church) return;
+    const about = church.content_blocks.find((b) => b.type === "about");
+    setHeroName(church.name);
+    setHeroDescription(about?.content ?? church.description);
+    setHeroAddress(church.address);
+    setHeroImageUrl(church.image_url);
+    setHeroError("");
+    setEditingHero(true);
+  };
+
+  const handleSaveHero = async () => {
+    if (!church) return;
+    if (!heroName.trim() || !heroDescription.trim() || !heroAddress.trim()) {
+      setHeroError("Name, description, and address are required.");
+      return;
+    }
+    setHeroSaving(true);
+    setHeroError("");
+    try {
+      await updateChurch(church.id, {
+        name: heroName.trim(),
+        description: heroDescription.trim(),
+        address: heroAddress.trim(),
+        image_url: heroImageUrl.trim(),
+      });
+      // Keep the about content block in sync (if one exists) so the displayed
+      // text — which prefers aboutBlock.content over church.description — updates.
+      const about = church.content_blocks.find((b) => b.type === "about");
+      if (about) {
+        await updateContentBlock(about.id, {
+          title: about.title,
+          content: heroDescription.trim(),
+        });
+      }
+      await fetchChurch();
+      setEditingHero(false);
+    } catch (err: unknown) {
+      setHeroError(err instanceof Error ? err.message : "Failed to save.");
+    } finally {
+      setHeroSaving(false);
+    }
+  };
 
   const resetServiceForm = () => {
     setSvcTitle("");
@@ -177,7 +277,6 @@ export function ChurchPage() {
     setEventTitle("");
     setEventDateTime("");
     setEventDescription("");
-    setEventLocation("");
     setEditingEventId(null);
   };
 
@@ -185,7 +284,6 @@ export function ChurchPage() {
     setEventTitle(event.title);
     setEventDateTime(toDateTimeLocal(event.event_date));
     setEventDescription(event.description ?? "");
-    setEventLocation(event.location ?? "");
     setEditingEventId(event.id);
     setShowAddEvent(true);
     setAdminError("");
@@ -204,7 +302,7 @@ export function ChurchPage() {
         title: eventTitle.trim(),
         event_date: new Date(eventDateTime).toISOString(),
         description: eventDescription.trim() || null,
-        location: eventLocation.trim() || null,
+        location: null,
       };
       if (editingEventId) {
         await updateChurchEvent(editingEventId, payload);
@@ -246,7 +344,7 @@ export function ChurchPage() {
       await addAnnouncement({
         church_id: church.id,
         message: noticeMsg.trim(),
-        expiry_date: new Date(noticeExpiry).toISOString(),
+        expiry_date: dateInputToEndOfDayISO(noticeExpiry),
       });
       setNoticeMsg(""); setNoticeExpiry("");
       setShowAddNotice(false);
@@ -326,7 +424,6 @@ export function ChurchPage() {
   const upcomingEvents = [...(church?.events ?? [])]
     .filter((event) => new Date(event.event_date) >= new Date())
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
-  const imagePos = church?.image_position ?? "center";
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -368,21 +465,92 @@ export function ChurchPage() {
 
                 {/* Text side */}
                 <div>
-                  <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase leading-none tracking-tight text-gray-900 mb-8">
-                    {church.name.replace(/^(St\.?\s)/i, "St.\n").split("\n").map((part, i) => (
-                      <span key={i} className="block">{part}</span>
-                    ))}
-                  </h2>
-                  {(aboutBlock || church.description) && (
-                    <div className="border-l-4 border-gray-900 pl-5 mb-6">
-                      <p className="text-base text-gray-700 leading-relaxed">
-                        {aboutBlock?.content || church.description}
-                      </p>
+                  {isChurchAdmin && !editingHero && (
+                    <div className="flex justify-end mb-4">
+                      <button
+                        onClick={startEditHero}
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 text-gray-500 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                        title="Edit church details"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        Edit
+                      </button>
                     </div>
                   )}
-                  <p className="text-right text-sm text-gray-500 italic">
-                    {church.address}
-                  </p>
+
+                  {editingHero ? (
+                    <div className="flex flex-col gap-3">
+                      <label htmlFor="hero-name" className="block text-xs font-medium text-gray-600">Church name</label>
+                      <input
+                        id="hero-name"
+                        type="text"
+                        value={heroName}
+                        onChange={(e) => setHeroName(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <label htmlFor="hero-description" className="block text-xs font-medium text-gray-600">Description</label>
+                      <textarea
+                        id="hero-description"
+                        rows={6}
+                        value={heroDescription}
+                        onChange={(e) => setHeroDescription(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
+                      />
+                      <label htmlFor="hero-address" className="block text-xs font-medium text-gray-600">Address</label>
+                      <input
+                        id="hero-address"
+                        type="text"
+                        value={heroAddress}
+                        onChange={(e) => setHeroAddress(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <label htmlFor="hero-image-url" className="block text-xs font-medium text-gray-600">Image URL</label>
+                      <input
+                        id="hero-image-url"
+                        type="text"
+                        value={heroImageUrl}
+                        onChange={(e) => setHeroImageUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      {heroError && <p className="text-xs text-red-600">{heroError}</p>}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={handleSaveHero}
+                          disabled={heroSaving}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors cursor-pointer"
+                        >
+                          {heroSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Edit2 className="w-3 h-3" />}
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingHero(false)}
+                          disabled={heroSaving}
+                          className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase leading-none tracking-tight text-gray-900 mb-8">
+                        {church.name.replace(/^(St\.?\s)/i, "St.\n").split("\n").map((part, i) => (
+                          <span key={i} className="block">{part}</span>
+                        ))}
+                      </h2>
+                      {(aboutBlock || church.description) && (
+                        <div className="border-l-4 border-gray-900 pl-5 mb-6">
+                          <p className="text-base text-gray-700 leading-relaxed">
+                            {aboutBlock?.content || church.description}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-right text-sm text-gray-500 italic">
+                        {church.address}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Image side */}
@@ -390,7 +558,7 @@ export function ChurchPage() {
                   <ImageWithFallback
                     src={church.image_url}
                     alt={church.name}
-                    className={`w-full h-full object-cover object-${imagePos}`}
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>
@@ -441,8 +609,9 @@ export function ChurchPage() {
                   />
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1">
-                      <label className="block text-xs text-gray-500 mb-1">Remove after (expiry date)</label>
+                      <label htmlFor="notice-expiry" className="block text-xs text-gray-500 mb-1">Remove after (expiry date)</label>
                       <input
+                        id="notice-expiry"
                         type="date"
                         value={noticeExpiry}
                         onChange={e => setNoticeExpiry(e.target.value)}
@@ -529,13 +698,11 @@ export function ChurchPage() {
             </div>
           </section>
 
-          {/* ── SERVICE TIMES + UPCOMING EVENTS (side by side) ── */}
+          {/* ── SERVICE TIMES ── */}
           <section className="bg-stone-100 py-16 lg:py-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-
-                {/* ── Left: Service Times (dark, reference style) ── */}
-                <div className="lg:col-span-3">
+              <div>
+                <div>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900">Service Times</h2>
                     {isChurchAdmin && (
@@ -609,87 +776,100 @@ export function ChurchPage() {
                   )}
 
                   {church.services.length === 0 ? (
-                    <div className="bg-primary-800 rounded-2xl px-6 py-10 text-center text-white/40 text-sm">
-                      No services listed yet.
+                    <div className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm px-6 py-10 text-center">
+                      <Clock className="w-8 h-8 text-primary-300 mx-auto mb-3" />
+                      <p className="text-primary-700/70 text-sm font-light">No services listed yet.</p>
+                      {isChurchAdmin && (
+                        <p className="text-xs text-primary-600/60 mt-1">Add a service to show it here.</p>
+                      )}
                     </div>
                   ) : (
-                    <div className="bg-primary-800 rounded-2xl overflow-hidden">
-                      {church.services.map((service, idx) => (
-                        <div
-                          key={service.id}
-                          className={`flex items-stretch group ${idx > 0 ? "border-t border-primary-700" : ""}`}
-                        >
-                          {/* Cross icon */}
-                          <div className="shrink-0 w-14 flex items-center justify-center py-5">
-                            <div className="relative w-5 h-5 flex items-center justify-center">
-                              <div className="absolute w-1 h-5 bg-white/50 rounded-full" />
-                              <div className="absolute w-5 h-1 bg-white/50 rounded-full" />
-                            </div>
-                          </div>
-                          {/* Vertical amber accent line */}
-                          <div className="w-0.5 bg-amber-400 shrink-0 self-stretch" />
-                          {/* Content */}
-                          <div className="flex-1 px-5 py-4 min-w-0">
-                            <p className="font-bold text-white text-base leading-snug">
-                              {service.title}
-                            </p>
-                            <p className="text-amber-400 text-sm font-medium mt-1 leading-snug">
-                              {service.recurring_text ??
-                                new Date(service.date_time).toLocaleDateString("en-GB", {
-                                  weekday: "long", day: "numeric", month: "long",
-                                })}
-                            </p>
-                            {service.description && (
-                              <p className="text-white/50 text-xs mt-1.5 leading-snug">
-                                {service.description}
-                              </p>
-                            )}
-                          </div>
-                          {/* Admin delete */}
-                          {isChurchAdmin && (
-                            <div className="flex items-center gap-2 pr-4 shrink-0">
-                              {confirmDelSvc === service.id ? (
-                                <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
-                                  <span className="text-xs text-red-300 font-medium">Delete?</span>
-                                  <button
-                                    onClick={() => handleDeleteService(service.id)}
-                                    disabled={adminSaving}
-                                    className="p-0.5 text-red-400 hover:text-red-300 rounded"
-                                  >
-                                    {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                                  </button>
-                                  <button onClick={() => setConfirmDelSvc(null)} className="p-0.5 text-white/40 hover:text-white/70 rounded">
-                                    <X className="w-3 h-3" />
-                                  </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {church.services.map((service) => {
+                        const hasRecurring = !!service.recurring_text;
+                        const d = new Date(service.date_time);
+                        const day = d.toLocaleDateString("en-GB", { day: "numeric" });
+                        const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
+                        const year = d.getFullYear();
+                        const dateLabel = hasRecurring
+                          ? service.recurring_text!
+                          : d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+                        return (
+                          <div key={service.id} className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm p-5 flex items-start gap-4 group">
+                            {/* Badge */}
+                            <div className="shrink-0 w-14 text-center bg-white border border-primary-200 rounded-xl py-2 px-1">
+                              {hasRecurring ? (
+                                <div className="flex items-center justify-center h-14">
+                                  <Clock className="w-6 h-6 text-primary-700" />
                                 </div>
                               ) : (
                                 <>
-                                  <button
-                                    onClick={() => startEditService(service)}
-                                    className="p-1.5 text-white/30 hover:text-white hover:bg-white/10 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                    title="Edit service"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => setConfirmDelSvc(service.id)}
-                                    className="p-1.5 text-white/20 hover:text-red-400 hover:bg-white/10 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                    title="Delete service"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  <p className="text-xs font-bold text-primary-600 uppercase leading-none">{month}</p>
+                                  <p className="text-xl font-black text-primary-800 leading-tight">{day}</p>
+                                  <p className="text-xs text-primary-400 leading-none">{year}</p>
                                 </>
                               )}
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 pt-1">
+                              <p className="text-base font-semibold text-gray-900 leading-snug">{service.title}</p>
+                              <p className="text-sm text-primary-600 mt-1">{dateLabel}</p>
+                              {service.description && (
+                                <p className="text-base text-gray-600 leading-snug mt-2">{service.description}</p>
+                              )}
+                            </div>
+                            {/* Admin actions */}
+                            {isChurchAdmin && (
+                              <div className="shrink-0 pt-1 flex items-center gap-1">
+                                {confirmDelSvc === service.id ? (
+                                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">
+                                    <span className="text-xs text-red-600 font-medium">Delete?</span>
+                                    <button
+                                      onClick={() => handleDeleteService(service.id)}
+                                      disabled={adminSaving}
+                                      className="p-0.5 text-red-600 hover:bg-red-50 rounded"
+                                    >
+                                      {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                    </button>
+                                    <button onClick={() => setConfirmDelSvc(null)} className="p-0.5 text-gray-400 rounded">
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => startEditService(service)}
+                                      className="p-1 text-gray-300 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                      title="Edit service"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => setConfirmDelSvc(service.id)}
+                                      className="p-1 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                      title="Delete service"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
 
-                {/* ── Right: Upcoming Events ── */}
-                <div className="lg:col-span-2">
+              </div>
+            </div>
+          </section>
+
+          {/* ── UPCOMING EVENTS ── */}
+          <section className="bg-stone-50 py-16 lg:py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div>
                   <div className="flex items-center justify-between gap-3 mb-6">
                     <h2 className="text-2xl font-bold text-gray-900">Upcoming Events</h2>
                     {isChurchAdmin && (
@@ -725,13 +905,6 @@ export function ChurchPage() {
                         onChange={e => setEventDateTime(e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
                       />
-                      <input
-                        type="text"
-                        placeholder="Location (optional)"
-                        value={eventLocation}
-                        onChange={e => setEventLocation(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
-                      />
                       <textarea
                         rows={3}
                         placeholder="Description (optional)"
@@ -760,88 +933,82 @@ export function ChurchPage() {
                       </div>
                     </div>
                   )}
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                    {upcomingEvents.length === 0 ? (
-                      <div className="px-6 py-10 text-center">
-                        <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-400 text-sm font-light">No upcoming events.</p>
-                        {isChurchAdmin && (
-                          <p className="text-xs text-gray-400 mt-1">Add a church event to show it here.</p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-gray-100">
-                        {upcomingEvents.map((event) => {
-                          const d = new Date(event.event_date);
-                          const day = d.toLocaleDateString("en-GB", { day: "numeric" });
-                          const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
-                          const year = d.getFullYear();
-                          const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-                          return (
-                            <div key={event.id} className="flex items-start gap-4 px-5 py-4 group">
-                              {/* Date badge */}
-                              <div className="shrink-0 w-12 text-center bg-primary-50 border border-primary-100 rounded-xl py-2 px-1">
-                                <p className="text-xs font-bold text-primary-600 uppercase leading-none">{month}</p>
-                                <p className="text-xl font-black text-primary-800 leading-tight">{day}</p>
-                                <p className="text-xs text-primary-400 leading-none">{year}</p>
-                              </div>
-                              {/* Message */}
-                              <div className="flex-1 min-w-0 pt-1">
-                                <p className="text-sm font-semibold text-gray-900 leading-snug">{event.title}</p>
-                                <p className="text-xs text-primary-600 mt-1">{time}</p>
-                                {event.location && (
-                                  <p className="text-xs text-gray-500 mt-1">{event.location}</p>
-                                )}
-                                {event.description && (
-                                  <p className="text-sm text-gray-600 leading-snug mt-2">{event.description}</p>
-                                )}
-                              </div>
-                              {/* Admin delete */}
-                              {isChurchAdmin && (
-                                <div className="shrink-0 pt-1 flex items-center gap-1">
-                                  {confirmDelEvent === event.id ? (
-                                    <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">
-                                      <span className="text-xs text-red-600 font-medium">Remove?</span>
-                                      <button
-                                        onClick={() => handleDeleteEvent(event.id)}
-                                        disabled={adminSaving}
-                                        className="p-0.5 text-red-600 hover:bg-red-50 rounded"
-                                      >
-                                        {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                                      </button>
-                                      <button onClick={() => setConfirmDelEvent(null)} className="p-0.5 text-gray-400 rounded">
-                                        <X className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <>
-                                      <button
-                                        onClick={() => startEditEvent(event)}
-                                        className="p-1 text-gray-300 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                        title="Edit event"
-                                      >
-                                        <Edit2 className="w-3.5 h-3.5" />
-                                      </button>
-                                      <button
-                                        onClick={() => setConfirmDelEvent(event.id)}
-                                        className="p-1 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                        title="Remove event"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
+                  {upcomingEvents.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-10 text-center">
+                      <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-400 text-sm font-light">No upcoming events.</p>
+                      {isChurchAdmin && (
+                        <p className="text-xs text-gray-400 mt-1">Add a church event to show it here.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {upcomingEvents.map((event) => {
+                        const d = new Date(event.event_date);
+                        const day = d.toLocaleDateString("en-GB", { day: "numeric" });
+                        const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
+                        const year = d.getFullYear();
+                        const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+                        return (
+                          <div key={event.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 group">
+                            {/* Date badge */}
+                            <div className="shrink-0 w-14 text-center bg-primary-50 border border-primary-100 rounded-xl py-2 px-1">
+                              <p className="text-xs font-bold text-primary-600 uppercase leading-none">{month}</p>
+                              <p className="text-xl font-black text-primary-800 leading-tight">{day}</p>
+                              <p className="text-xs text-primary-400 leading-none">{year}</p>
+                            </div>
+                            {/* Message */}
+                            <div className="flex-1 min-w-0 pt-1">
+                              <p className="text-base font-semibold text-gray-900 leading-snug">{event.title}</p>
+                              <p className="text-sm text-primary-600 mt-1">{time}</p>
+                              {event.description && (
+                                <p className="text-base text-gray-600 leading-snug mt-2">{event.description}</p>
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                            {/* Admin delete */}
+                            {isChurchAdmin && (
+                              <div className="shrink-0 pt-1 flex items-center gap-1">
+                                {confirmDelEvent === event.id ? (
+                                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">
+                                    <span className="text-xs text-red-600 font-medium">Remove?</span>
+                                    <button
+                                      onClick={() => handleDeleteEvent(event.id)}
+                                      disabled={adminSaving}
+                                      className="p-0.5 text-red-600 hover:bg-red-50 rounded"
+                                    >
+                                      {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                    </button>
+                                    <button onClick={() => setConfirmDelEvent(null)} className="p-0.5 text-gray-400 rounded">
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => startEditEvent(event)}
+                                      className="p-1 text-gray-300 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                      title="Edit event"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => setConfirmDelEvent(event.id)}
+                                      className="p-1 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                      title="Remove event"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-              </div>
             </div>
           </section>
 
@@ -853,23 +1020,74 @@ export function ChurchPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Find Us</h2>
               </div>
 
-              <div className={`grid grid-cols-1 ${visitingBlock ? "lg:grid-cols-2" : ""} gap-8 items-start`}>
+              <div className={`grid grid-cols-1 ${visitingBlock ? "lg:grid-cols-4" : ""} gap-8 items-stretch`}>
 
                 {/* Visiting info */}
                 {visitingBlock && (
-                  <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col gap-4 h-full">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
-                      <Calendar className="w-6 h-6 text-primary-700" />
+                  <div className="lg:col-span-1 bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col gap-4 h-full">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
+                        <Calendar className="w-6 h-6 text-primary-700" />
+                      </div>
+                      {isChurchAdmin && !editingVisiting && (
+                        <button
+                          onClick={startEditVisiting}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 text-gray-500 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                          title="Edit visiting info"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          Edit
+                        </button>
+                      )}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">{visitingBlock.title}</h3>
-                    <p className="text-gray-600 leading-relaxed whitespace-pre-line">{visitingBlock.content}</p>
-                    <p className="text-sm text-gray-400 pt-2 border-t border-gray-100">{church.address}</p>
+                    {editingVisiting ? (
+                      <div className="flex flex-col gap-3">
+                        <input
+                          type="text"
+                          value={visitingTitle}
+                          onChange={(e) => setVisitingTitle(e.target.value)}
+                          placeholder="Title"
+                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                        />
+                        <textarea
+                          rows={6}
+                          value={visitingContent}
+                          onChange={(e) => setVisitingContent(e.target.value)}
+                          placeholder="Content..."
+                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
+                        />
+                        {visitingError && <p className="text-xs text-red-600">{visitingError}</p>}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleSaveVisiting}
+                            disabled={visitingSaving}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors cursor-pointer"
+                          >
+                            {visitingSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Edit2 className="w-3 h-3" />}
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingVisiting(false)}
+                            disabled={visitingSaving}
+                            className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h3 className="text-xl font-bold text-gray-900">{visitingBlock.title}</h3>
+                        <p className="text-gray-600 leading-relaxed whitespace-pre-line">{visitingBlock.content}</p>
+                        <p className="text-sm text-gray-400 pt-2 border-t border-gray-100 mt-auto">{church.address}</p>
+                      </>
+                    )}
                   </div>
                 )}
 
                 {/* Map */}
                 {slug && SLUG_TO_MAP[slug] && (
-                  <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 h-80 sm:h-96 lg:h-[420px]">
+                  <div className={`${visitingBlock ? "lg:col-span-3" : ""} rounded-2xl overflow-hidden shadow-md border border-gray-200 h-80 sm:h-96 lg:h-[420px]`}>
                     <iframe
                       title={`Map of ${church.name}`}
                       src={SLUG_TO_MAP[slug]}

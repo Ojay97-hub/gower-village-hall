@@ -33,7 +33,6 @@ const CoffeeMorning = lazy(() => import('./pages/CoffeeMorning').then(m => ({ de
 const CoffeeMorningArticle = lazy(() => import('./pages/CoffeeMorningArticle').then(m => ({ default: m.CoffeeMorningArticle })));
 const AdminCoffeeMorning = lazy(() => import('./pages/AdminCoffeeMorning').then(m => ({ default: m.AdminCoffeeMorning })));
 const AdminSubscribers = lazy(() => import('./pages/AdminSubscribers').then(m => ({ default: m.AdminSubscribers })));
-const AdminChurches = lazy(() => import('./pages/AdminChurches').then(m => ({ default: m.AdminChurches })));
 const AdminActivities = lazy(() => import('./pages/AdminActivities').then(m => ({ default: m.AdminActivities })));
 const ForFamilies = lazy(() => import('./pages/ForFamilies').then(m => ({ default: m.ForFamilies })));
 const ChurchPage = lazy(() => import('./pages/ChurchPage').then(m => ({ default: m.ChurchPage })));
@@ -102,9 +101,6 @@ export default function App() {
                     </Route>
                     <Route element={<AdminRoute requiredRole="newsletter" />}>
                       <Route path="/admin/subscribers" element={<AdminSubscribers />} />
-                    </Route>
-                    <Route element={<AdminRoute requiredRole="churches" />}>
-                      <Route path="/admin/churches" element={<AdminChurches />} />
                     </Route>
 
                     {/* Master Admin restricted route */}

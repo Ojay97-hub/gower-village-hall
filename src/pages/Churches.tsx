@@ -1,14 +1,24 @@
 import { useState, FormEvent, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Users, X, CheckCircle, Loader2, Mail, Quote } from "lucide-react";
+import { Users, X, CheckCircle, Loader2, Mail, Quote, Plus } from "lucide-react";
 import { ChurchCard } from "../components/church/ChurchCard";
-import { getChurchesWithRelations } from "../services/churchService";
+import { getChurchesWithRelations, addChurch } from "../services/churchService";
 import type { Church } from "../types/church";
+import { useAuth } from "../context/AuthContext";
 
 export function Churches() {
+  const { hasRole } = useAuth();
+  const isChurchAdmin = hasRole("churches");
+
   const [churches, setChurches] = useState<Church[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+
+  // Add Church modal state
+  const [showAddChurch, setShowAddChurch] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", description: "", address: "", image_url: "" });
+  const [addSaving, setAddSaving] = useState(false);
+  const [addError, setAddError] = useState("");
 
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState("");
@@ -39,6 +49,31 @@ export function Churches() {
   useEffect(() => {
     fetchChurches();
   }, [fetchChurches]);
+
+  async function handleAddChurch(e: FormEvent) {
+    e.preventDefault();
+    if (!addForm.name.trim() || !addForm.description.trim() || !addForm.address.trim()) {
+      setAddError("Name, description, and address are required.");
+      return;
+    }
+    setAddSaving(true);
+    setAddError("");
+    try {
+      await addChurch({
+        name: addForm.name.trim(),
+        description: addForm.description.trim(),
+        address: addForm.address.trim(),
+        image_url: addForm.image_url.trim(),
+      });
+      setAddForm({ name: "", description: "", address: "", image_url: "" });
+      setShowAddChurch(false);
+      fetchChurches();
+    } catch (err: unknown) {
+      setAddError(err instanceof Error ? err.message : "Failed to add church.");
+    } finally {
+      setAddSaving(false);
+    }
+  }
 
   const handleJoinSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -141,6 +176,19 @@ export function Churches() {
             </div>
           )}
 
+          {/* Admin: Add Church button */}
+          {isChurchAdmin && !loading && !fetchError && (
+            <div className="flex justify-end -mb-16">
+              <button
+                onClick={() => setShowAddChurch(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors shadow-sm cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Add Church
+              </button>
+            </div>
+          )}
+
           {/* Church cards */}
           {!loading && !fetchError && churches.map((church, index) => (
             <ChurchCard
@@ -149,6 +197,8 @@ export function Churches() {
               imageRight={index % 2 !== 0}
               visible={cardsVisible}
               animationDelay={(index + 1) * 200}
+              isAdmin={isChurchAdmin}
+              onRefresh={fetchChurches}
             />
           ))}
 
@@ -207,6 +257,59 @@ export function Churches() {
           </div>
         </div>
       </section>
+
+      {/* Add Church Modal */}
+      {showAddChurch && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold font-serif text-gray-900">Add Church</h2>
+              <button onClick={() => setShowAddChurch(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddChurch} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" required value={addForm.name}
+                  onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea required rows={3} value={addForm.description}
+                  onChange={e => setAddForm(f => ({ ...f, description: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input type="text" required value={addForm.address}
+                  onChange={e => setAddForm(f => ({ ...f, address: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                <input type="text" value={addForm.image_url}
+                  onChange={e => setAddForm(f => ({ ...f, image_url: e.target.value }))}
+                  placeholder="https://..."
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+              </div>
+              {addError && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{addError}</p>}
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={() => setShowAddChurch(false)} disabled={addSaving}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" disabled={addSaving}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-70 cursor-pointer">
+                  {addSaving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : 'Add Church'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body,
+      )}
 
       {/* Join Friends Modal */}
       {showModal && createPortal(

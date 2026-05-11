@@ -15,7 +15,6 @@ interface DetailsForm {
   description: string;
   address: string;
   image_url: string;
-  image_position: string;
 }
 
 function ChurchDetailsModal({
@@ -32,7 +31,6 @@ function ChurchDetailsModal({
     description: church?.description ?? '',
     address: church?.address ?? '',
     image_url: church?.image_url ?? '',
-    image_position: church?.image_position ?? 'center',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -52,7 +50,6 @@ function ChurchDetailsModal({
           description: form.description.trim(),
           address: form.address.trim(),
           image_url: form.image_url.trim(),
-          image_position: form.image_position || 'center',
         });
       } else {
         await addChurch({
@@ -60,7 +57,6 @@ function ChurchDetailsModal({
           description: form.description.trim(),
           address: form.address.trim(),
           image_url: form.image_url.trim(),
-          image_position: form.image_position || 'center',
         });
       }
       onSaved();
@@ -125,20 +121,6 @@ function ChurchDetailsModal({
               placeholder="https://..."
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image Position</label>
-            <select
-              value={form.image_position}
-              onChange={e => setForm(f => ({ ...f, image_position: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-            >
-              <option value="center">Center</option>
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-            </select>
           </div>
           {error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>

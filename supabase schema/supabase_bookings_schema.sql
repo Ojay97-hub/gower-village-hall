@@ -34,5 +34,10 @@ create policy "Admins can update bookings"
   on public.bookings for update
   using (exists (select 1 from public.admin_users where user_id = auth.uid()));
 
+-- Admins can delete bookings
+create policy "Admins can delete bookings"
+  on public.bookings for delete
+  using (exists (select 1 from public.admin_users where user_id = auth.uid()));
+
 -- Inserts come from the serverless function using the service role key,
 -- which bypasses RLS entirely — no insert policy needed.
