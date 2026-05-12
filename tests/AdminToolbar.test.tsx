@@ -14,7 +14,7 @@ function baseAuth(overrides: Record<string, unknown> = {}) {
   return {
     user: null,
     session: null,
-    isAuthenticated: false,
+    isAuthenticated: true,
     isAdmin: true,
     isMasterAdmin: false,
     isLoading: false,
