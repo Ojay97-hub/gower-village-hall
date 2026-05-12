@@ -28,14 +28,14 @@ export function AdminToolbar() {
             icon: Users,
             className: 'bg-purple-50 border border-purple-100 hover:bg-purple-100 text-purple-700',
         } : null,
-        {
+        isMasterAdmin ? {
             key: 'mailbox',
             label: 'Mailbox',
             title: 'Open shared mailbox',
             to: '/admin/mailbox',
             icon: Inbox,
             className: 'bg-purple-50 border border-purple-100 hover:bg-purple-100 text-purple-700',
-        },
+        } : null,
         hasRole('blog') ? {
             key: 'blog',
             label: 'Manage Blog',

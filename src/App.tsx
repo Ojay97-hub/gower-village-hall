@@ -84,7 +84,6 @@ export default function App() {
                     {/* Role-gated admin routes */}
                     <Route element={<AdminRoute />}>
                       <Route path="/admin/account" element={<AdminAccount />} />
-                      <Route path="/admin/mailbox" element={<AdminMailbox />} />
                     </Route>
                     <Route element={<AdminRoute requiredRole="blog" />}>
                       <Route path="/admin/blog" element={<AdminBlog />} />
@@ -108,6 +107,7 @@ export default function App() {
                     {/* Master Admin restricted route */}
                     <Route element={<MasterAdminRoute />}>
                       <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route path="/admin/mailbox" element={<AdminMailbox />} />
                     </Route>
                   </Routes>
                   </Suspense>
