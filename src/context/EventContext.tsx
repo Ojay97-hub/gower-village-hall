@@ -7,6 +7,7 @@ export type Event = {
     title: string;
     description: string | null;
     date: string;
+    end_date: string | null;
     start_time: string | null;
     end_time: string | null;
     location: string | null;

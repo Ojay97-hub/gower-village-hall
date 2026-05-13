@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useEvents, Event } from '../../context/EventContext';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 
 type EventFormProps = {
     initialData?: Event;
@@ -17,6 +17,7 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
         title: initialData?.title || '',
         description: initialData?.description || '',
         date: initialData?.date || '',
+        end_date: initialData?.end_date || '',
         start_time: initialData?.start_time || '',
         end_time: initialData?.end_time || '',
         location: initialData?.location || 'Village Hall',
@@ -28,11 +29,18 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
         setLoading(true);
         setError(null);
 
+        const payload = {
+            ...formData,
+            end_date: formData.end_date || null,
+            start_time: formData.start_time || null,
+            end_time: formData.end_time || null,
+        };
+
         try {
             if (initialData) {
-                await updateEvent(initialData.id, formData);
+                await updateEvent(initialData.id, payload);
             } else {
-                await addEvent(formData);
+                await addEvent(payload);
             }
             onSuccess();
         } catch (err) {
@@ -44,7 +52,7 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
     };
 
     const inputClasses = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 text-gray-900";
-    const selectClasses = "w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 text-gray-900";
+    const selectClasses = "w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 text-gray-900 appearance-none cursor-pointer";
     const labelClasses = "block text-sm font-medium text-gray-700 mb-2";
 
     return (
@@ -68,20 +76,42 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
                 </div>
             )}
 
-            <div>
-                <label htmlFor="title" className={labelClasses}>
-                    Event Title *
-                </label>
-                <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Enter event title"
-                    className={inputClasses}
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="title" className={labelClasses}>
+                        Event Title *
+                    </label>
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        required
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        placeholder="Enter event title"
+                        className={inputClasses}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="type" className={labelClasses}>
+                        Type
+                    </label>
+                    <div className="relative">
+                        <select
+                            id="type"
+                            name="type"
+                            value={formData.type || 'Community'}
+                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                            className={selectClasses}
+                        >
+                            <option value="Community">Community</option>
+                            <option value="Private">Private</option>
+                            <option value="Fundraiser">Fundraiser</option>
+                            <option value="Class">Class</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -104,7 +134,7 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label htmlFor="date" className={labelClasses}>
-                        Date *
+                        Start Date *
                     </label>
                     <input
                         type="date"
@@ -117,21 +147,18 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
                     />
                 </div>
                 <div>
-                    <label htmlFor="type" className={labelClasses}>
-                        Type
+                    <label htmlFor="end_date" className={labelClasses}>
+                        End Date <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
-                    <select
-                        id="type"
-                        name="type"
-                        value={formData.type || 'Community'}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                        className={selectClasses}
-                    >
-                        <option value="Community">Community</option>
-                        <option value="Private">Private</option>
-                        <option value="Fundraiser">Fundraiser</option>
-                        <option value="Class">Class</option>
-                    </select>
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                        min={formData.date || undefined}
+                        value={formData.end_date || ''}
+                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                        className={inputClasses}
+                    />
                 </div>
             </div>
 

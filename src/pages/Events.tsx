@@ -107,15 +107,24 @@ function buildEventDateTimes(
     dateStr: string,
     startTime: string | null,
     endTime: string | null,
+    endDateStr?: string | null,
 ): { start: Date; end: Date | null; allDay: boolean } {
     const [y, m, d] = dateStr.split('-').map(Number);
     if (!startTime) {
-        return { start: new Date(y, m - 1, d), end: null, allDay: true };
+        const end = endDateStr
+            ? (() => { const [ey, em, ed] = endDateStr.split('-').map(Number); return new Date(ey, em - 1, ed); })()
+            : null;
+        return { start: new Date(y, m - 1, d), end, allDay: true };
     }
     const [sh, sm] = startTime.split(':').map(Number);
     const start = new Date(y, m - 1, d, sh, sm);
     let end: Date | null = null;
-    if (endTime) {
+    if (endDateStr) {
+        const [ey, em, ed] = endDateStr.split('-').map(Number);
+        end = endTime
+            ? (() => { const [eh, emin] = endTime.split(':').map(Number); return new Date(ey, em - 1, ed, eh, emin); })()
+            : new Date(ey, em - 1, ed);
+    } else if (endTime) {
         const [eh, em] = endTime.split(':').map(Number);
         end = new Date(y, m - 1, d, eh, em);
     }
@@ -518,7 +527,7 @@ export function Events() {
                     <div className="flex justify-center items-center py-20 min-h-[400px]">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                     </div>
-                ) : activeTab === 'upcoming' && events.filter(event => new Date(event.date) >= new Date(new Date().toDateString())).length === 0 ? (
+                ) : activeTab === 'upcoming' && events.filter(event => new Date(event.end_date ?? event.date) >= new Date(new Date().toDateString())).length === 0 ? (
                     <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-200">
                         <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming events</h3>
@@ -526,22 +535,34 @@ export function Events() {
                     </div>
                 ) : activeTab === 'upcoming' ? (
                     <div className="grid gap-6">
-                        {events.filter(event => new Date(event.date) >= new Date(new Date().toDateString())).map((event) => (
+                        {events.filter(event => new Date(event.end_date ?? event.date) >= new Date(new Date().toDateString())).map((event) => (
                             <div
                                 key={event.id}
                                 className="group relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                             >
                                 <div className="p-4 sm:p-6 md:p-8 flex gap-4 sm:gap-6 md:gap-8">
                                     {/* Date Side - Always on left */}
-                                    <div className="shrink-0">
-                                        <div className="w-16 h-16 md:w-20 md:h-20 bg-primary-50 rounded-2xl flex flex-col items-center justify-center border border-primary-100 group-hover:bg-primary-600 group-hover:border-primary-600 transition-colors duration-300 shadow-sm">
-                                            <span className="text-xl md:text-2xl font-bold text-primary-600 group-hover:text-white transition-colors duration-300">
-                                                {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric' })}
-                                            </span>
-                                            <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-primary-700 group-hover:text-primary-100 transition-colors duration-300">
-                                                {new Date(event.date).toLocaleDateString('en-GB', { month: 'short' })}
-                                            </span>
-                                        </div>
+                                    <div className="shrink-0 self-stretch">
+                                        {event.end_date ? (
+                                            <div className="h-full w-20 md:w-24 bg-primary-50 rounded-2xl flex flex-col items-center justify-center border border-primary-100 group-hover:bg-primary-600 group-hover:border-primary-600 transition-colors duration-300 shadow-sm px-2 py-3 gap-1">
+                                                <span className="text-sm md:text-base font-bold uppercase tracking-wide text-primary-700 group-hover:text-primary-100 transition-colors duration-300">
+                                                    {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                                </span>
+                                                <span className="text-xs text-primary-400 group-hover:text-primary-200 transition-colors duration-300 leading-none">to</span>
+                                                <span className="text-sm md:text-base font-bold uppercase tracking-wide text-primary-700 group-hover:text-primary-100 transition-colors duration-300">
+                                                    {new Date(event.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="w-16 h-16 md:w-20 md:h-20 bg-primary-50 rounded-2xl flex flex-col items-center justify-center border border-primary-100 group-hover:bg-primary-600 group-hover:border-primary-600 transition-colors duration-300 shadow-sm">
+                                                <span className="text-xl md:text-2xl font-bold text-primary-600 group-hover:text-white transition-colors duration-300">
+                                                    {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric' })}
+                                                </span>
+                                                <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-primary-700 group-hover:text-primary-100 transition-colors duration-300">
+                                                    {new Date(event.date).toLocaleDateString('en-GB', { month: 'short' })}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Content Side */}
@@ -605,6 +626,7 @@ export function Events() {
                                                     event.date,
                                                     event.start_time,
                                                     event.end_time,
+                                                    event.end_date,
                                                 );
                                                 return (
                                                     <AddToCalendarButton
