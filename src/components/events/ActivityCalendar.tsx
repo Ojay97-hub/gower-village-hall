@@ -193,17 +193,17 @@ export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps
         const month = currentMonth.getMonth();
 
         events.forEach(event => {
-            const [y, m, d] = (event.date as string).split('-');
-            const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-            items.push({
-                id: event.id,
-                title: event.title,
-                type: 'event',
-                date: localDate,
-                startTime: event.start_time,
-                endTime: event.end_time,
-                description: event.description,
-                colorTheme: 'event',
+            generateDateRange(event.date, event.end_date ?? null).forEach((date, index) => {
+                items.push({
+                    id: index === 0 ? event.id : `${event.id}-${index}`,
+                    title: event.title,
+                    type: 'event',
+                    date,
+                    startTime: index === 0 ? event.start_time : null,
+                    endTime: index === 0 ? event.end_time : null,
+                    description: event.description,
+                    colorTheme: 'event',
+                });
             });
         });
 

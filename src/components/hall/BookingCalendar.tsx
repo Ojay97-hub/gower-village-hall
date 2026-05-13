@@ -207,11 +207,22 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
     const map = new Map<string, CalendarEventItem[]>();
 
     events.forEach(event => {
-      const dateKey = (event.date as string).slice(0, 10);
-      map.set(dateKey, [...(map.get(dateKey) || []), {
-        id: event.id, title: event.title, type: 'event',
-        startTime: event.start_time, endTime: event.end_time,
-      }]);
+      const startStr = (event.date as string).slice(0, 10);
+      const endStr = event.end_date ? (event.end_date as string).slice(0, 10) : startStr;
+      const cur = new Date(startStr + 'T00:00:00');
+      const end = new Date(endStr + 'T00:00:00');
+      let idx = 0;
+      while (cur <= end) {
+        const dateKey = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+        map.set(dateKey, [...(map.get(dateKey) || []), {
+          id: idx === 0 ? event.id : `${event.id}-${idx}`,
+          title: event.title, type: 'event',
+          startTime: idx === 0 ? event.start_time : null,
+          endTime: idx === 0 ? event.end_time : null,
+        }]);
+        cur.setDate(cur.getDate() + 1);
+        idx++;
+      }
     });
 
     regularActivities.forEach(activity => {

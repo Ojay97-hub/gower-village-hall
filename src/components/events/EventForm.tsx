@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useEvents, Event } from '../../context/EventContext';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, AlertTriangle } from 'lucide-react';
 
 type EventFormProps = {
     initialData?: Event;
@@ -9,7 +9,7 @@ type EventFormProps = {
 };
 
 export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) {
-    const { addEvent, updateEvent } = useEvents();
+    const { addEvent, updateEvent, events, regularActivities } = useEvents();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +23,28 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
         location: initialData?.location || 'Village Hall',
         type: initialData?.type || 'Community',
     });
+
+    const dateConflicts = useMemo(() => {
+        if (!formData.date || !formData.end_date) return [];
+        const start = new Date(formData.date + 'T00:00:00');
+        const end = new Date(formData.end_date + 'T00:00:00');
+        const conflicting: string[] = [];
+
+        events.forEach(e => {
+            if (initialData && e.id === initialData.id) return;
+            const eStart = new Date(e.date + 'T00:00:00');
+            const eEnd = e.end_date ? new Date(e.end_date + 'T00:00:00') : eStart;
+            if (eStart <= end && eEnd >= start) conflicting.push(e.title);
+        });
+
+        regularActivities.forEach(a => {
+            if (!a.schedule_date) return;
+            const aDate = new Date(a.schedule_date + 'T00:00:00');
+            if (aDate >= start && aDate <= end) conflicting.push(a.title);
+        });
+
+        return conflicting;
+    }, [formData.date, formData.end_date, events, regularActivities, initialData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,6 +95,15 @@ export function EventForm({ initialData, onSuccess, onCancel }: EventFormProps) 
             {error && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm border border-red-200">
                     {error}
+                </div>
+            )}
+
+            {dateConflicts.length > 0 && (
+                <div className="flex gap-3 bg-amber-50 text-amber-800 p-4 rounded-lg text-sm border border-amber-200">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>
+                        This date range overlaps with: <strong>{dateConflicts.join(', ')}</strong>. You can still save, but check for scheduling conflicts.
+                    </span>
                 </div>
             )}
 
