@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Search, ExternalLink, Image as ImageIcon } from "l
 import { Link } from "react-router-dom";
 import { useBlog, BlogPostRow } from "../context/BlogContext";
 import { BlogPostForm } from "../components/BlogPostForm";
+import { ConfirmDeleteModal } from "../components/ConfirmDeleteModal";
 
 export function AdminBlog() {
     const { posts, loading, error, createPost, updatePost, deletePost, uploadHeroImage } = useBlog();
@@ -10,6 +11,9 @@ export function AdminBlog() {
     const [filterStatus, setFilterStatus] = useState<"All" | "Published" | "Draft">("All");
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<BlogPostRow | undefined>(undefined);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [postToDelete, setPostToDelete] = useState<BlogPostRow | undefined>(undefined);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const filteredPosts = posts.filter(post => {
         const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -51,10 +55,29 @@ export function AdminBlog() {
         handleCloseForm();
     };
 
-    const handleDelete = async (post: BlogPostRow) => {
-        if (window.confirm(`Are you sure you want to delete "${post.title}"? This cannot be undone.`)) {
-            await deletePost(post.id, post.hero_image_url);
+    const handleDeleteClick = (post: BlogPostRow) => {
+        setPostToDelete(post);
+        setDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!postToDelete) return;
+        setIsDeleting(true);
+        try {
+            await deletePost(postToDelete.id, postToDelete.hero_image_url);
+            setDeleteModalOpen(false);
+            setPostToDelete(undefined);
+        } catch (error) {
+            console.error("Failed to delete post:", error);
+            alert("Failed to delete post. Please try again.");
+        } finally {
+            setIsDeleting(false);
         }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteModalOpen(false);
+        setPostToDelete(undefined);
     };
 
     if (loading && posts.length === 0) {
@@ -201,7 +224,7 @@ export function AdminBlog() {
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(post)}
+                                                    onClick={() => handleDeleteClick(post)}
                                                     title="Delete Post"
                                                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 >
@@ -218,12 +241,21 @@ export function AdminBlog() {
             )}
 
             {isFormOpen && (
-                <BlogPostForm 
+                <BlogPostForm
                     post={editingPost}
                     onSubmit={handleSubmitForm}
                     onClose={handleCloseForm}
                 />
             )}
+
+            <ConfirmDeleteModal
+                isOpen={deleteModalOpen}
+                title="Delete Post"
+                itemName={postToDelete?.title || ""}
+                isDeleting={isDeleting}
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
+            />
         </div>
     );
 }

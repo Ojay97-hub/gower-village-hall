@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, ImagePlus, Loader2, RotateCcw, Link as LinkIcon } from "lucide-react";
 import type { BlogPostRow } from "../context/BlogContext";
+import { useBlog } from "../context/BlogContext";
 
 const MAX_WORDS = 500;
 const DRAFT_STORAGE_KEY = "blog_post_draft";
@@ -51,6 +52,7 @@ type BlogPostFormProps = {
 };
 
 export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
+    const { createPost, uploadHeroImage } = useBlog();
     const savedDraft = loadDraft(post?.id);
     const hasSavedDraft = !!savedDraft;
 
@@ -69,6 +71,8 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDraftBanner, setShowDraftBanner] = useState(hasSavedDraft);
+    const [draftSavedMessage, setDraftSavedMessage] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [linkModalOpen, setLinkModalOpen] = useState(false);
     const [linkText, setLinkText] = useState("");
     const [linkUrl, setLinkUrl] = useState("");
@@ -124,6 +128,46 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
         setImagePreview(post?.hero_image_url || null);
         setNewImageFile(null);
         setShowDraftBanner(false);
+    };
+
+    const handleSaveDraftManual = async () => {
+        if (isSavingDraft) return;
+
+        setIsSavingDraft(true);
+        try {
+            let imageUrl = heroImageUrl;
+
+            // Upload image if there's a new file
+            if (newImageFile) {
+                imageUrl = await uploadHeroImage(newImageFile);
+            }
+
+            // Create draft post in database with published: false
+            await createPost({
+                title,
+                slug,
+                excerpt,
+                content_markdown: contentMarkdown,
+                category,
+                published: false,
+                featured,
+                published_at: null,
+                hero_image_url: imageUrl,
+                author: author.trim() ? author.trim() : null,
+            });
+
+            // Clear localStorage draft since it's now in the database
+            clearDraft();
+            setShowDraftBanner(false);
+
+            setDraftSavedMessage(true);
+            setTimeout(() => setDraftSavedMessage(false), 3000);
+        } catch (error) {
+            console.error("Failed to save draft:", error);
+            alert("Failed to save draft. Please try again.");
+        } finally {
+            setIsSavingDraft(false);
+        }
     };
 
     // Open the link modal, pre-filling with any selected text in the textarea.
@@ -193,7 +237,7 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
             }
         }, 30);
         return () => clearTimeout(t);
-    }, [linkModalOpen, linkText]);
+    }, [linkModalOpen]);
 
     // Close on Escape
     useEffect(() => {
@@ -485,7 +529,7 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl shrink-0">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl shrink-0">
                     <button
                         type="button"
                         onClick={() => { clearDraft(); onClose(); }}
@@ -494,28 +538,90 @@ export function BlogPostForm({ post, onSubmit, onClose }: BlogPostFormProps) {
                     >
                         Cancel
                     </button>
-                    <button
-                        type="submit"
-                        form="blog-post-form"
-                        disabled={isSubmitting || countWords(contentMarkdown) > MAX_WORDS}
-                        className="flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-70"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Saving...
-                            </>
-                        ) : (
-                            post ? "Save Changes" : "Create Post"
+                    <div className="flex items-center gap-2">
+                        {!post && (
+                            <button
+                                type="button"
+                                onClick={handleSaveDraftManual}
+                                disabled={isSubmitting || isSavingDraft}
+                                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-70"
+                            >
+                                {isSavingDraft ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin inline mr-1" />
+                                        Saving...
+                                    </>
+                                ) : draftSavedMessage ? (
+                                    "✓ Draft saved"
+                                ) : (
+                                    "Save as draft"
+                                )}
+                            </button>
                         )}
-                    </button>
+                        {post && !post.published && (
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    setIsSubmitting(true);
+                                    try {
+                                        let imageUrl = heroImageUrl;
+                                        if (newImageFile) {
+                                            imageUrl = await uploadHeroImage(newImageFile);
+                                        }
+                                        await onSubmit(
+                                            {
+                                                title,
+                                                slug,
+                                                excerpt,
+                                                content_markdown: contentMarkdown,
+                                                category,
+                                                published: true,
+                                                featured,
+                                                published_at: new Date().toISOString(),
+                                                hero_image_url: imageUrl,
+                                                author: author.trim() ? author.trim() : null,
+                                            },
+                                            null
+                                        );
+                                    } finally {
+                                        setIsSubmitting(false);
+                                    }
+                                }}
+                                disabled={isSubmitting || countWords(contentMarkdown) > MAX_WORDS}
+                                className="flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-all disabled:opacity-70"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Publishing...
+                                    </>
+                                ) : (
+                                    "Publish Post"
+                                )}
+                            </button>
+                        )}
+                        <button
+                            type="submit"
+                            form="blog-post-form"
+                            disabled={isSubmitting || countWords(contentMarkdown) > MAX_WORDS}
+                            className="flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-70"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                post ? "Save Changes" : "Create Post"
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {linkModalOpen && (
                 <div
                     className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-                    onClick={handleCloseLinkModal}
                 >
                     <div
                         role="dialog"
