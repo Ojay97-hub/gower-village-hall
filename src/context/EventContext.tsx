@@ -28,6 +28,7 @@ export type RegularActivity = {
     action_type: string;
     action_text: string | null;
     action_link: string | null;
+    feature_description: string | null;
     is_featured: boolean | null;
 };
 

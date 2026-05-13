@@ -702,13 +702,8 @@ export function Events() {
                     {featuredActivity && (() => {
                         const IconComponent = iconMap[featuredActivity.icon] || Coffee;
                         const theme = colorMap[featuredActivity.color_theme] || colorMap.warm;
-                        const isCoffeeMorning = featuredActivity.title.toLowerCase().includes('coffee morning');
-                        const featuredActionText = isCoffeeMorning && (!featuredActivity.action_text || featuredActivity.action_text === 'See dates')
-                            ? 'See more'
-                            : featuredActivity.action_text;
-                        const featuredActionLink = isCoffeeMorning && (!featuredActivity.action_link || featuredActivity.action_link === '/contact')
-                            ? '/hall/coffee-morning'
-                            : featuredActivity.action_link;
+                        const featuredActionText = featuredActivity.action_text;
+                        const featuredActionLink = featuredActivity.action_link;
 
                         return (
                             <div className="mb-8 overflow-hidden rounded-2xl border border-primary-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
@@ -785,13 +780,17 @@ export function Events() {
                                             )}
                                         </div>
 
-                                        <p className="text-sm leading-6 text-gray-600">
-                                            A friendly monthly fixture at the hall, with coffee, cake, and time to catch up with neighbours.
-                                        </p>
+                                        {featuredActivity.feature_description && (
+                                            <p className="text-sm leading-6 text-gray-600">
+                                                {featuredActivity.feature_description}
+                                            </p>
+                                        )}
 
                                         {featuredActionText && featuredActionLink && (
                                             <a
                                                 href={featuredActionLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="inline-flex w-fit items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
                                             >
                                                 {featuredActionText}
@@ -897,7 +896,6 @@ export function Events() {
                                                         </div>
                                                     )}
                                                 </div>
-
 
                                             </div>
                                         </div>

@@ -52,15 +52,27 @@ export async function updateService(
 }
 
 export async function addAnnouncement(payload: Omit<Announcement, 'id'>): Promise<void> {
-  const { error } = await supabase.from('announcements').insert([payload]);
+  const { start_date, expiry_date, ...rest } = payload;
+  const row = {
+    ...rest,
+    ...(start_date != null ? { start_date } : {}),
+    ...(expiry_date != null ? { expiry_date } : {}),
+  };
+  const { error } = await supabase.from('announcements').insert([row]);
   if (error) throw error;
 }
 
 export async function updateAnnouncement(
   id: string,
-  updates: Partial<Pick<Announcement, 'message' | 'expiry_date'>>
+  updates: Partial<Pick<Announcement, 'message' | 'start_date' | 'expiry_date'>>
 ): Promise<void> {
-  const { error } = await supabase.from('announcements').update(updates).eq('id', id);
+  const { start_date, expiry_date, ...rest } = updates;
+  const patch = {
+    ...rest,
+    ...(start_date != null ? { start_date } : {}),
+    ...(expiry_date != null ? { expiry_date } : {}),
+  };
+  const { error } = await supabase.from('announcements').update(patch).eq('id', id);
   if (error) throw error;
 }
 
@@ -89,7 +101,7 @@ export async function deleteChurchEvent(id: string): Promise<void> {
 
 export async function updateChurch(
   id: string,
-  updates: Partial<Pick<Church, 'name' | 'description' | 'address' | 'image_url'>>
+  updates: Partial<Pick<Church, 'name' | 'description' | 'address' | 'image_url' | 'previous_image_url'>>
 ): Promise<void> {
   const { error } = await supabase.from('churches').update(updates).eq('id', id);
   if (error) throw error;
@@ -108,4 +120,13 @@ export async function addChurch(
 ): Promise<void> {
   const { error } = await supabase.from('churches').insert([payload]);
   if (error) throw error;
+}
+
+export async function uploadChurchImage(file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  const filePath = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+  const { error } = await supabase.storage.from('church-images').upload(filePath, file);
+  if (error) throw error;
+  const { data } = supabase.storage.from('church-images').getPublicUrl(filePath);
+  return data.publicUrl;
 }

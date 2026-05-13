@@ -8,7 +8,7 @@ import {
 import {
   getChurchesWithRelations,
   addService, updateService, deleteService,
-  addAnnouncement, deleteAnnouncement,
+  addAnnouncement, updateAnnouncement, deleteAnnouncement,
   addChurchEvent, updateChurchEvent, deleteChurchEvent,
   updateContentBlock, updateChurch,
 } from "../services/churchService";
@@ -35,12 +35,14 @@ function toDateTimeLocal(value: string) {
   return offsetDate.toISOString().slice(0, 16);
 }
 
-// Parse a YYYY-MM-DD string from <input type="date"> as local end-of-day,
-// not UTC midnight — otherwise "expires 30 May" can flip a day early in
-// timezones west of UTC.
 function dateInputToEndOfDayISO(value: string): string {
   const [y, m, d] = value.split('-').map(Number);
   return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
+}
+
+function dateInputToStartOfDayISO(value: string): string {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
 }
 
 export function ChurchPage() {
@@ -73,8 +75,15 @@ export function ChurchPage() {
   // Admin: notice/event form
   const [showAddNotice, setShowAddNotice] = useState(false);
   const [noticeMsg, setNoticeMsg] = useState("");
+  const [noticeStart, setNoticeStart] = useState("");
   const [noticeExpiry, setNoticeExpiry] = useState("");
   const [confirmDelAnn, setConfirmDelAnn] = useState<string | null>(null);
+
+  // Admin: edit existing notice
+  const [editNoticeId, setEditNoticeId] = useState<string | null>(null);
+  const [editNoticeMsg, setEditNoticeMsg] = useState("");
+  const [editNoticeStart, setEditNoticeStart] = useState("");
+  const [editNoticeExpiry, setEditNoticeExpiry] = useState("");
 
   // Admin: event form
   const [showAddEvent, setShowAddEvent] = useState(false);
@@ -335,8 +344,8 @@ export function ChurchPage() {
   };
 
   const handleAddNotice = async () => {
-    if (!church || !noticeMsg.trim() || !noticeExpiry) {
-      setAdminError("Message and expiry date are required.");
+    if (!church || !noticeMsg.trim()) {
+      setAdminError("A message is required.");
       return;
     }
     setAdminSaving(true);
@@ -345,9 +354,10 @@ export function ChurchPage() {
       await addAnnouncement({
         church_id: church.id,
         message: noticeMsg.trim(),
-        expiry_date: dateInputToEndOfDayISO(noticeExpiry),
+        start_date: noticeStart ? dateInputToStartOfDayISO(noticeStart) : null,
+        expiry_date: noticeExpiry ? dateInputToEndOfDayISO(noticeExpiry) : null,
       });
-      setNoticeMsg(""); setNoticeExpiry("");
+      setNoticeMsg(""); setNoticeStart(""); setNoticeExpiry("");
       setShowAddNotice(false);
       await fetchChurch();
     } catch (err: unknown) {
@@ -366,6 +376,41 @@ export function ChurchPage() {
       await fetchChurch();
     } catch (err: unknown) {
       setAdminError(err instanceof Error ? err.message : "Failed to delete notice.");
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
+  function isoToDateInput(iso: string): string {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function startEditNotice(ann: { id: string; message: string; start_date?: string | null; expiry_date?: string | null }) {
+    setEditNoticeId(ann.id);
+    setEditNoticeMsg(ann.message);
+    setEditNoticeStart(ann.start_date ? isoToDateInput(ann.start_date) : "");
+    setEditNoticeExpiry(ann.expiry_date ? isoToDateInput(ann.expiry_date) : "");
+    setConfirmDelAnn(null);
+    setAdminError("");
+  }
+
+  const handleSaveNotice = async () => {
+    if (!editNoticeId || !editNoticeMsg.trim()) { setAdminError("A message is required."); return; }
+    setAdminSaving(true);
+    setAdminError("");
+    try {
+      await updateAnnouncement(editNoticeId, {
+        message: editNoticeMsg.trim(),
+        start_date: editNoticeStart ? dateInputToStartOfDayISO(editNoticeStart) : null,
+        expiry_date: editNoticeExpiry ? dateInputToEndOfDayISO(editNoticeExpiry) : null,
+      });
+      setEditNoticeId(null);
+      await fetchChurch();
+    } catch (err: unknown) {
+      setAdminError(err instanceof Error ? err.message : "Failed to save notice.");
     } finally {
       setAdminSaving(false);
     }
@@ -420,7 +465,7 @@ export function ChurchPage() {
   const aboutBlock = church?.content_blocks.find((b) => b.type === "about");
   const visitingBlock = church?.content_blocks.find((b) => b.type === "visiting");
   const activeAnnouncements = church?.announcements.filter(
-    (a) => new Date(a.expiry_date) > new Date()
+    (a) => !a.expiry_date || new Date(a.expiry_date) > new Date()
   ) ?? [];
   const upcomingEvents = [...(church?.events ?? [])]
     .filter((event) => new Date(event.event_date) >= new Date())
@@ -608,33 +653,44 @@ export function ChurchPage() {
                     onChange={e => setNoticeMsg(e.target.value)}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
                   />
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1">
-                      <label htmlFor="notice-expiry" className="block text-xs text-gray-500 mb-1">Remove after (expiry date)</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Start date <span className="text-gray-400">(optional)</span></label>
                       <input
-                        id="notice-expiry"
+                        type="date"
+                        value={noticeStart}
+                        onChange={e => setNoticeStart(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">End date <span className="text-gray-400">(optional)</span></label>
+                      <input
                         type="date"
                         value={noticeExpiry}
                         onChange={e => setNoticeExpiry(e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
                       />
                     </div>
-                    <div className="flex items-end gap-2">
-                      <button
-                        onClick={handleAddNotice}
-                        disabled={adminSaving}
-                        className="flex items-center gap-1.5 text-sm px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                      >
-                        {adminSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Pin Notice
-                      </button>
-                      <button
-                        onClick={() => setShowAddNotice(false)}
-                        className="text-sm px-3 py-2 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                  </div>
+                  {adminError && (
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{adminError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleAddNotice}
+                      disabled={adminSaving}
+                      className="flex items-center gap-1.5 text-sm px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    >
+                      {adminSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                      Pin Notice
+                    </button>
+                    <button
+                      onClick={() => { setShowAddNotice(false); setNoticeMsg(""); setNoticeStart(""); setNoticeExpiry(""); setAdminError(""); }}
+                      className="text-sm px-3 py-2 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               )}
@@ -649,51 +705,98 @@ export function ChurchPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {activeAnnouncements.map((ann) => (
-                    <div key={ann.id} className="relative pt-4">
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
-                        <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-red-700 shadow-md" />
-                        <div className="w-0.5 h-3 bg-red-400" />
-                      </div>
-                      <div className="bg-white rounded-xl shadow-lg p-6 pt-7 border border-amber-100 min-h-[140px] flex flex-col justify-between relative">
-                        {/* Admin delete */}
-                        {isChurchAdmin && (
-                          <div className="absolute top-3 right-3">
-                            {confirmDelAnn === ann.id ? (
-                              <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-sm">
-                                <span className="text-xs text-red-600 font-medium">Remove?</span>
-                                <button
-                                  onClick={() => handleDeleteAnn(ann.id)}
-                                  disabled={adminSaving}
-                                  className="p-0.5 text-red-600 hover:bg-red-50 rounded"
-                                >
-                                  {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                  {activeAnnouncements.map((ann) => {
+                    const isEditingNotice = editNoticeId === ann.id;
+                    return (
+                      <div key={ann.id} className="relative pt-4">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
+                          <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-red-700 shadow-md" />
+                          <div className="w-0.5 h-3 bg-red-400" />
+                        </div>
+                        <div className="bg-white rounded-xl shadow-lg p-6 pt-7 border border-amber-100 min-h-[140px] flex flex-col justify-between relative">
+
+                          {isEditingNotice ? (
+                            <div className="space-y-2">
+                              <textarea
+                                rows={3}
+                                value={editNoticeMsg}
+                                onChange={e => setEditNoticeMsg(e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
+                              />
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs text-gray-500 mb-1">Start <span className="text-gray-400">(optional)</span></label>
+                                  <input type="date" value={editNoticeStart} onChange={e => setEditNoticeStart(e.target.value)}
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400" />
+                                </div>
+                                <div>
+                                  <label className="block text-xs text-gray-500 mb-1">End <span className="text-gray-400">(optional)</span></label>
+                                  <input type="date" value={editNoticeExpiry} onChange={e => setEditNoticeExpiry(e.target.value)}
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400" />
+                                </div>
+                              </div>
+                              {adminError && <p className="text-xs text-red-600">{adminError}</p>}
+                              <div className="flex gap-2 pt-1">
+                                <button onClick={handleSaveNotice} disabled={adminSaving}
+                                  className="flex items-center gap-1 text-xs px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors cursor-pointer">
+                                  {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                                  Save
                                 </button>
-                                <button onClick={() => setConfirmDelAnn(null)} className="p-0.5 text-gray-400 hover:bg-gray-100 rounded">
-                                  <X className="w-3 h-3" />
+                                <button onClick={() => { setEditNoticeId(null); setAdminError(""); }} disabled={adminSaving}
+                                  className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                                  Cancel
                                 </button>
                               </div>
-                            ) : (
-                              <button
-                                onClick={() => setConfirmDelAnn(ann.id)}
-                                className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                                title="Remove notice"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        )}
-                        <p className="text-gray-800 leading-relaxed text-sm">{ann.message}</p>
-                        <p className="text-xs text-gray-400 mt-4 pt-3 border-t border-gray-100">
-                          Posted until{" "}
-                          {new Date(ann.expiry_date).toLocaleDateString("en-GB", {
-                            day: "numeric", month: "long", year: "numeric",
-                          })}
-                        </p>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Admin actions */}
+                              {isChurchAdmin && (
+                                <div className="absolute top-3 right-3 flex items-center gap-0.5">
+                                  {confirmDelAnn === ann.id ? (
+                                    <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-sm">
+                                      <span className="text-xs text-red-600 font-medium">Remove?</span>
+                                      <button onClick={() => handleDeleteAnn(ann.id)} disabled={adminSaving}
+                                        className="p-0.5 text-red-600 hover:bg-red-50 rounded cursor-pointer">
+                                        {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                      </button>
+                                      <button onClick={() => setConfirmDelAnn(null)} className="p-0.5 text-gray-400 hover:bg-gray-100 rounded cursor-pointer">
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <button onClick={() => startEditNotice(ann)}
+                                        className="p-1 text-gray-300 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors cursor-pointer"
+                                        title="Edit notice">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button onClick={() => setConfirmDelAnn(ann.id)}
+                                        className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                                        title="Remove notice">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                              <p className="text-gray-900 font-bold text-base leading-snug text-center px-6">{ann.message}</p>
+                              {(ann.start_date || ann.expiry_date) && (
+                                <p className="text-xs text-gray-400 mt-4 pt-3 border-t border-gray-100 text-center">
+                                  {ann.start_date && (
+                                    <>From {new Date(ann.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}{ann.expiry_date ? " · " : ""}</>
+                                  )}
+                                  {ann.expiry_date && (
+                                    <>Until {new Date(ann.expiry_date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</>
+                                  )}
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -792,11 +895,12 @@ export function ChurchPage() {
                         const day = d.toLocaleDateString("en-GB", { day: "numeric" });
                         const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
                         const year = d.getFullYear();
+                        const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: true });
                         const dateLabel = hasRecurring
                           ? service.recurring_text!
                           : d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
                         return (
-                          <div key={service.id} className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm p-5 flex items-start gap-4 group">
+                          <div key={service.id} className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm p-5 flex items-start gap-4">
                             {/* Badge */}
                             <div className="shrink-0 w-14 text-center bg-white border border-primary-200 rounded-xl py-2 px-1">
                               {hasRecurring ? (
@@ -815,44 +919,45 @@ export function ChurchPage() {
                             <div className="flex-1 min-w-0 pt-1">
                               <p className="text-base font-semibold text-gray-900 leading-snug">{service.title}</p>
                               <p className="text-sm text-primary-600 mt-1">{dateLabel}</p>
+                              <p className="text-sm font-medium text-primary-800 mt-0.5">{time}</p>
                               {service.description && (
-                                <p className="text-base text-gray-600 leading-snug mt-2">{service.description}</p>
+                                <p className="text-sm text-gray-600 leading-snug mt-2">{service.description}</p>
                               )}
                             </div>
-                            {/* Admin actions */}
+                            {/* Admin actions — always visible */}
                             {isChurchAdmin && (
                               <div className="shrink-0 pt-1 flex items-center gap-1">
                                 {confirmDelSvc === service.id ? (
-                                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">
+                                  <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-sm">
                                     <span className="text-xs text-red-600 font-medium">Delete?</span>
                                     <button
                                       onClick={() => handleDeleteService(service.id)}
                                       disabled={adminSaving}
-                                      className="p-0.5 text-red-600 hover:bg-red-50 rounded"
+                                      className="p-0.5 text-red-600 hover:bg-red-50 rounded cursor-pointer"
                                     >
                                       {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                     </button>
-                                    <button onClick={() => setConfirmDelSvc(null)} className="p-0.5 text-gray-400 rounded">
+                                    <button onClick={() => setConfirmDelSvc(null)} className="p-0.5 text-gray-400 hover:bg-gray-100 rounded cursor-pointer">
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <>
+                                  <div className="flex items-center gap-0.5">
                                     <button
                                       onClick={() => startEditService(service)}
-                                      className="p-1 text-gray-300 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                      className="p-1.5 text-primary-400 hover:text-primary-700 hover:bg-primary-200 rounded-lg transition-colors cursor-pointer"
                                       title="Edit service"
                                     >
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setConfirmDelSvc(service.id)}
-                                      className="p-1 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                      className="p-1.5 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                                       title="Delete service"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
-                                  </>
+                                  </div>
                                 )}
                               </div>
                             )}
@@ -913,6 +1018,9 @@ export function ChurchPage() {
                         onChange={e => setEventDescription(e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
                       />
+                      {adminError && (
+                        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{adminError}</p>
+                      )}
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveEvent}
@@ -926,6 +1034,7 @@ export function ChurchPage() {
                           onClick={() => {
                             resetEventForm();
                             setShowAddEvent(false);
+                            setAdminError("");
                           }}
                           className="text-sm px-3 py-2 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
                         >

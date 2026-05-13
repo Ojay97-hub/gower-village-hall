@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Clock, Calendar, MapPin, Megaphone, ListOrdered, ArrowRight,
-  Edit2, Plus, Trash2, X, Loader2,
+  Edit2, Plus, Trash2, X, Loader2, ImagePlus, Check,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPortal } from 'react-dom';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import type { Church, Service, ContentBlock } from '../../types/church';
 import {
   addService, deleteService, updateService,
-  addAnnouncement, deleteAnnouncement,
-  updateContentBlock, updateChurch,
+  addAnnouncement, deleteAnnouncement, updateAnnouncement,
+  updateContentBlock, updateChurch, uploadChurchImage,
 } from '../../services/churchService';
 
 function getChurchSlug(name: string): string | null {
@@ -28,172 +27,6 @@ interface ChurchCardProps {
   onRefresh?: () => void;
 }
 
-// ── Edit Details Modal ───────────────────────────────────────────────────────
-
-function ChurchEditModal({ church, onClose, onSaved }: { church: Church; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({
-    name: church.name,
-    description: church.description,
-    address: church.address,
-    image_url: church.image_url ?? '',
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.name.trim() || !form.description.trim() || !form.address.trim()) {
-      setError('Name, description, and address are required.');
-      return;
-    }
-    setSaving(true);
-    setError('');
-    try {
-      await updateChurch(church.id, {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        address: form.address.trim(),
-        image_url: form.image_url.trim(),
-      });
-      onSaved();
-      onClose();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save.');
-      setSaving(false);
-    }
-  }
-
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold font-serif text-gray-900">Edit Church Details</h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input type="text" required value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea required rows={3} value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-            <input type="text" required value={form.address}
-              onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-            <input type="text" value={form.image_url}
-              onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
-              placeholder="https://..."
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
-          </div>
-          {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>}
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} disabled={saving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-70">
-              {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-// ── Content Block Inline Edit ────────────────────────────────────────────────
-
-function ContentBlockEdit({ block, onSaved }: { block: ContentBlock; onSaved: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: block.title, content: block.content });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  function openEdit() {
-    setForm({ title: block.title, content: block.content });
-    setOpen(true);
-  }
-
-  async function handleSave() {
-    if (!form.title.trim() || !form.content.trim()) { setError('Title and content are required.'); return; }
-    setSaving(true);
-    setError('');
-    try {
-      await updateContentBlock(block.id, { title: form.title.trim(), content: form.content.trim() });
-      onSaved();
-      setOpen(false);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (!open) {
-    return (
-      <button onClick={openEdit}
-        className="ml-1.5 text-gray-400 hover:text-primary-600 p-1 rounded hover:bg-primary-50 transition-colors"
-        title="Edit visiting info">
-        <Edit2 className="w-3.5 h-3.5" />
-      </button>
-    );
-  }
-
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold font-serif text-gray-900">Edit — {block.title}</h2>
-          <button onClick={() => setOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input type="text" value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-            <textarea rows={5} value={form.content}
-              onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none resize-none transition-all" />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex gap-3">
-            <button onClick={() => setOpen(false)} disabled={saving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
-              Cancel
-            </button>
-            <button onClick={handleSave} disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-70">
-              {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : 'Save'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 // ── Service Timetable Banner ─────────────────────────────────────────────────
 
 function getDayAndTime(service: Service): string {
@@ -207,7 +40,6 @@ function getDayAndTime(service: Service): string {
 }
 
 function toDateTimeLocalValue(iso: string): string {
-  // Convert ISO timestamp to YYYY-MM-DDTHH:mm in local time for <input type="datetime-local">
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -220,6 +52,27 @@ function toDateTimeLocalValue(iso: string): string {
 function dateInputToEndOfDayISO(value: string): string {
   const [y, m, d] = value.split('-').map(Number);
   return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
+}
+
+function dateInputToStartOfDayISO(value: string): string {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
+}
+
+function isoToDateInput(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function formatAnnDates(a: { start_date?: string | null; expiry_date?: string | null }): string | null {
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (a.start_date && a.expiry_date) return `${fmt(a.start_date)} – ${fmt(a.expiry_date)}`;
+  if (a.start_date) return `From ${fmt(a.start_date)}`;
+  if (a.expiry_date) return fmt(a.expiry_date);
+  return null;
 }
 
 function ServiceTimetableBanner({
@@ -265,9 +118,6 @@ function ServiceTimetableBanner({
 
   async function saveEdit(id: string) {
     if (!onUpdate) {
-      // Edit button is only rendered when onUpdate is provided, so this is
-      // a defensive guard — if the prop is missing we can't save, don't
-      // close the form silently.
       setEditError('Editing is not available.');
       return;
     }
@@ -390,11 +240,24 @@ export function ChurchCard({
   isAdmin = false,
   onRefresh,
 }: ChurchCardProps) {
-  const activeAnnouncements = church.announcements.filter(a => new Date(a.expiry_date) > new Date());
+  const activeAnnouncements = church.announcements.filter(a => !a.expiry_date || new Date(a.expiry_date) > new Date());
   const visitingBlock = church.content_blocks.find((b: ContentBlock) => b.type === 'visiting');
 
-  // Admin: details modal
-  const [editDetails, setEditDetails] = useState(false);
+  // Admin: inline church details edit
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [detailsName, setDetailsName] = useState(church.name);
+  const [detailsDesc, setDetailsDesc] = useState(church.description);
+
+  // Admin: inline visiting block edit
+  const [editingVisiting, setEditingVisiting] = useState(false);
+  const [visitingTitle, setVisitingTitle] = useState(visitingBlock?.title ?? '');
+  const [visitingContent, setVisitingContent] = useState(visitingBlock?.content ?? '');
+
+  // Admin: image upload
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Admin: services
   const [confirmDelSvc, setConfirmDelSvc] = useState<string | null>(null);
@@ -407,11 +270,115 @@ export function ChurchCard({
   const [confirmDelAnn, setConfirmDelAnn] = useState<string | null>(null);
   const [showAddAnn, setShowAddAnn] = useState(false);
   const [annMsg, setAnnMsg] = useState('');
+  const [annStart, setAnnStart] = useState('');
   const [annExpiry, setAnnExpiry] = useState('');
+
+  // Admin: edit existing announcement
+  const [editAnnId, setEditAnnId] = useState<string | null>(null);
+  const [editAnnMsg, setEditAnnMsg] = useState('');
+  const [editAnnStart, setEditAnnStart] = useState('');
+  const [editAnnExpiry, setEditAnnExpiry] = useState('');
 
   // Shared saving / error
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  async function handleSaveDetails() {
+    if (!detailsName.trim() || !detailsDesc.trim()) { setError('Name and description are required.'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await updateChurch(church.id, { name: detailsName.trim(), description: detailsDesc.trim() });
+      setEditingDetails(false);
+      onRefresh?.();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function cancelDetails() {
+    setEditingDetails(false);
+    setDetailsName(church.name);
+    setDetailsDesc(church.description);
+    setError('');
+  }
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  async function handleSaveImage() {
+    if (!imageFile) return;
+    setUploadingImage(true);
+    setError('');
+    try {
+      const url = await uploadChurchImage(imageFile);
+      await updateChurch(church.id, {
+        image_url: url,
+        previous_image_url: church.image_url,
+      });
+      setImageFile(null);
+      setImagePreview(null);
+      onRefresh?.();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image.');
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
+  async function handleRevertImage() {
+    if (!church.previous_image_url) return;
+    setUploadingImage(true);
+    setError('');
+    try {
+      await updateChurch(church.id, {
+        image_url: church.previous_image_url,
+        previous_image_url: church.image_url,
+      });
+      onRefresh?.();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to revert image.');
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
+  function cancelImageUpload() {
+    setImageFile(null);
+    setImagePreview(null);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  }
+
+  async function handleSaveVisiting() {
+    if (!visitingBlock) return;
+    if (!visitingTitle.trim() || !visitingContent.trim()) { setError('Title and content are required.'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await updateContentBlock(visitingBlock.id, { title: visitingTitle.trim(), content: visitingContent.trim() });
+      setEditingVisiting(false);
+      onRefresh?.();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function cancelVisiting() {
+    setEditingVisiting(false);
+    setVisitingTitle(visitingBlock?.title ?? '');
+    setVisitingContent(visitingBlock?.content ?? '');
+    setError('');
+  }
 
   async function handleDeleteService(id: string) {
     setSaving(true);
@@ -479,16 +446,17 @@ export function ChurchCard({
   }
 
   async function handleAddAnnouncement() {
-    if (!annMsg.trim() || !annExpiry) { setError('Message and expiry date are required.'); return; }
+    if (!annMsg.trim() || !annExpiry) { setError('Message and end date are required.'); return; }
     setSaving(true);
     setError('');
     try {
       await addAnnouncement({
         church_id: church.id,
         message: annMsg.trim(),
+        start_date: annStart ? dateInputToStartOfDayISO(annStart) : null,
         expiry_date: dateInputToEndOfDayISO(annExpiry),
       });
-      setAnnMsg(''); setAnnExpiry('');
+      setAnnMsg(''); setAnnStart(''); setAnnExpiry('');
       setShowAddAnn(false);
       onRefresh?.();
     } catch (err: unknown) {
@@ -498,7 +466,34 @@ export function ChurchCard({
     }
   }
 
-  // All announcements for admin view (including expired), active-only for public
+  function startEditAnn(a: { id: string; message: string; start_date?: string | null; expiry_date: string }) {
+    setEditAnnId(a.id);
+    setEditAnnMsg(a.message);
+    setEditAnnStart(a.start_date ? isoToDateInput(a.start_date) : '');
+    setEditAnnExpiry(isoToDateInput(a.expiry_date));
+    setConfirmDelAnn(null);
+    setError('');
+  }
+
+  async function handleSaveAnnouncement() {
+    if (!editAnnId || !editAnnMsg.trim() || !editAnnExpiry) { setError('Message and end date are required.'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await updateAnnouncement(editAnnId, {
+        message: editAnnMsg.trim(),
+        start_date: editAnnStart ? dateInputToStartOfDayISO(editAnnStart) : null,
+        expiry_date: dateInputToEndOfDayISO(editAnnExpiry),
+      });
+      setEditAnnId(null);
+      onRefresh?.();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save announcement.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const displayedAnnouncements = isAdmin ? church.announcements : activeAnnouncements;
 
   return (
@@ -511,29 +506,71 @@ export function ChurchCard({
       <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
 
         {/* Image */}
-        <div className={`${imageRight ? 'order-1 lg:order-2' : ''} overflow-hidden h-80 sm:h-96 lg:h-auto lg:min-h-[500px]`}>
+        <div className={`${imageRight ? 'order-1 lg:order-2' : ''} relative overflow-hidden h-80 sm:h-96 lg:h-auto lg:min-h-[500px]`}>
           <ImageWithFallback
-            src={church.image_url}
+            src={imagePreview ?? church.image_url}
             alt={church.name}
             className="w-full h-full object-cover transition-transform duration-700"
           />
+          {isAdmin && (
+            <>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+              {imagePreview ? (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+                  <button
+                    onClick={handleSaveImage}
+                    disabled={uploadingImage}
+                    className="flex items-center gap-1.5 text-xs px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 shadow-lg transition-colors cursor-pointer"
+                  >
+                    {uploadingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    Save Photo
+                  </button>
+                  <button
+                    onClick={cancelImageUpload}
+                    className="text-xs px-3 py-2 text-gray-700 bg-white rounded-lg hover:bg-gray-50 shadow-lg border border-gray-200 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="absolute bottom-4 right-4 flex flex-col items-end gap-2">
+                  {church.previous_image_url && (
+                    <button
+                      onClick={handleRevertImage}
+                      disabled={uploadingImage}
+                      className="flex items-center gap-1.5 text-xs px-3 py-2 bg-white/90 backdrop-blur-sm text-gray-600 rounded-lg hover:bg-white shadow-lg border border-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+                      title="Revert to previous photo"
+                    >
+                      {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
+                        </svg>
+                      )}
+                      Revert Photo
+                    </button>
+                  )}
+                  <button
+                    onClick={() => imageInputRef.current?.click()}
+                    className="flex items-center gap-1.5 text-xs px-3 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white shadow-lg border border-gray-200 transition-colors cursor-pointer"
+                  >
+                    <ImagePlus className="w-3.5 h-3.5" />
+                    Change Photo
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Content */}
         <div className={`${imageRight ? 'order-2 lg:order-1' : ''} p-10 lg:p-16 flex flex-col justify-center`}>
-
-          {/* Admin: Edit Details button */}
-          {isAdmin && (
-            <div className="flex justify-end mb-3 -mt-2">
-              <button
-                onClick={() => setEditDetails(true)}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 text-gray-500 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-              >
-                <Edit2 className="w-3 h-3" />
-                Edit Details
-              </button>
-            </div>
-          )}
 
           {/* Admin: inline error */}
           {isAdmin && error && (
@@ -546,42 +583,92 @@ export function ChurchCard({
           {(displayedAnnouncements.length > 0 || isAdmin) && (
             <div className="mb-6 space-y-2">
               {displayedAnnouncements.map(a => {
-                const expired = new Date(a.expiry_date) <= new Date();
+                const now = new Date();
+                const expired = !!a.expiry_date && new Date(a.expiry_date) <= now;
+                const isEditingAnn = editAnnId === a.id;
+
+                if (isEditingAnn) {
+                  return (
+                    <div key={a.id} className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                      <textarea
+                        value={editAnnMsg}
+                        onChange={e => setEditAnnMsg(e.target.value)}
+                        rows={2}
+                        placeholder="Announcement message"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Start date (optional)</label>
+                          <input type="date" value={editAnnStart}
+                            onChange={e => setEditAnnStart(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">End date</label>
+                          <input type="date" value={editAnnExpiry}
+                            onChange={e => setEditAnnExpiry(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={handleSaveAnnouncement} disabled={saving}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors cursor-pointer">
+                          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                          Save
+                        </button>
+                        <button onClick={() => setEditAnnId(null)} disabled={saving}
+                          className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={a.id}
                     className={`flex items-start gap-3 p-3 rounded-xl border ${
-                      expired
-                        ? 'bg-gray-50 border-gray-200'
-                        : 'bg-amber-50 border-amber-200'
+                      expired ? 'bg-gray-50 border-gray-200' : 'bg-amber-50 border-amber-200'
                     }`}
                   >
                     <Megaphone className={`w-4 h-4 mt-0.5 shrink-0 ${expired ? 'text-gray-400' : 'text-amber-600'}`} />
-                    <p className={`text-sm leading-snug flex-1 ${expired ? 'text-gray-400' : 'text-amber-800'}`}>
-                      {a.message}
-                      {isAdmin && expired && (
-                        <span className="ml-2 text-xs italic text-gray-400">
-                          (expired {new Date(a.expiry_date).toLocaleDateString('en-GB')})
-                        </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm leading-snug ${expired ? 'text-gray-400' : 'text-amber-800'}`}>
+                        {a.message}
+                      </p>
+                      {(expired || formatAnnDates(a)) && (
+                        <p className={`text-xs mt-0.5 ${expired ? 'text-gray-400 italic' : 'text-amber-600'}`}>
+                          {expired ? 'Expired' : ''}{expired && formatAnnDates(a) ? ' ' : ''}{formatAnnDates(a)}
+                        </p>
                       )}
-                    </p>
+                    </div>
                     {isAdmin && (
                       confirmDelAnn === a.id ? (
                         <div className="flex items-center gap-1 shrink-0">
                           <span className="text-xs text-red-600 font-medium">Delete?</span>
                           <button onClick={() => handleDeleteAnnouncement(a.id)} disabled={saving}
-                            className="p-1 text-red-600 hover:bg-red-100 rounded disabled:opacity-50">
+                            className="p-1 text-red-600 hover:bg-red-100 rounded disabled:opacity-50 cursor-pointer">
                             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                           </button>
-                          <button onClick={() => setConfirmDelAnn(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
+                          <button onClick={() => setConfirmDelAnn(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded cursor-pointer">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
                       ) : (
-                        <button onClick={() => setConfirmDelAnn(a.id)}
-                          className={`shrink-0 transition-colors ${expired ? 'text-gray-300 hover:text-red-400' : 'text-amber-400 hover:text-red-500'}`}>
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={() => startEditAnn(a)}
+                            className={`p-1 rounded transition-colors cursor-pointer ${expired ? 'text-gray-300 hover:text-gray-500' : 'text-amber-300 hover:text-amber-600'}`}
+                            title="Edit announcement">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => setConfirmDelAnn(a.id)}
+                            className={`p-1 rounded transition-colors cursor-pointer ${expired ? 'text-gray-300 hover:text-red-400' : 'text-amber-300 hover:text-red-500'}`}
+                            title="Delete announcement">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       )
                     )}
                   </div>
@@ -599,19 +686,27 @@ export function ChurchCard({
                       rows={2}
                       className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400 resize-none"
                     />
-                    <input
-                      type="date"
-                      value={annExpiry}
-                      onChange={e => setAnnExpiry(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
-                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Start date (optional)</label>
+                        <input type="date" value={annStart}
+                          onChange={e => setAnnStart(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">End date</label>
+                        <input type="date" value={annExpiry}
+                          onChange={e => setAnnExpiry(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400" />
+                      </div>
+                    </div>
                     <div className="flex gap-2">
                       <button onClick={handleAddAnnouncement} disabled={saving}
                         className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors cursor-pointer">
                         {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
                         Add
                       </button>
-                      <button onClick={() => { setShowAddAnn(false); setAnnMsg(''); setAnnExpiry(''); }}
+                      <button onClick={() => { setShowAddAnn(false); setAnnMsg(''); setAnnStart(''); setAnnExpiry(''); }}
                         className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                         Cancel
                       </button>
@@ -628,8 +723,56 @@ export function ChurchCard({
             </div>
           )}
 
-          <h2 className="text-3xl font-serif font-bold text-gray-900 mb-6 drop-shadow-sm">{church.name}</h2>
-          <p className="text-lg text-gray-600 mb-8 leading-relaxed font-light">{church.description}</p>
+          {/* Church name + description — inline editable */}
+          {editingDetails ? (
+            <div className="mb-8 space-y-3">
+              <input
+                type="text"
+                value={detailsName}
+                onChange={e => setDetailsName(e.target.value)}
+                className="w-full text-3xl font-serif font-bold text-gray-900 border-b-2 border-primary-300 focus:border-primary-500 outline-none bg-transparent pb-1"
+              />
+              <textarea
+                rows={4}
+                value={detailsDesc}
+                onChange={e => setDetailsDesc(e.target.value)}
+                className="w-full text-base text-gray-600 leading-relaxed border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveDetails}
+                  disabled={saving}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  Save
+                </button>
+                <button
+                  onClick={cancelDetails}
+                  disabled={saving}
+                  className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-8">
+              <div className="flex items-start gap-2 mb-6">
+                <h2 className="text-3xl font-serif font-bold text-gray-900 drop-shadow-sm">{church.name}</h2>
+                {isAdmin && (
+                  <button
+                    onClick={() => setEditingDetails(true)}
+                    className="mt-1.5 text-gray-300 hover:text-primary-600 p-1 rounded hover:bg-primary-50 transition-colors shrink-0 cursor-pointer"
+                    title="Edit name & description"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <p className="text-lg text-gray-600 leading-relaxed font-light">{church.description}</p>
+            </div>
+          )}
 
           {/* Service timetable */}
           <ServiceTimetableBanner
@@ -679,18 +822,62 @@ export function ChurchCard({
           )}
 
           <div className="space-y-8">
-            {/* Visiting content block */}
+            {/* Visiting content block — inline editable */}
             {visitingBlock && (
               <div className="flex items-start space-x-6">
                 <div className="bg-primary-50 p-3 rounded-xl shrink-0 transition-transform duration-300 hover:scale-110 cursor-pointer">
                   <Calendar className="w-6 h-6 text-primary-700" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-0.5 mb-1">
-                    <h3 className="font-semibold text-gray-900">{visitingBlock.title}</h3>
-                    {isAdmin && <ContentBlockEdit block={visitingBlock} onSaved={() => onRefresh?.()} />}
-                  </div>
-                  <p className="text-gray-500 text-base leading-relaxed whitespace-pre-line">{visitingBlock.content}</p>
+                  {editingVisiting ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={visitingTitle}
+                        onChange={e => setVisitingTitle(e.target.value)}
+                        className="w-full text-sm font-semibold text-gray-900 border-b border-primary-300 focus:border-primary-500 outline-none bg-transparent pb-0.5"
+                      />
+                      <textarea
+                        rows={4}
+                        value={visitingContent}
+                        onChange={e => setVisitingContent(e.target.value)}
+                        className="w-full text-sm text-gray-500 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary-300 resize-none leading-relaxed"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveVisiting}
+                          disabled={saving}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors cursor-pointer"
+                        >
+                          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelVisiting}
+                          disabled={saving}
+                          className="text-xs px-3 py-1.5 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-0.5 mb-1">
+                        <h3 className="font-semibold text-gray-900">{visitingBlock.title}</h3>
+                        {isAdmin && (
+                          <button
+                            onClick={() => setEditingVisiting(true)}
+                            className="ml-1.5 text-gray-400 hover:text-primary-600 p-1 rounded hover:bg-primary-50 transition-colors cursor-pointer"
+                            title="Edit visiting info"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-gray-500 text-base leading-relaxed whitespace-pre-line">{visitingBlock.content}</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -721,15 +908,6 @@ export function ChurchCard({
           )}
         </div>
       </div>
-
-      {/* Edit Details modal (portal to escape transform stacking context) */}
-      {editDetails && (
-        <ChurchEditModal
-          church={church}
-          onClose={() => setEditDetails(false)}
-          onSaved={() => { setEditDetails(false); onRefresh?.(); }}
-        />
-      )}
     </div>
   );
 }

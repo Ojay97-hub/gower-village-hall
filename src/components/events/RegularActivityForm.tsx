@@ -25,6 +25,7 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
         action_type: initialData?.action_type || 'none',
         action_text: initialData?.action_text || '',
         action_link: initialData?.action_link || '',
+        feature_description: initialData?.feature_description || '',
         is_featured: initialData?.is_featured || false,
     });
 
@@ -47,6 +48,7 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                 action_type: formData.action_type,
                 action_text: formData.action_type !== 'none' ? (formData.action_text || null) : null,
                 action_link: (formData.action_type === 'button' || formData.action_type === 'link') ? (formData.action_link || null) : null,
+                feature_description: formData.feature_description || null,
                 is_featured: formData.is_featured,
             };
 
@@ -266,6 +268,24 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                         </span>
                     </span>
                 </label>
+
+                {formData.is_featured && (
+                    <div className="mt-4">
+                        <label htmlFor="feature_description" className={labelClasses}>
+                            Featured Card Description
+                            <span className="ml-1 font-normal text-gray-400">(shown in the right panel of the featured card)</span>
+                        </label>
+                        <textarea
+                            id="feature_description"
+                            name="feature_description"
+                            rows={3}
+                            value={formData.feature_description || ''}
+                            onChange={(e) => setFormData({ ...formData, feature_description: e.target.value })}
+                            placeholder="A short description shown alongside the schedule details..."
+                            className={inputClasses}
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="border-t border-gray-200 pt-4 mt-2">
@@ -283,9 +303,7 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                         className={selectClasses}
                     >
                         <option value="none">None</option>
-                        <option value="text">Just Text (non-clickable)</option>
-                        <option value="button">Button</option>
-                        <option value="link">Text Link</option>
+                        <option value="link">Add a link</option>
                     </select>
                 </div>
 
@@ -293,7 +311,7 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="action_text" className={labelClasses}>
-                                Action Label
+                                Button Label
                             </label>
                             <input
                                 type="text"
@@ -305,22 +323,20 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                                 className={inputClasses}
                             />
                         </div>
-                        {(formData.action_type === 'button' || formData.action_type === 'link') && (
-                            <div>
-                                <label htmlFor="action_link" className={labelClasses}>
-                                    Link URL
-                                </label>
-                                <input
-                                    type="text"
-                                    id="action_link"
-                                    name="action_link"
-                                    value={formData.action_link || ''}
-                                    onChange={(e) => setFormData({ ...formData, action_link: e.target.value })}
-                                    placeholder="https://..."
-                                    className={inputClasses}
-                                />
-                            </div>
-                        )}
+                        <div>
+                            <label htmlFor="action_link" className={labelClasses}>
+                                Link URL
+                            </label>
+                            <input
+                                type="text"
+                                id="action_link"
+                                name="action_link"
+                                value={formData.action_link || ''}
+                                onChange={(e) => setFormData({ ...formData, action_link: e.target.value })}
+                                placeholder="https://..."
+                                className={inputClasses}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

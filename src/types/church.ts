@@ -19,7 +19,8 @@ export interface Announcement {
   id: string;
   church_id: string;
   message: string;
-  expiry_date: string;
+  start_date?: string | null;
+  expiry_date?: string | null;
 }
 
 export interface ChurchEvent {
@@ -37,6 +38,7 @@ export interface Church {
   description: string;
   address: string;
   image_url: string;
+  previous_image_url?: string | null;
   services: Service[];
   content_blocks: ContentBlock[];
   announcements: Announcement[];
