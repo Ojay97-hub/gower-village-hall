@@ -302,8 +302,8 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
   }
 
   async function handleAddAnnouncement() {
-    if (!annMsg.trim() || !annExpiry) {
-      setError('Message and expiry date are required.');
+    if (!annMsg.trim()) {
+      setError('Message is required.');
       return;
     }
     setSaving(true);
@@ -312,7 +312,7 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
       await addAnnouncement({
         church_id: church.id,
         message: annMsg.trim(),
-        expiry_date: new Date(annExpiry).toISOString(),
+        expiry_date: annExpiry ? new Date(annExpiry).toISOString() : null,
       });
       setAnnMsg('');
       setAnnExpiry('');
@@ -457,7 +457,7 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
                 <p className="text-sm text-gray-400 italic">No announcements.</p>
               )}
               {church.announcements.map(a => {
-                const expired = new Date(a.expiry_date) <= new Date();
+                const expired = !!a.expiry_date && new Date(a.expiry_date) <= new Date();
                 return (
                   <div
                     key={a.id}
@@ -467,9 +467,11 @@ function ChurchPanel({ church, onRefresh }: { church: Church; onRefresh: () => v
                   >
                     <span className="min-w-0">
                       {a.message}
-                      <span className={`ml-2 text-xs ${expired ? 'text-gray-400' : 'text-amber-500'}`}>
-                        (expires {new Date(a.expiry_date).toLocaleDateString('en-GB')})
-                      </span>
+                      {a.expiry_date && (
+                        <span className={`ml-2 text-xs ${expired ? 'text-gray-400' : 'text-amber-500'}`}>
+                          (expires {new Date(a.expiry_date).toLocaleDateString('en-GB')})
+                        </span>
+                      )}
                       {expired && <span className="ml-1 text-xs italic">expired</span>}
                     </span>
                     {confirmDelAnn === a.id ? (

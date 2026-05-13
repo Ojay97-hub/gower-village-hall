@@ -464,9 +464,12 @@ export function ChurchPage() {
 
   const aboutBlock = church?.content_blocks.find((b) => b.type === "about");
   const visitingBlock = church?.content_blocks.find((b) => b.type === "visiting");
-  const activeAnnouncements = church?.announcements.filter(
-    (a) => !a.expiry_date || new Date(a.expiry_date) > new Date()
-  ) ?? [];
+  const activeAnnouncements = church?.announcements.filter((a) => {
+    const now = new Date();
+    const startOk = !a.start_date || new Date(a.start_date) <= now;
+    const expiryOk = !a.expiry_date || new Date(a.expiry_date) > now;
+    return startOk && expiryOk;
+  }) ?? [];
   const upcomingEvents = [...(church?.events ?? [])]
     .filter((event) => new Date(event.event_date) >= new Date())
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());

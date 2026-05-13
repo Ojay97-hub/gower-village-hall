@@ -66,12 +66,9 @@ export async function updateAnnouncement(
   id: string,
   updates: Partial<Pick<Announcement, 'message' | 'start_date' | 'expiry_date'>>
 ): Promise<void> {
-  const { start_date, expiry_date, ...rest } = updates;
-  const patch = {
-    ...rest,
-    ...(start_date != null ? { start_date } : {}),
-    ...(expiry_date != null ? { expiry_date } : {}),
-  };
+  const patch: Record<string, unknown> = { ...updates };
+  if ('start_date' in updates) patch.start_date = updates.start_date ?? null;
+  if ('expiry_date' in updates) patch.expiry_date = updates.expiry_date ?? null;
   const { error } = await supabase.from('announcements').update(patch).eq('id', id);
   if (error) throw error;
 }
@@ -122,10 +119,24 @@ export async function addChurch(
   if (error) throw error;
 }
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+
 export async function uploadChurchImage(file: File): Promise<string> {
-  const fileExt = file.name.split('.').pop();
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF images are allowed.');
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error('File is too large. Maximum size is 5 MB.');
+  }
+
+  const rawExt = file.name.split('.').pop()?.toLowerCase() ?? '';
+  const fileExt = ALLOWED_IMAGE_EXTENSIONS.includes(rawExt) ? rawExt : 'jpg';
   const filePath = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-  const { error } = await supabase.storage.from('church-images').upload(filePath, file);
+  const { error } = await supabase.storage.from('church-images').upload(filePath, file, {
+    contentType: file.type,
+  });
   if (error) throw error;
   const { data } = supabase.storage.from('church-images').getPublicUrl(filePath);
   return data.publicUrl;

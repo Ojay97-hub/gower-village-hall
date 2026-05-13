@@ -240,7 +240,12 @@ export function ChurchCard({
   isAdmin = false,
   onRefresh,
 }: ChurchCardProps) {
-  const activeAnnouncements = church.announcements.filter(a => !a.expiry_date || new Date(a.expiry_date) > new Date());
+  const activeAnnouncements = church.announcements.filter((a) => {
+    const now = new Date();
+    const startOk = !a.start_date || new Date(a.start_date) <= now;
+    const expiryOk = !a.expiry_date || new Date(a.expiry_date) > now;
+    return startOk && expiryOk;
+  });
   const visitingBlock = church.content_blocks.find((b: ContentBlock) => b.type === 'visiting');
 
   // Admin: inline church details edit
@@ -446,7 +451,7 @@ export function ChurchCard({
   }
 
   async function handleAddAnnouncement() {
-    if (!annMsg.trim() || !annExpiry) { setError('Message and end date are required.'); return; }
+    if (!annMsg.trim()) { setError('Message is required.'); return; }
     setSaving(true);
     setError('');
     try {
@@ -454,7 +459,7 @@ export function ChurchCard({
         church_id: church.id,
         message: annMsg.trim(),
         start_date: annStart ? dateInputToStartOfDayISO(annStart) : null,
-        expiry_date: dateInputToEndOfDayISO(annExpiry),
+        expiry_date: annExpiry ? dateInputToEndOfDayISO(annExpiry) : null,
       });
       setAnnMsg(''); setAnnStart(''); setAnnExpiry('');
       setShowAddAnn(false);
@@ -466,24 +471,24 @@ export function ChurchCard({
     }
   }
 
-  function startEditAnn(a: { id: string; message: string; start_date?: string | null; expiry_date: string }) {
+  function startEditAnn(a: { id: string; message: string; start_date?: string | null; expiry_date?: string | null }) {
     setEditAnnId(a.id);
     setEditAnnMsg(a.message);
     setEditAnnStart(a.start_date ? isoToDateInput(a.start_date) : '');
-    setEditAnnExpiry(isoToDateInput(a.expiry_date));
+    setEditAnnExpiry(a.expiry_date ? isoToDateInput(a.expiry_date) : '');
     setConfirmDelAnn(null);
     setError('');
   }
 
   async function handleSaveAnnouncement() {
-    if (!editAnnId || !editAnnMsg.trim() || !editAnnExpiry) { setError('Message and end date are required.'); return; }
+    if (!editAnnId || !editAnnMsg.trim()) { setError('Message is required.'); return; }
     setSaving(true);
     setError('');
     try {
       await updateAnnouncement(editAnnId, {
         message: editAnnMsg.trim(),
         start_date: editAnnStart ? dateInputToStartOfDayISO(editAnnStart) : null,
-        expiry_date: dateInputToEndOfDayISO(editAnnExpiry),
+        expiry_date: editAnnExpiry ? dateInputToEndOfDayISO(editAnnExpiry) : null,
       });
       setEditAnnId(null);
       onRefresh?.();
