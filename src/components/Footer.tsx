@@ -99,7 +99,7 @@ export function Footer() {
         {/* Footer Bottom / Copyright */}
         <div className="mt-12 lg:mt-16 pt-8 border-t border-white/20 flex flex-col md:flex-row justify-between items-center text-sm text-white/80 gap-4">
           <p>
-            &copy; 2026 Nova Forma Designs Ltd. All rights reserved.
+            &copy; 2026 <a href="https://www.novaformadesigns.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">Nova Forma Designs</a>. All rights reserved.
           </p>
           <div className="flex items-center space-x-6">
             <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
