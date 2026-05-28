@@ -90,25 +90,25 @@ export function Businesses() {
   const attractions = [
     {
       name: 'Three Cliffs Bay',
-      description: "One of Wales' most beautiful beaches",
+      description: "One of Wales' most beautiful beaches.",
       image: threeCliffsBayImg,
       website: 'https://www.tripadvisor.co.uk/Search?q=Three+Cliffs+Bay'
     },
     {
       name: 'Oxwich Bay',
-      description: 'Beautiful sandy beach perfect for families and water sports',
+      description: 'Beautiful sandy beach perfect for families and water sports.',
       image: oxwichBayImg,
       website: 'https://www.tripadvisor.co.uk/Search?q=Oxwich+Bay'
     },
     {
       name: 'Tor Bay Beach',
-      description: 'Secluded sandy beach with dramatic cliffs and rock pools',
+      description: 'Secluded sandy beach with dramatic cliffs and rock pools.',
       image: torBayBeachImg,
       website: 'https://www.visitswanseabay.com/things-to-do/beaches/tor-bay/'
     },
     {
       name: 'Gower Heritage Centre',
-      description: 'Explore the history and heritage of the Gower Peninsula',
+      description: 'Explore the history and heritage of the Gower Peninsula.',
       image: gowerHeritageCentreImg,
       website: 'https://www.tripadvisor.co.uk/Search?q=Gower+Heritage+Centre'
     }
@@ -132,13 +132,13 @@ export function Businesses() {
   const castles = [
     {
       name: 'Pennard Castle',
-      description: 'Medieval castle ruins with spectacular views over Three Cliffs Bay',
+      description: 'Medieval castle ruins with spectacular views over Three Cliffs Bay.',
       image: pennardCastleImg,
       website: 'https://www.tripadvisor.co.uk/Search?q=Pennard+Castle'
     },
     {
       name: 'Oxwich Castle',
-      description: 'Impressive Tudor manor house set in the heart of Oxwich village',
+      description: 'Impressive Tudor manor house set in the heart of Oxwich village.',
       image: oxwichCastleImg,
       website: 'https://www.tripadvisor.co.uk/Search?q=Oxwich+Castle'
     }
