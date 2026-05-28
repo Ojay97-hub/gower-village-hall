@@ -17,6 +17,9 @@ build/
 # Claude Code settings (may contain sensitive data)
 .claude/
 
+# MCP config (may contain tokens)
+.mcp.json
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -24,3 +27,5 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+.vercel
+.env*

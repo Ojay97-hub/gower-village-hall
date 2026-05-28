@@ -18,24 +18,25 @@ import oxwichCastleImg from "../assets/oxwich-castle.webp";
 import gowerInnImg from "../assets/gower-inn.webp";
 import ivyCottageImg from "../assets/ivy-cottage-caravans.webp";
 import shepherdsImg from "../assets/sheperds-shop-edit-2.webp";
+import { BusinessSponsorsSection } from '../components/BusinessSponsorsSection';
 
 export function Businesses() {
   const campsites = [
     {
-      name: 'Ivy Cottage Campsite',
-      description: 'Family-friendly campsite located in Parkmill, offering a peaceful rural escape and a great base for exploring the Gower Peninsula.',
-      image: ivyCottageImg,
-      website: 'https://ivycottagegower.co.uk/'
-    },
-    {
       name: 'Nicholaston Farm Campsite',
-      description: 'Peaceful working farm campsite set in beautiful Gower countryside. Just a short walk to the beach, offering a tranquil escape with traditional farm camping.',
+      description: 'A family run farm campsite in Nicholaston, welcoming caravans, tents, and motorhomes, set a small woodland away from the local beaches – Tor Bay, and Oxwich. A peaceful corner of the world, with dark starry skies, and beautiful moonscapes and sunsets throughout the summer.',
       image: threeCliffsBayHolidayParkImg,
       website: 'https://www.nicholastonfarm.co.uk/'
     },
     {
+      name: 'Ivy Cottage Campsite',
+      description: 'A campsite for caravans, motorhomes, and RV owners (only), situated in Nicholaston behind the sweeping expanse of Oxwich Bay, Gower. The beach can be reached via a short, sheltered walk through Crawley woods.',
+      image: ivyCottageImg,
+      website: 'https://ivycottagegower.co.uk/'
+    },
+    {
       name: 'Three Cliffs Bay Holiday Park',
-      description: 'Award-winning family-friendly holiday park overlooking Three Cliffs Bay. Offering static caravans, touring pitches, and modern facilities with stunning coastal views.',
+      description: 'An award-winning, family run, 5 star holiday park offering luxury glamping, camping and touring pitches, and a privileged vantage point for views over the world-famous Three Cliffs Bay. A shady woodland walk to the local village of Parkmill and other local places of interest.',
       image: threeCliffsBayAerialImg,
       website: 'https://www.threecliffsbay.com/'
     }
@@ -122,7 +123,7 @@ export function Businesses() {
     },
     {
       name: 'Gower Coast Adventures',
-      description: 'Luxury glamping pods and camping with outdoor activities. Perfect for adventure seekers with coasteering, kayaking, and surf lessons available.',
+      description: 'Two hour boat trips launching from Oxwich Bay throughout the summer, offering a trip around the Gower coastline, spotting local marine life and bird habitats. Guided by professionally qualified local crew, you will also learn about local history dated as far back as 33,000 years ago!',
       image: gowerCoastAdventuresImg,
       website: 'https://www.gowercoastadventures.co.uk/'
     }
@@ -457,6 +458,8 @@ export function Businesses() {
               ))}
             </div>
           </div>
+
+          <BusinessSponsorsSection />
 
           {/* Supporting Local Business Notice */}
           <div className="bg-white rounded-2xl p-8 mt-12">
