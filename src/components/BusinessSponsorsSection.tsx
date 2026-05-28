@@ -102,8 +102,9 @@ export function BusinessSponsorsSection() {
 }
 
 function SponsorCard({ sponsor }: { sponsor: BusinessSponsor }) {
+  const websiteUrl = getSponsorWebsiteUrl(sponsor);
   const content = (
-    <div className="flex flex-col items-center justify-center h-44 md:h-48 px-4 py-6 rounded-xl border border-gray-100 bg-gray-50/80 hover:bg-white hover:shadow-md transition-all">
+    <div className="flex flex-col items-center justify-center h-44 md:h-48 px-4 py-6 rounded-xl border border-gray-100 bg-gray-50/80 transition-colors hover:bg-gray-50 hover:border-gray-200">
       {sponsor.logo_url ? (
         <ImageWithFallback
           src={sponsor.logo_url}
@@ -119,13 +120,13 @@ function SponsorCard({ sponsor }: { sponsor: BusinessSponsor }) {
     </div>
   );
 
-  if (sponsor.website_url) {
+  if (websiteUrl) {
     return (
       <a
-        href={sponsor.website_url}
+        href={websiteUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl"
+        className="block rounded-xl overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       >
         {content}
       </a>
@@ -133,4 +134,14 @@ function SponsorCard({ sponsor }: { sponsor: BusinessSponsor }) {
   }
 
   return content;
+}
+
+function getSponsorWebsiteUrl(sponsor: BusinessSponsor) {
+  if (sponsor.website_url) return sponsor.website_url;
+
+  const isNovaForma =
+    sponsor.name.toLowerCase().includes('nova forma') ||
+    sponsor.logo_url?.toLowerCase().includes('nova-forma');
+
+  return isNovaForma ? 'https://novaformadesigns.com' : null;
 }
