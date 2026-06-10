@@ -14,6 +14,7 @@ interface DetailsForm {
   name: string;
   description: string;
   address: string;
+  map_query: string;
   image_url: string;
 }
 
@@ -30,6 +31,7 @@ function ChurchDetailsModal({
     name: church?.name ?? '',
     description: church?.description ?? '',
     address: church?.address ?? '',
+    map_query: church?.map_query ?? '',
     image_url: church?.image_url ?? '',
   });
   const [saving, setSaving] = useState(false);
@@ -49,6 +51,7 @@ function ChurchDetailsModal({
           name: form.name.trim(),
           description: form.description.trim(),
           address: form.address.trim(),
+          map_query: form.map_query.trim() || null,
           image_url: form.image_url.trim(),
         });
       } else {
@@ -56,6 +59,7 @@ function ChurchDetailsModal({
           name: form.name.trim(),
           description: form.description.trim(),
           address: form.address.trim(),
+          map_query: form.map_query.trim() || null,
           image_url: form.image_url.trim(),
         });
       }
@@ -111,6 +115,17 @@ function ChurchDetailsModal({
               onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Map location / postcode</label>
+            <input
+              type="text"
+              value={form.map_query}
+              onChange={e => setForm(f => ({ ...f, map_query: e.target.value }))}
+              placeholder="e.g. St John the Baptist Penmaen Swansea SA3 2HQ"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            />
+            <p className="mt-1 text-xs text-gray-400">Postcode or place name used to position the “Find Us” map. Leave blank to use the default.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>

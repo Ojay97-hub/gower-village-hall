@@ -22,12 +22,17 @@ const SLUG_TO_PATTERN: Record<string, RegExp> = {
   "st-nicholas": /st[\s.'`-]?nicholas/i,
 };
 
-const SLUG_TO_MAP: Record<string, string> = {
-  "st-johns":
-    "https://www.google.com/maps?q=St+John+the+Baptist+Penmaen+Swansea+SA3+2HQ&output=embed&z=18&t=k",
-  "st-nicholas":
-    "https://www.google.com/maps?q=St+Nicholas+Church+Nicholaston+Swansea+SA3+2HL&output=embed&z=18&t=k",
+// Per-church default map search query (place name + postcode). Used only when a
+// church has no editable `map_query` set in the database.
+const SLUG_TO_MAP_QUERY: Record<string, string> = {
+  "st-johns": "St John the Baptist Penmaen Swansea SA3 2HQ",
+  "st-nicholas": "St Nicholas Church Nicholaston Swansea SA3 2HL",
 };
+
+// Build a Google Maps embed URL from a free-text query (postcode or place name).
+function buildMapUrl(query: string): string {
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed&z=18&t=k`;
+}
 
 function toDateTimeLocal(value: string) {
   const date = new Date(value);
@@ -105,6 +110,7 @@ export function ChurchPage() {
   const [heroName, setHeroName] = useState("");
   const [heroDescription, setHeroDescription] = useState("");
   const [heroAddress, setHeroAddress] = useState("");
+  const [heroMapQuery, setHeroMapQuery] = useState("");
   const [heroImageUrl, setHeroImageUrl] = useState("");
   const [heroSaving, setHeroSaving] = useState(false);
   const [heroError, setHeroError] = useState("");
@@ -183,6 +189,8 @@ export function ChurchPage() {
     setHeroName(church.name);
     setHeroDescription(about?.content ?? church.description);
     setHeroAddress(church.address);
+    // Prefill with the existing default so admins can simply tweak the postcode.
+    setHeroMapQuery(church.map_query ?? (slug ? SLUG_TO_MAP_QUERY[slug] ?? "" : ""));
     setHeroImageUrl(church.image_url);
     setHeroError("");
     setEditingHero(true);
@@ -202,6 +210,7 @@ export function ChurchPage() {
         description: heroDescription.trim(),
         address: heroAddress.trim(),
         image_url: heroImageUrl.trim(),
+        map_query: heroMapQuery.trim() || null,
       });
       // Keep the about content block in sync (if one exists) so the displayed
       // text — which prefers aboutBlock.content over church.description — updates.
@@ -474,6 +483,10 @@ export function ChurchPage() {
     .filter((event) => new Date(event.event_date) >= new Date())
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
+  // Resolve the map query: admin-set `map_query` wins, else the per-church default.
+  const mapQuery = church?.map_query?.trim() || (slug ? SLUG_TO_MAP_QUERY[slug] : undefined);
+  const mapSrc = mapQuery ? buildMapUrl(mapQuery) : null;
+
   return (
     <div className="min-h-screen bg-white font-sans">
 
@@ -553,6 +566,16 @@ export function ChurchPage() {
                         onChange={(e) => setHeroAddress(e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
                       />
+                      <label htmlFor="hero-map-query" className="block text-xs font-medium text-gray-600">Map location / postcode</label>
+                      <input
+                        id="hero-map-query"
+                        type="text"
+                        value={heroMapQuery}
+                        onChange={(e) => setHeroMapQuery(e.target.value)}
+                        placeholder="e.g. St John the Baptist Penmaen Swansea SA3 2HQ"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <p className="-mt-1 text-xs text-gray-400">Postcode or place name used to position the map below. Leave blank to use the default.</p>
                       <label htmlFor="hero-image-url" className="block text-xs font-medium text-gray-600">Image URL</label>
                       <input
                         id="hero-image-url"
@@ -1209,11 +1232,11 @@ export function ChurchPage() {
                 )}
 
                 {/* Map */}
-                {slug && SLUG_TO_MAP[slug] && (
+                {mapSrc && (
                   <div className={`${visitingBlock ? "lg:col-span-3" : ""} rounded-2xl overflow-hidden shadow-md border border-gray-200 h-80 sm:h-96 lg:h-[420px]`}>
                     <iframe
                       title={`Map of ${church.name}`}
-                      src={SLUG_TO_MAP[slug]}
+                      src={mapSrc}
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}

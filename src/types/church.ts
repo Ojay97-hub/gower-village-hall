@@ -39,6 +39,8 @@ export interface Church {
   address: string;
   image_url: string;
   previous_image_url?: string | null;
+  /** Postcode or place name used for the "Find Us" map embed. When null, falls back to the per-church default. */
+  map_query?: string | null;
   services: Service[];
   content_blocks: ContentBlock[];
   announcements: Announcement[];
