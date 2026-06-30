@@ -240,12 +240,11 @@ export function ChurchCard({
   isAdmin = false,
   onRefresh,
 }: ChurchCardProps) {
-  const activeAnnouncements = church.announcements.filter((a) => {
-    const now = new Date();
-    const startOk = !a.start_date || new Date(a.start_date) <= now;
-    const expiryOk = !a.expiry_date || new Date(a.expiry_date) > now;
-    return startOk && expiryOk;
-  });
+  // Notices show as soon as they're saved; start_date is informational only ("From 11 July")
+  // and does not delay when a notice appears. Only expiry_date hides a notice.
+  const activeAnnouncements = church.announcements.filter(
+    (a) => !a.expiry_date || new Date(a.expiry_date) > new Date()
+  );
   const visitingBlock = church.content_blocks.find((b: ContentBlock) => b.type === 'visiting');
 
   // Admin: inline church details edit
