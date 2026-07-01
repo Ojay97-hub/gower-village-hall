@@ -636,6 +636,176 @@ export function ChurchPage() {
             </div>
           </section>
 
+          {/* ── SERVICE TIMES ── */}
+          <section className="bg-stone-100 py-16 lg:py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div>
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Service Times</h2>
+                    {isChurchAdmin && (
+                      <button
+                        onClick={() => {
+                          if (showAddService) resetServiceForm();
+                          setShowAddService(v => !v);
+                          setAdminError("");
+                        }}
+                        className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Service
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Admin add service form */}
+                  {isChurchAdmin && showAddService && (
+                    <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5 shadow-sm space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-700">
+                        {editingServiceId ? "Edit service" : "Add a service"}
+                      </h3>
+                      <input
+                        type="text"
+                        placeholder="Title (e.g. Sunday Morning Service)"
+                        value={svcTitle}
+                        onChange={e => setSvcTitle(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <input
+                        type="datetime-local"
+                        value={svcDateTime}
+                        onChange={e => setSvcDateTime(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder='Recurring label — e.g. "Every Sunday at 9:30 AM"'
+                        value={svcRecurring}
+                        onChange={e => setSvcRecurring(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Notes (optional)"
+                        value={svcDescription}
+                        onChange={e => setSvcDescription(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveService}
+                          disabled={adminSaving}
+                          className="flex items-center gap-1.5 text-sm px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                        >
+                          {adminSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : editingServiceId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          {editingServiceId ? "Save Service" : "Add Service"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            resetServiceForm();
+                            setShowAddService(false);
+                          }}
+                          className="text-sm px-3 py-2 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {church.services.length === 0 ? (
+                    <div className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm px-6 py-10 text-center">
+                      <Clock className="w-8 h-8 text-primary-300 mx-auto mb-3" />
+                      <p className="text-primary-700/70 text-sm font-light">No services listed yet.</p>
+                      {isChurchAdmin && (
+                        <p className="text-xs text-primary-600/60 mt-1">Add a service to show it here.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {church.services.map((service) => {
+                        const hasRecurring = !!service.recurring_text;
+                        const d = new Date(service.date_time);
+                        const day = d.toLocaleDateString("en-GB", { day: "numeric" });
+                        const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
+                        const year = d.getFullYear();
+                        const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: true });
+                        const dateLabel = hasRecurring
+                          ? service.recurring_text!
+                          : d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+                        return (
+                          <div key={service.id} className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm p-5 flex items-start gap-4">
+                            {/* Badge */}
+                            <div className="shrink-0 w-14 text-center bg-white border border-primary-200 rounded-xl py-2 px-1">
+                              {hasRecurring ? (
+                                <div className="flex items-center justify-center h-14">
+                                  <Clock className="w-6 h-6 text-primary-700" />
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-xs font-bold text-primary-600 uppercase leading-none">{month}</p>
+                                  <p className="text-xl font-black text-primary-800 leading-tight">{day}</p>
+                                  <p className="text-xs text-primary-400 leading-none">{year}</p>
+                                </>
+                              )}
+                            </div>
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 pt-1">
+                              <p className="text-base font-semibold text-gray-900 leading-snug">{service.title}</p>
+                              <p className="text-sm text-primary-600 mt-1">{dateLabel}</p>
+                              <p className="text-sm font-medium text-primary-800 mt-0.5">{time}</p>
+                              {service.description && (
+                                <p className="text-sm text-gray-600 leading-snug mt-2">{service.description}</p>
+                              )}
+                            </div>
+                            {/* Admin actions — always visible */}
+                            {isChurchAdmin && (
+                              <div className="shrink-0 pt-1 flex items-center gap-1">
+                                {confirmDelSvc === service.id ? (
+                                  <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-sm">
+                                    <span className="text-xs text-red-600 font-medium">Delete?</span>
+                                    <button
+                                      onClick={() => handleDeleteService(service.id)}
+                                      disabled={adminSaving}
+                                      className="p-0.5 text-red-600 hover:bg-red-50 rounded cursor-pointer"
+                                    >
+                                      {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                    </button>
+                                    <button onClick={() => setConfirmDelSvc(null)} className="p-0.5 text-gray-400 hover:bg-gray-100 rounded cursor-pointer">
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-0.5">
+                                    <button
+                                      onClick={() => startEditService(service)}
+                                      className="p-1.5 text-primary-400 hover:text-primary-700 hover:bg-primary-200 rounded-lg transition-colors cursor-pointer"
+                                      title="Edit service"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => setConfirmDelSvc(service.id)}
+                                      className="p-1.5 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                      title="Delete service"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          </section>
+
           {/* ── NOTICE BOARD ── */}
           <section className="py-16 lg:py-20"
             style={{ background: "linear-gradient(135deg, #f5f0e8 0%, #ede8dc 100%)" }}
@@ -824,176 +994,6 @@ export function ChurchPage() {
                   })}
                 </div>
               )}
-            </div>
-          </section>
-
-          {/* ── SERVICE TIMES ── */}
-          <section className="bg-stone-100 py-16 lg:py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div>
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Service Times</h2>
-                    {isChurchAdmin && (
-                      <button
-                        onClick={() => {
-                          if (showAddService) resetServiceForm();
-                          setShowAddService(v => !v);
-                          setAdminError("");
-                        }}
-                        className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add Service
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Admin add service form */}
-                  {isChurchAdmin && showAddService && (
-                    <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5 shadow-sm space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-700">
-                        {editingServiceId ? "Edit service" : "Add a service"}
-                      </h3>
-                      <input
-                        type="text"
-                        placeholder="Title (e.g. Sunday Morning Service)"
-                        value={svcTitle}
-                        onChange={e => setSvcTitle(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
-                      />
-                      <input
-                        type="datetime-local"
-                        value={svcDateTime}
-                        onChange={e => setSvcDateTime(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
-                      />
-                      <input
-                        type="text"
-                        placeholder='Recurring label — e.g. "Every Sunday at 9:30 AM"'
-                        value={svcRecurring}
-                        onChange={e => setSvcRecurring(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Notes (optional)"
-                        value={svcDescription}
-                        onChange={e => setSvcDescription(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleSaveService}
-                          disabled={adminSaving}
-                          className="flex items-center gap-1.5 text-sm px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                        >
-                          {adminSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : editingServiceId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                          {editingServiceId ? "Save Service" : "Add Service"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            resetServiceForm();
-                            setShowAddService(false);
-                          }}
-                          className="text-sm px-3 py-2 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {church.services.length === 0 ? (
-                    <div className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm px-6 py-10 text-center">
-                      <Clock className="w-8 h-8 text-primary-300 mx-auto mb-3" />
-                      <p className="text-primary-700/70 text-sm font-light">No services listed yet.</p>
-                      {isChurchAdmin && (
-                        <p className="text-xs text-primary-600/60 mt-1">Add a service to show it here.</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {church.services.map((service) => {
-                        const hasRecurring = !!service.recurring_text;
-                        const d = new Date(service.date_time);
-                        const day = d.toLocaleDateString("en-GB", { day: "numeric" });
-                        const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
-                        const year = d.getFullYear();
-                        const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: true });
-                        const dateLabel = hasRecurring
-                          ? service.recurring_text!
-                          : d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-                        return (
-                          <div key={service.id} className="bg-primary-100 rounded-2xl border border-primary-200 shadow-sm p-5 flex items-start gap-4">
-                            {/* Badge */}
-                            <div className="shrink-0 w-14 text-center bg-white border border-primary-200 rounded-xl py-2 px-1">
-                              {hasRecurring ? (
-                                <div className="flex items-center justify-center h-14">
-                                  <Clock className="w-6 h-6 text-primary-700" />
-                                </div>
-                              ) : (
-                                <>
-                                  <p className="text-xs font-bold text-primary-600 uppercase leading-none">{month}</p>
-                                  <p className="text-xl font-black text-primary-800 leading-tight">{day}</p>
-                                  <p className="text-xs text-primary-400 leading-none">{year}</p>
-                                </>
-                              )}
-                            </div>
-                            {/* Content */}
-                            <div className="flex-1 min-w-0 pt-1">
-                              <p className="text-base font-semibold text-gray-900 leading-snug">{service.title}</p>
-                              <p className="text-sm text-primary-600 mt-1">{dateLabel}</p>
-                              <p className="text-sm font-medium text-primary-800 mt-0.5">{time}</p>
-                              {service.description && (
-                                <p className="text-sm text-gray-600 leading-snug mt-2">{service.description}</p>
-                              )}
-                            </div>
-                            {/* Admin actions — always visible */}
-                            {isChurchAdmin && (
-                              <div className="shrink-0 pt-1 flex items-center gap-1">
-                                {confirmDelSvc === service.id ? (
-                                  <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-sm">
-                                    <span className="text-xs text-red-600 font-medium">Delete?</span>
-                                    <button
-                                      onClick={() => handleDeleteService(service.id)}
-                                      disabled={adminSaving}
-                                      className="p-0.5 text-red-600 hover:bg-red-50 rounded cursor-pointer"
-                                    >
-                                      {adminSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                                    </button>
-                                    <button onClick={() => setConfirmDelSvc(null)} className="p-0.5 text-gray-400 hover:bg-gray-100 rounded cursor-pointer">
-                                      <X className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-0.5">
-                                    <button
-                                      onClick={() => startEditService(service)}
-                                      className="p-1.5 text-primary-400 hover:text-primary-700 hover:bg-primary-200 rounded-lg transition-colors cursor-pointer"
-                                      title="Edit service"
-                                    >
-                                      <Edit2 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => setConfirmDelSvc(service.id)}
-                                      className="p-1.5 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                      title="Delete service"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-              </div>
             </div>
           </section>
 
