@@ -1,5 +1,5 @@
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Building2, BookOpen, Church, Users, ArrowRight, Coffee } from 'lucide-react';
+import { Building2, BookOpen, Church, Users, ArrowRight, Coffee, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import torbayImg from "../assets/torbay.jpeg";
@@ -60,6 +60,15 @@ export function Home() {
                   Support Our Churches
                 </Link>
               </div>
+              <a
+                href="https://www.facebook.com/panvillagehall"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+              >
+                <Facebook className="w-5 h-5" style={{ color: '#1877F2' }} fill="#1877F2" />
+                <span className="text-sm font-medium">Follow us on Facebook</span>
+              </a>
             </div>
           </div>
         </div>
