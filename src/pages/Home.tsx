@@ -44,7 +44,7 @@ export function Home() {
                 Welcome to Penmaen and Nicholaston Village Hall
               </h1>
               <p className="text-lg md:text-xl mb-8 leading-relaxed">
-                Your community hub on the beautiful Gower Peninsula, serving our villages near Tor Bay and 3 Cliffs
+                Your community hub on the beautiful Gower Peninsula, serving our villages near Tor Bay and Three Cliffs
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link

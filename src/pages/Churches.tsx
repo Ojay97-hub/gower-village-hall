@@ -5,6 +5,7 @@ import { ChurchCard } from "../components/church/ChurchCard";
 import { getChurchesWithRelations, addChurch } from "../services/churchService";
 import type { Church } from "../types/church";
 import { useAuth } from "../context/AuthContext";
+import easyfundraisingSymbol from "../assets/easyfundraising-symbol.svg";
 
 export function Churches() {
   const { hasRole } = useAuth();
@@ -127,13 +128,14 @@ export function Churches() {
     <div className="min-h-screen bg-primary-50 flex flex-col font-sans">
 
       {/* Immersive Hero Section */}
-      <section className="relative overflow-hidden w-full bg-primary-800">
+      <section className="relative overflow-hidden w-full">
         <div
-          className={`relative z-10 flex min-h-[40vh] items-center px-4 sm:px-6 lg:px-12 py-20 lg:py-32 transition-all duration-1000 transform ${
+          className={`grid grid-cols-1 md:grid-cols-2 min-h-[40vh] transition-all duration-1000 transform ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <div className="max-w-7xl mx-auto w-full text-center md:text-left flex flex-col items-center md:items-start pl-4">
+          {/* Left: intro + Join Friends */}
+          <div className="bg-primary-800 flex flex-col items-center md:items-start justify-center text-center md:text-left px-4 sm:px-6 lg:px-12 py-20 lg:py-32">
             <h1 className="text-5xl md:text-6xl font-serif text-white mb-6 drop-shadow-md">
               Our Churches
             </h1>
@@ -142,11 +144,28 @@ export function Churches() {
             </p>
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-3 font-medium rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 bg-white text-gray-900 hover:bg-gray-50 px-8 py-3 text-lg shadow-lg"
+              className="inline-flex items-center gap-3 font-medium rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 bg-white text-gray-900 hover:bg-gray-50 px-8 py-3 text-lg shadow-lg cursor-pointer"
             >
               <Users className="w-5 h-5 text-primary-600" />
               Join Friends
             </button>
+          </div>
+
+          {/* Right: easyfundraising feature */}
+          <div className="bg-white flex flex-col items-center justify-center text-center gap-6 px-4 sm:px-6 lg:px-12 py-20 lg:py-32">
+            <img src={easyfundraisingSymbol} alt="" className="w-20 h-20 sm:w-28 sm:h-28" />
+            <div>
+              <p className="text-lg text-gray-500 font-light mb-2">Support us at no extra cost to you</p>
+              <p className="text-2xl sm:text-3xl font-serif text-primary-800 mb-6">Shop with easyfundraising</p>
+              <a
+                href="https://www.easyfundraising.org.uk/causes/penmaenandnicholastonchurches/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-medium rounded-lg border-2 border-primary-800 text-primary-800 hover:bg-primary-800 hover:text-white px-8 py-3 text-lg transition-colors"
+              >
+                Get Started
+              </a>
+            </div>
           </div>
         </div>
       </section>
