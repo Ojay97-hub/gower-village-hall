@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useEvents, RegularActivity } from '../../context/EventContext';
 import { X, Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile } from 'lucide-react';
+import {
+    describeRecurrence,
+    getNextOccurrence,
+    parseISODateLocal,
+    RecurringSchedulable,
+    WEEKDAY_NAMES,
+} from '../../lib/recurrence';
 
 type RegularActivityFormProps = {
     initialData?: RegularActivity;
@@ -8,10 +15,34 @@ type RegularActivityFormProps = {
     onCancel: () => void;
 };
 
+type RecurrenceMode = 'weekly' | 'fortnightly' | 'monthly' | 'one_off' | 'none';
+
+const RECURRING_MODES: RecurrenceMode[] = ['weekly', 'fortnightly', 'monthly'];
+
+// Ordered Monday-first for the day picker
+const DAY_OPTIONS = [1, 2, 3, 4, 5, 6, 0];
+
+const WEEK_OPTIONS = [
+    { value: 1, label: 'First' },
+    { value: 2, label: 'Second' },
+    { value: 3, label: 'Third' },
+    { value: 4, label: 'Fourth' },
+    { value: -1, label: 'Last' },
+];
+
 export function RegularActivityForm({ initialData, onSuccess, onCancel }: RegularActivityFormProps) {
     const { addRegularActivity, updateRegularActivity } = useEvents();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const initialMode: RecurrenceMode =
+        initialData?.recurrence_type && initialData.recurrence_type !== 'none'
+            ? initialData.recurrence_type
+            : initialData?.schedule_date
+                ? 'one_off'
+                : initialData
+                    ? 'none'
+                    : 'weekly';
 
     const [formData, setFormData] = useState({
         title: initialData?.title || '',
@@ -27,21 +58,92 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
         action_link: initialData?.action_link || '',
         feature_description: initialData?.feature_description || '',
         is_featured: initialData?.is_featured || false,
+        recurrence_mode: initialMode,
+        recurrence_day: initialData?.recurrence_day ?? 6,
+        recurrence_week: initialData?.recurrence_week ?? 1,
+        recurrence_start_date: initialData?.recurrence_start_date || '',
+        recurrence_end_date: initialData?.recurrence_end_date || '',
     });
+
+    const isRecurring = RECURRING_MODES.includes(formData.recurrence_mode);
+
+    // Build the recurrence fields as they would be saved, so the same object
+    // drives the description, the preview, and the submit payload.
+    const buildRecurrence = (data: typeof formData): RecurringSchedulable => {
+        const mode = data.recurrence_mode;
+        const recurring = RECURRING_MODES.includes(mode);
+        const fortnightDay = data.recurrence_start_date
+            ? parseISODateLocal(data.recurrence_start_date).getDay()
+            : null;
+        return {
+            schedule: null,
+            schedule_date: mode === 'one_off' ? (data.schedule_date || null) : null,
+            recurrence_type: recurring ? (mode as 'weekly' | 'fortnightly' | 'monthly') : 'none',
+            recurrence_day: !recurring
+                ? null
+                : mode === 'fortnightly'
+                    ? fortnightDay
+                    : data.recurrence_day,
+            recurrence_week: mode === 'monthly' ? data.recurrence_week : null,
+            recurrence_start_date: recurring ? (data.recurrence_start_date || null) : null,
+            recurrence_end_date: recurring ? (data.recurrence_end_date || null) : null,
+        };
+    };
+
+    // Update a scheduling field and regenerate the display text to match.
+    const applyRecurrenceChange = (patch: Partial<typeof formData>) => {
+        setFormData(prev => {
+            const next = { ...prev, ...patch };
+            if (RECURRING_MODES.includes(next.recurrence_mode)) {
+                const description = describeRecurrence(buildRecurrence(next));
+                if (description) next.schedule = description;
+            }
+            return next;
+        });
+    };
+
+    const upcomingDates = useMemo(() => {
+        if (!isRecurring) return [];
+        const recurrence = buildRecurrence(formData);
+        if (formData.recurrence_mode === 'fortnightly' && !formData.recurrence_start_date) return [];
+        const dates: Date[] = [];
+        let from = new Date();
+        for (let i = 0; i < 3; i++) {
+            const next = getNextOccurrence(recurrence, from);
+            if (!next) break;
+            dates.push(next);
+            from = new Date(next);
+            from.setDate(from.getDate() + 1);
+        }
+        return dates;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData.recurrence_mode, formData.recurrence_day, formData.recurrence_week, formData.recurrence_start_date, formData.recurrence_end_date, isRecurring]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
 
+        if (formData.recurrence_mode === 'fortnightly' && !formData.recurrence_start_date) {
+            setError('Fortnightly activities need a first session date so we know which weeks they fall on.');
+            return;
+        }
+        if (formData.recurrence_mode === 'one_off' && !formData.schedule_date) {
+            setError('Please choose a date for this one-off activity.');
+            return;
+        }
+
+        setLoading(true);
+
         try {
+            const recurrence = buildRecurrence(formData);
+
             // Convert empty strings to null for optional fields to satisfy database constraints
             const submitData = {
                 title: formData.title,
                 description: formData.description || null,
                 icon: formData.icon,
                 schedule: formData.schedule || null,
-                schedule_date: formData.schedule_date || null,
+                schedule_date: recurrence.schedule_date ?? null,
                 start_time: formData.start_time || null,
                 end_time: formData.end_time || null,
                 color_theme: formData.color_theme,
@@ -50,6 +152,11 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                 action_link: (formData.action_type === 'button' || formData.action_type === 'link') ? (formData.action_link || null) : null,
                 feature_description: formData.feature_description || null,
                 is_featured: formData.is_featured,
+                recurrence_type: recurrence.recurrence_type ?? 'none',
+                recurrence_day: recurrence.recurrence_day ?? null,
+                recurrence_week: recurrence.recurrence_week ?? null,
+                recurrence_start_date: recurrence.recurrence_start_date ?? null,
+                recurrence_end_date: recurrence.recurrence_end_date ?? null,
             };
 
             if (initialData) {
@@ -195,10 +302,161 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '1rem' }}>
+            <div className="border-t border-gray-200 pt-4 mt-2">
+                <h4 className="text-sm font-semibold text-gray-900 mt-4 mb-4">Schedule</h4>
+
+                <div className="mb-4">
+                    <label htmlFor="recurrence_mode" className={labelClasses}>
+                        Repeats
+                    </label>
+                    <select
+                        id="recurrence_mode"
+                        name="recurrence_mode"
+                        value={formData.recurrence_mode}
+                        onChange={(e) => applyRecurrenceChange({ recurrence_mode: e.target.value as RecurrenceMode })}
+                        className={selectClasses}
+                    >
+                        <option value="weekly">Weekly</option>
+                        <option value="fortnightly">Fortnightly (every 2 weeks)</option>
+                        <option value="monthly">Monthly (e.g. first Saturday)</option>
+                        <option value="one_off">One-off date</option>
+                        <option value="none">No set date (text only)</option>
+                    </select>
+                </div>
+
+                {formData.recurrence_mode === 'one_off' && (
+                    <div className="mb-4">
+                        <label htmlFor="schedule_date" className={labelClasses}>
+                            Date *
+                        </label>
+                        <input
+                            type="date"
+                            id="schedule_date"
+                            name="schedule_date"
+                            value={formData.schedule_date || ''}
+                            onChange={(e) => setFormData({ ...formData, schedule_date: e.target.value })}
+                            className={inputClasses}
+                        />
+                    </div>
+                )}
+
+                {(formData.recurrence_mode === 'weekly' || formData.recurrence_mode === 'monthly') && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        {formData.recurrence_mode === 'monthly' && (
+                            <div>
+                                <label htmlFor="recurrence_week" className={labelClasses}>
+                                    Which week of the month
+                                </label>
+                                <select
+                                    id="recurrence_week"
+                                    value={formData.recurrence_week}
+                                    onChange={(e) => applyRecurrenceChange({ recurrence_week: Number(e.target.value) })}
+                                    className={selectClasses}
+                                >
+                                    {WEEK_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        <div>
+                            <label htmlFor="recurrence_day" className={labelClasses}>
+                                Day of the week
+                            </label>
+                            <select
+                                id="recurrence_day"
+                                value={formData.recurrence_day}
+                                onChange={(e) => applyRecurrenceChange({ recurrence_day: Number(e.target.value) })}
+                                className={selectClasses}
+                            >
+                                {DAY_OPTIONS.map(dow => (
+                                    <option key={dow} value={dow}>{WEEKDAY_NAMES[dow]}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="recurrence_start_date" className={labelClasses}>
+                                Starts from
+                                <span className="ml-1 font-normal text-gray-400">(optional)</span>
+                            </label>
+                            <input
+                                type="date"
+                                id="recurrence_start_date"
+                                value={formData.recurrence_start_date}
+                                onChange={(e) => applyRecurrenceChange({ recurrence_start_date: e.target.value })}
+                                className={inputClasses}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {formData.recurrence_mode === 'fortnightly' && (
+                    <div className="mb-4">
+                        <label htmlFor="recurrence_start_date" className={labelClasses}>
+                            First session date *
+                        </label>
+                        <input
+                            type="date"
+                            id="recurrence_start_date"
+                            value={formData.recurrence_start_date}
+                            onChange={(e) => applyRecurrenceChange({ recurrence_start_date: e.target.value })}
+                            className={inputClasses}
+                        />
+                        <p className="mt-2 text-xs text-gray-500">
+                            The activity repeats every 2 weeks on the same day as this date.
+                        </p>
+                    </div>
+                )}
+
+                {isRecurring && (
+                    <div className="mb-4">
+                        <label htmlFor="recurrence_end_date" className={labelClasses}>
+                            Ends on
+                            <span className="ml-1 font-normal text-gray-400">(optional — leave blank if ongoing)</span>
+                        </label>
+                        <input
+                            type="date"
+                            id="recurrence_end_date"
+                            value={formData.recurrence_end_date}
+                            onChange={(e) => applyRecurrenceChange({ recurrence_end_date: e.target.value })}
+                            className={inputClasses}
+                        />
+                    </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label htmlFor="start_time" className={labelClasses}>
+                            Start Time
+                        </label>
+                        <input
+                            type="time"
+                            id="start_time"
+                            name="start_time"
+                            value={formData.start_time || ''}
+                            onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                            className={inputClasses}
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="end_time" className={labelClasses}>
+                            End Time
+                        </label>
+                        <input
+                            type="time"
+                            id="end_time"
+                            name="end_time"
+                            value={formData.end_time || ''}
+                            onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                            className={inputClasses}
+                        />
+                    </div>
+                </div>
+
                 <div>
                     <label htmlFor="schedule" className={labelClasses}>
-                        Schedule Text
+                        Schedule text shown on cards
+                        <span className="ml-1 font-normal text-gray-400">(auto-filled — edit if you like)</span>
                     </label>
                     <input
                         type="text"
@@ -210,45 +468,20 @@ export function RegularActivityForm({ initialData, onSuccess, onCancel }: Regula
                         className={inputClasses}
                     />
                 </div>
-                <div>
-                    <label htmlFor="schedule_date" className={labelClasses}>
-                        Date
-                    </label>
-                    <input
-                        type="date"
-                        id="schedule_date"
-                        name="schedule_date"
-                        value={formData.schedule_date || ''}
-                        onChange={(e) => setFormData({ ...formData, schedule_date: e.target.value })}
-                        className={inputClasses}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="start_time" className={labelClasses}>
-                        Start Time
-                    </label>
-                    <input
-                        type="time"
-                        id="start_time"
-                        name="start_time"
-                        value={formData.start_time || ''}
-                        onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                        className={inputClasses}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="end_time" className={labelClasses}>
-                        End Time
-                    </label>
-                    <input
-                        type="time"
-                        id="end_time"
-                        name="end_time"
-                        value={formData.end_time || ''}
-                        onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                        className={inputClasses}
-                    />
-                </div>
+
+                {isRecurring && upcomingDates.length > 0 && (
+                    <div className="mt-4 rounded-lg bg-primary-50 border border-primary-100 p-3">
+                        <p className="text-xs font-semibold text-primary-700 mb-1">Next dates</p>
+                        <p className="text-sm text-primary-800">
+                            {upcomingDates
+                                .map(d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }))
+                                .join('  ·  ')}
+                        </p>
+                        <p className="mt-1 text-xs text-primary-600">
+                            These dates appear on the activity calendar and block matching sessions on the hall booking calendar.
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="border-t border-gray-200 pt-4 mt-2">

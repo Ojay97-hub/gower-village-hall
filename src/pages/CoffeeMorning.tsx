@@ -4,6 +4,8 @@ import { Coffee, Clock, CalendarDays, Users, Plus, Edit2, Trash2, AlertTriangle,
 import { useGallery, GalleryImage } from '../context/GalleryContext';
 import { useAuth } from '../context/AuthContext';
 import { useCoffeeMorning } from '../context/CoffeeMorningContext';
+import { useEvents, RegularActivity } from '../context/EventContext';
+import { getNextOccurrence } from '../lib/recurrence';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { GalleryImageForm } from '../components/gallery/GalleryImageForm';
 import { Link, useNavigate } from 'react-router-dom';
@@ -46,14 +48,30 @@ const defaultGalleryImages = [
   }
 ];
 
-function getNextCoffeeMorning(): Date {
+function getNextCoffeeMorning(activity?: RegularActivity): Date {
   const now = new Date();
-  // Try this month's first Saturday
+
+  // Prefer the schedule set on the Coffee Morning regular activity in the admin area
+  if (activity) {
+    const [h, m] = (activity.start_time || '10:30').split(':').map(Number);
+    const next = getNextOccurrence(activity, now);
+    if (next) {
+      next.setHours(h, m || 0, 0, 0);
+      if (next > now) return next;
+      const dayAfter = new Date(next);
+      dayAfter.setDate(dayAfter.getDate() + 1);
+      const following = getNextOccurrence(activity, dayAfter);
+      if (following) {
+        following.setHours(h, m || 0, 0, 0);
+        return following;
+      }
+    }
+  }
+
+  // Fallback: first Saturday of the month at 10:30
   const d = new Date(now.getFullYear(), now.getMonth(), 1);
   d.setDate(1 + ((6 - d.getDay() + 7) % 7)); // first Saturday
-  // Set to 10:30
   d.setHours(10, 30, 0, 0);
-  // If it's already past, go to next month
   if (d <= now) {
     const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     next.setDate(1 + ((6 - next.getDay() + 7) % 7));
@@ -86,9 +104,11 @@ export function CoffeeMorning() {
   const { galleryImages, loading: galleryLoading, deleteGalleryImage, reorderGalleryImages } = useGallery();
   const { updates, loading: updatesLoading, announcement } = useCoffeeMorning();
   const { isAdmin, hasRole } = useAuth();
+  const { regularActivities } = useEvents();
   const navigate = useNavigate();
 
-  const nextDate = getNextCoffeeMorning();
+  const coffeeActivity = regularActivities.find(a => a.title.toLowerCase().includes('coffee morning'));
+  const nextDate = getNextCoffeeMorning(coffeeActivity);
   const countdown = useCountdown(nextDate);
 
   const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');

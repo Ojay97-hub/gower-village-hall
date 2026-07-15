@@ -5,6 +5,7 @@ import { Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Lock } from
 import { Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile } from 'lucide-react';
 import 'react-day-picker/dist/style.css';
 import './ActivityCalendar.css';
+import { getActivityDatesForMonth, describeRecurrence } from '../../lib/recurrence';
 
 const iconMap: Record<string, React.ElementType> = {
     Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile
@@ -55,24 +56,6 @@ interface CalendarItem {
     sessionType?: string | null;
 }
 
-const dayOfWeekMap: Record<string, number> = {
-    'sunday': 0, 'sundays': 0,
-    'monday': 1, 'mondays': 1,
-    'tuesday': 2, 'tuesdays': 2,
-    'wednesday': 3, 'wednesdays': 3,
-    'thursday': 4, 'thursdays': 4,
-    'friday': 5, 'fridays': 5,
-    'saturday': 6, 'saturdays': 6,
-};
-
-const ordinalMap: Record<string, number> = {
-    'first': 1, '1st': 1,
-    'second': 2, '2nd': 2,
-    'third': 3, '3rd': 3,
-    'fourth': 4, '4th': 4,
-    'last': -1,
-};
-
 function parseTimeFromSchedule(schedule: string): string | null {
     const timeMatch = schedule.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
     if (timeMatch) {
@@ -84,48 +67,6 @@ function parseTimeFromSchedule(schedule: string): string | null {
         return `${hours.toString().padStart(2, '0')}:${minutes}`;
     }
     return null;
-}
-
-function getDayOccurrencesInMonth(year: number, month: number, dayOfWeek: number): Date[] {
-    const dates: Date[] = [];
-    const date = new Date(year, month, 1);
-    while (date.getDay() !== dayOfWeek) {
-        date.setDate(date.getDate() + 1);
-    }
-    while (date.getMonth() === month) {
-        dates.push(new Date(date));
-        date.setDate(date.getDate() + 7);
-    }
-    return dates;
-}
-
-function getNthDayOfMonth(year: number, month: number, dayOfWeek: number, n: number): Date | null {
-    const occurrences = getDayOccurrencesInMonth(year, month, dayOfWeek);
-    if (n === -1) return occurrences[occurrences.length - 1] || null;
-    return occurrences[n - 1] || null;
-}
-
-function generateRecurringDates(schedule: string, year: number, month: number): Date[] {
-    const scheduleLower = schedule.toLowerCase();
-    const dates: Date[] = [];
-    for (const [ordinalWord, ordinalNum] of Object.entries(ordinalMap)) {
-        if (new RegExp(`\\b${ordinalWord}\\b`).test(scheduleLower)) {
-            for (const [dayWord, dayNum] of Object.entries(dayOfWeekMap)) {
-                if (scheduleLower.includes(dayWord)) {
-                    const date = getNthDayOfMonth(year, month, dayNum, ordinalNum);
-                    if (date) dates.push(date);
-                    break;
-                }
-            }
-        }
-    }
-    if (dates.length > 0) return dates;
-    for (const [dayWord, dayNum] of Object.entries(dayOfWeekMap)) {
-        if (scheduleLower.includes(dayWord)) {
-            return getDayOccurrencesInMonth(year, month, dayNum);
-        }
-    }
-    return dates;
 }
 
 function generateDateRange(startDate: string, endDate: string | null): Date[] {
@@ -208,38 +149,21 @@ export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps
         });
 
         regularActivities.forEach(activity => {
-            if (activity.schedule_date) {
-                const [ay, am, ad] = (activity.schedule_date as string).split('-').map(Number);
+            const parsedTime = activity.schedule ? parseTimeFromSchedule(activity.schedule) : null;
+            getActivityDatesForMonth(activity, year, month).forEach((date, index) => {
                 items.push({
-                    id: activity.id,
+                    id: `${activity.id}-${index}`,
                     title: activity.title,
                     type: 'activity',
-                    date: new Date(ay, am - 1, ad),
-                    startTime: activity.start_time,
+                    date: date,
+                    startTime: activity.start_time || parsedTime,
                     endTime: activity.end_time,
                     description: activity.description,
-                    schedule: activity.schedule,
+                    schedule: describeRecurrence(activity) || activity.schedule,
                     icon: activity.icon,
                     colorTheme: activity.color_theme,
                 });
-            } else if (activity.schedule) {
-                const generatedDates = generateRecurringDates(activity.schedule, year, month);
-                const parsedTime = parseTimeFromSchedule(activity.schedule);
-                generatedDates.forEach((date, index) => {
-                    items.push({
-                        id: `${activity.id}-${index}`,
-                        title: activity.title,
-                        type: 'activity',
-                        date: date,
-                        startTime: activity.start_time || parsedTime,
-                        endTime: activity.end_time,
-                        description: activity.description,
-                        schedule: activity.schedule,
-                        icon: activity.icon,
-                        colorTheme: activity.color_theme,
-                    });
-                });
-            }
+            });
         });
 
         privateBookings.forEach(booking => {

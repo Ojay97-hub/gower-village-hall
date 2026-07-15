@@ -30,6 +30,11 @@ export type RegularActivity = {
     action_link: string | null;
     feature_description?: string | null;
     is_featured: boolean | null;
+    recurrence_type?: 'none' | 'weekly' | 'fortnightly' | 'monthly' | null;
+    recurrence_day?: number | null;
+    recurrence_week?: number | null;
+    recurrence_start_date?: string | null;
+    recurrence_end_date?: string | null;
 };
 
 type EventContextType = {

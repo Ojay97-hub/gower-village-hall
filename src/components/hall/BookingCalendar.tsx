@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useEvents } from '../../context/EventContext';
+import { getActivityDatesForMonth } from '../../lib/recurrence';
 
 interface Booking {
   id: string;
@@ -67,65 +68,6 @@ function getSessionTag(eventType: string | null): string {
   if (s.includes('afternoon')) parts.push('PM');
   if (s.includes('evening'))   parts.push('Eve');
   return parts.join(' · ');
-}
-
-// Recurring-schedule helpers (mirrored from ActivityCalendar)
-const DOW_MAP: Record<string, number> = {
-  sunday: 0, sundays: 0,
-  monday: 1, mondays: 1,
-  tuesday: 2, tuesdays: 2,
-  wednesday: 3, wednesdays: 3,
-  thursday: 4, thursdays: 4,
-  friday: 5, fridays: 5,
-  saturday: 6, saturdays: 6,
-};
-
-const ORDINAL_MAP: Record<string, number> = {
-  first: 1, '1st': 1,
-  second: 2, '2nd': 2,
-  third: 3, '3rd': 3,
-  fourth: 4, '4th': 4,
-  last: -1,
-};
-
-function getDowOccurrences(year: number, month: number, dow: number): Date[] {
-  const dates: Date[] = [];
-  const d = new Date(year, month, 1);
-  while (d.getDay() !== dow) d.setDate(d.getDate() + 1);
-  while (d.getMonth() === month) {
-    dates.push(new Date(d));
-    d.setDate(d.getDate() + 7);
-  }
-  return dates;
-}
-
-function generateRecurringDates(schedule: string, year: number, month: number): Date[] {
-  const lower = schedule.toLowerCase();
-  const dates: Date[] = [];
-
-  for (const [ord, ordNum] of Object.entries(ORDINAL_MAP)) {
-    if (new RegExp(`\\b${ord}\\b`).test(lower)) {
-      for (const [dayWord, dow] of Object.entries(DOW_MAP)) {
-        if (lower.includes(dayWord)) {
-          const occurrences = getDowOccurrences(year, month, dow);
-          const date = ordNum === -1
-            ? occurrences[occurrences.length - 1]
-            : occurrences[ordNum - 1];
-          if (date) dates.push(date);
-          break;
-        }
-      }
-    }
-  }
-  if (dates.length > 0) return dates;
-
-  for (const [dayWord, dow] of Object.entries(DOW_MAP)) {
-    if (lower.includes(dayWord)) {
-      return getDowOccurrences(year, month, dow);
-    }
-  }
-
-  return [];
 }
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -226,21 +168,13 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
     });
 
     regularActivities.forEach(activity => {
-      if (activity.schedule_date) {
-        const dateKey = (activity.schedule_date as string).slice(0, 10);
+      getActivityDatesForMonth(activity, year, month).forEach((date, idx) => {
+        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         map.set(dateKey, [...(map.get(dateKey) || []), {
-          id: activity.id, title: activity.title, type: 'activity',
+          id: `${activity.id}-${idx}`, title: activity.title, type: 'activity',
           startTime: activity.start_time, endTime: activity.end_time,
         }]);
-      } else if (activity.schedule) {
-        generateRecurringDates(activity.schedule, year, month).forEach((date, idx) => {
-          const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-          map.set(dateKey, [...(map.get(dateKey) || []), {
-            id: `${activity.id}-${idx}`, title: activity.title, type: 'activity',
-            startTime: activity.start_time, endTime: activity.end_time,
-          }]);
-        });
-      }
+      });
     });
 
     return map;
