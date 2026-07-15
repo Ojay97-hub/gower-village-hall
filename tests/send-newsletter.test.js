@@ -36,6 +36,6 @@ describe('POST /api/send-newsletter — validation', () => {
     const res = makeRes()
     await handler({ method: 'POST', body: { name: 'Alice' } }, res)
     expect(res.statusCode).toBe(400)
-    expect(res._body).toMatchObject({ error: 'Email is required' })
+    expect(res._body).toMatchObject({ error: 'Valid email is required' })
   })
 })
