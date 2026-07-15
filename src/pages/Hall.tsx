@@ -5,7 +5,16 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { BookingCalendar } from '../components/hall/BookingCalendar';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from '../components/ui/carousel';
 import '../components/hall/BookingCalendar.css';
-import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users, Facebook, Sunrise, Sun, Moon, CalendarDays, ArrowRight, ExternalLink } from 'lucide-react';
+import { Clock, Car, Music, Palette, Coffee, PoundSterling, X, CheckCircle, XCircle, Loader2, Mail, Users, Facebook, Sunrise, Sun, Moon, CalendarDays, ArrowRight, ExternalLink, Star, BookOpen, Heart, Smile, Edit2 } from 'lucide-react';
+import { useEvents, RegularActivity } from '../context/EventContext';
+import { useAuth } from '../context/AuthContext';
+import { RegularActivityForm } from '../components/events/RegularActivityForm';
+import { ActivityEnquiryCTA } from '../components/events/ActivityEnquiryCTA';
+import { getNextOccurrence, describeRecurrence } from '../lib/recurrence';
+
+const activityIconMap: Record<string, React.ElementType> = {
+  Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile
+};
 
 const hallGateEntrance = '/images/edited-hall-gate.webp';
 const hallSideView = '/images/edited-side-hall.webp';
@@ -62,6 +71,12 @@ const hallGallerySlides = [
 ];
 
 export function Hall() {
+  // Regular activities (shared with the Events page — same records, same admin form)
+  const { regularActivities, loading: activitiesLoading } = useEvents();
+  const { hasRole } = useAuth();
+  const canManageEvents = hasRole('events');
+  const [editingActivity, setEditingActivity] = useState<RegularActivity | null>(null);
+
   // Gallery carousel state
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -699,93 +714,135 @@ export function Hall() {
               View Schedule
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-              <div className="mb-6 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-50 text-primary-700 transition-colors group-hover:bg-primary-100">
-                <Coffee className="h-5 w-5" />
-              </div>
-              <div className="flex flex-1 flex-col">
-                <h3 className="mb-3 font-serif text-lg font-semibold text-gray-800">Village Coffee Mornings</h3>
-                <p className="mb-6 text-sm leading-6 text-gray-600">
-                  Join us for friendly coffee mornings with homemade cakes and good conversation.
-                </p>
-                <div className="mt-auto flex flex-col items-start gap-4">
-                  <p className="rounded-full bg-primary-50 px-4 py-2 text-sm font-medium text-primary-800">
-                    First Saturday, 10:30 - 12:30
-                  </p>
-                  <Link
-                    to="/hall/coffee-morning"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 transition-colors hover:text-primary-800"
-                  >
-                    Find out more
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
+          {activitiesLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
             </div>
+          ) : regularActivities.length === 0 ? (
+            <p className="py-8 text-center italic text-gray-500">No regular activities listed yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {regularActivities.map(activity => {
+                const ActivityIcon = activityIconMap[activity.icon] || Coffee;
+                const nextDate = getNextOccurrence(activity);
+                const cadenceText = describeRecurrence(activity) || activity.schedule;
+                const timeText = (activity.start_time || activity.end_time)
+                  ? `${(activity.start_time || '').slice(0, 5)}${activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}`
+                  : null;
+                const hasSchedule = !!nextDate || !!cadenceText;
+                const actionLink = activity.action_type !== 'none' ? activity.action_link : null;
+                const actionText = activity.action_text || 'Find out more';
+                const isExternal = !!actionLink && /^https?:\/\//i.test(actionLink)
+                  && !actionLink.includes('penmaenandnicholastonvh.co.uk');
+                const internalPath = actionLink && !isExternal
+                  ? actionLink.replace(/^https?:\/\/[^/]+/i, '')
+                  : null;
 
-            <div className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-50 text-primary-700 transition-colors group-hover:bg-primary-100">
-                  <Palette className="h-5 w-5" />
-                </div>
-                <p className="inline-flex w-fit rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
-                  Coming soon
-                </p>
-              </div>
-              <div className="flex flex-1 flex-col">
-                <h3 className="mb-3 font-serif text-lg font-semibold text-gray-800">Art Classes</h3>
-                <p className="mb-5 text-sm leading-6 text-gray-600">
-                  Creative art sessions for all skill levels in a welcoming environment.
-                </p>
-                <p className="mb-6 text-sm leading-6 text-gray-500">
-                  No sessions are currently scheduled, but new dates are being planned.
-                </p>
-                <div className="mt-auto">
-                  <Link to="/hall/events" className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 transition-colors hover:text-primary-800">
-                    Check schedule
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
+                return (
+                  <div
+                    key={activity.id}
+                    className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    <div className="mb-6 flex items-start justify-between gap-4">
+                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-50 text-primary-700 transition-colors group-hover:bg-primary-100">
+                        <ActivityIcon className="h-5 w-5" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!hasSchedule && (
+                          <p className="inline-flex w-fit rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+                            Coming soon
+                          </p>
+                        )}
+                        {canManageEvents && (
+                          <button
+                            onClick={() => setEditingActivity(activity)}
+                            className="rounded-xl p-2 text-gray-400 transition-all duration-200 hover:bg-primary-50 hover:text-primary-600"
+                            title="Edit activity"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-1 flex-col">
+                      <h3 className="mb-3 font-serif text-lg font-semibold text-gray-800">{activity.title}</h3>
+                      {activity.description && (
+                        <p className="mb-5 text-sm leading-6 text-gray-600">
+                          {activity.description}
+                        </p>
+                      )}
+                      {!hasSchedule && (
+                        <p className="mb-6 text-sm leading-6 text-gray-500">
+                          No sessions are currently scheduled, but new dates are being planned.
+                        </p>
+                      )}
+                      <div className="mt-auto flex flex-col items-start gap-4">
+                        {cadenceText && (
+                          <p className="rounded-full bg-primary-50 px-4 py-2 text-sm font-medium text-primary-800">
+                            {cadenceText}
+                            {timeText && `, ${timeText}`}
+                          </p>
+                        )}
+                        {nextDate && (
+                          <p className="inline-flex items-center gap-2 text-sm text-gray-600">
+                            <CalendarDays className="h-4 w-4 text-primary-600" />
+                            Next: {nextDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                          </p>
+                        )}
+                        {actionLink && (
+                          isExternal ? (
+                            <a
+                              href={actionLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 transition-colors hover:text-primary-800"
+                            >
+                              {actionText}
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          ) : (
+                            <Link
+                              to={internalPath || '/hall/events'}
+                              className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 transition-colors hover:text-primary-800"
+                            >
+                              {actionText}
+                              <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          )}
 
-            <div className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-              <div className="mb-6 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-50 text-primary-700 transition-colors group-hover:bg-primary-100">
-                <Music className="h-5 w-5" />
-              </div>
-              <div className="flex flex-1 flex-col">
-                <h3 className="mb-3 font-serif text-lg font-semibold text-gray-800">Gower Harmony Choir</h3>
-                <p className="mb-6 text-sm leading-6 text-gray-600">
-                  Beautiful harmonies and community singing led by Kate Davies.
-                </p>
-                <div className="mt-auto flex flex-col gap-3">
-                  <a
-                    href="https://katedaviessinging.co.uk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 transition-colors hover:text-primary-800"
-                  >
-                    Visit website
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                  <a
-                    href="https://www.facebook.com/katedaviessinging"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-blue-700"
-                    aria-label="Facebook"
-                  >
-                    <Facebook className="h-4 w-4" />
-                    View Facebook page
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ActivityEnquiryCTA />
         </div>
 
       </div>
+
+      {/* Edit Regular Activity Modal (admins only) */}
+      {
+        editingActivity && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60"
+              style={{ backdropFilter: 'blur(4px)' }}
+              onClick={() => setEditingActivity(null)}
+            />
+            <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
+              <RegularActivityForm
+                initialData={editingActivity}
+                onSuccess={() => setEditingActivity(null)}
+                onCancel={() => setEditingActivity(null)}
+              />
+            </div>
+          </div>,
+          document.body
+        )
+      }
 
       {/* Join Friends Email Modal */}
       {

@@ -9,8 +9,11 @@ import { AddToCalendarButton } from '../components/events/AddToCalendarButton';
 import { supabase } from '../lib/supabaseClient';
 import {
     Calendar, Clock, MapPin, Plus, Edit2, Trash2, AlertTriangle, X,
-    Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile, Lock, User, Phone, Mail
+    Coffee, Palette, Music, Users, Star, BookOpen, Heart, Smile, Lock, User, Phone, Mail,
+    ArrowRight, Repeat
 } from 'lucide-react';
+import { getNextOccurrence, describeRecurrence } from '../lib/recurrence';
+import { ActivityEnquiryCTA } from '../components/events/ActivityEnquiryCTA';
 
 // Icon mapping helper
 const iconMap: Record<string, React.ElementType> = {
@@ -705,30 +708,59 @@ export function Events() {
                         const featuredActionText = featuredActivity.action_text;
                         const featuredActionLink = featuredActivity.action_link;
 
+                        const nextDate = getNextOccurrence(featuredActivity);
+                        const cadenceText = describeRecurrence(featuredActivity) || featuredActivity.schedule;
+                        const cadenceLabel = ({
+                            weekly: 'Weekly event',
+                            fortnightly: 'Fortnightly event',
+                            monthly: 'Monthly event',
+                        } as Record<string, string>)[featuredActivity.recurrence_type ?? '']
+                            || (featuredActivity.schedule_date ? 'One-off event' : 'Regular event');
+
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const daysUntil = nextDate
+                            ? Math.round((nextDate.getTime() - today.getTime()) / 86400000)
+                            : null;
+                        const daysUntilLabel = daysUntil === null ? null
+                            : daysUntil === 0 ? 'Today'
+                            : daysUntil === 1 ? 'Tomorrow'
+                            : `In ${daysUntil} days`;
+
                         return (
                             <div className="mb-8 overflow-hidden rounded-2xl border border-primary-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                                <div
+                                    className="h-1.5"
+                                    style={{ background: `linear-gradient(90deg, ${theme.borderColor}, ${theme.iconTextColor})` }}
+                                />
                                 <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-                                    <div className="relative p-6 sm:p-8">
-                                        <div className="absolute inset-x-0 top-0 h-1.5 bg-primary-200" />
-                                        <div className="mb-5 flex items-start gap-4">
+                                    {/* Left: what it is */}
+                                    <div className="flex flex-col justify-center p-6 sm:p-8">
+                                        <div className="mb-4 flex items-start gap-4">
                                             <div
-                                                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border shadow-sm"
+                                                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border shadow-sm"
                                                 style={{
                                                     backgroundColor: theme.bgColor,
                                                     borderColor: theme.borderColor,
                                                     color: theme.iconTextColor
                                                 }}
                                             >
-                                                <IconComponent className="h-6 w-6" />
+                                                <IconComponent className="h-7 w-7" />
                                             </div>
 
                                             <div className="min-w-0 grow">
-                                                <h3 className="text-2xl font-bold leading-tight text-gray-900">
+                                                <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary-600 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+                                                        <Star className="h-3 w-3 fill-current" />
+                                                        Featured
+                                                    </span>
+                                                    <span className="inline-flex rounded-full bg-primary-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700 ring-1 ring-primary-100">
+                                                        {cadenceLabel}
+                                                    </span>
+                                                </div>
+                                                <h3 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
                                                     {featuredActivity.title}
                                                 </h3>
-                                                <span className="mt-3 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-800 ring-1 ring-primary-100">
-                                                    Featured monthly event
-                                                </span>
                                             </div>
 
                                             {canManageEvents && (
@@ -756,29 +788,68 @@ export function Events() {
                                                 {featuredActivity.description}
                                             </p>
                                         )}
+
+                                        {cadenceText && (
+                                            <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary-700">
+                                                <Repeat className="h-4 w-4" />
+                                                {cadenceText}
+                                            </p>
+                                        )}
                                     </div>
 
+                                    {/* Right: when it happens next */}
                                     <div className="flex flex-col justify-center gap-4 border-t border-primary-100 bg-primary-50/60 p-6 sm:p-8 lg:border-l lg:border-t-0">
-                                        <div className="flex flex-wrap gap-3">
-                                            {featuredActivity.schedule && (
-                                                <span className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-primary-900 shadow-sm ring-1 ring-primary-100">
-                                                    {featuredActivity.schedule}
-                                                </span>
-                                            )}
-                                            {featuredActivity.schedule_date && (
-                                                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-primary-100">
-                                                    <Calendar className="h-4 w-4 text-primary-600" />
-                                                    {new Date(featuredActivity.schedule_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                                                </span>
-                                            )}
-                                            {(featuredActivity.start_time || featuredActivity.end_time) && (
-                                                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-primary-100">
-                                                    <Clock className="h-4 w-4 text-primary-600" />
-                                                    {formatTime(featuredActivity.start_time)}
-                                                    {featuredActivity.end_time && ` - ${formatTime(featuredActivity.end_time)}`}
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-xs font-bold uppercase tracking-wider text-primary-700">
+                                                {nextDate ? 'Next one' : 'When we meet'}
+                                            </p>
+                                            {daysUntilLabel && (
+                                                <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-primary-800 shadow-sm ring-1 ring-primary-100">
+                                                    {daysUntilLabel}
                                                 </span>
                                             )}
                                         </div>
+
+                                        {nextDate ? (
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex h-[4.5rem] w-16 shrink-0 flex-col overflow-hidden rounded-xl bg-white text-center shadow-sm ring-1 ring-primary-100">
+                                                    <div className="bg-primary-600 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                                                        {nextDate.toLocaleDateString('en-GB', { month: 'short' })}
+                                                    </div>
+                                                    <div className="flex grow items-center justify-center text-2xl font-bold leading-none text-gray-900">
+                                                        {nextDate.getDate()}
+                                                    </div>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-lg font-bold leading-snug text-gray-900">
+                                                        {nextDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                                    </p>
+                                                    {(featuredActivity.start_time || featuredActivity.end_time) && (
+                                                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-gray-600">
+                                                            <Clock className="h-4 w-4 text-primary-600" />
+                                                            {formatTime(featuredActivity.start_time)}
+                                                            {featuredActivity.end_time && ` – ${formatTime(featuredActivity.end_time)}`}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-3">
+                                                {cadenceText && (
+                                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-primary-900 shadow-sm ring-1 ring-primary-100">
+                                                        <Calendar className="h-4 w-4 text-primary-600" />
+                                                        {cadenceText}
+                                                    </span>
+                                                )}
+                                                {(featuredActivity.start_time || featuredActivity.end_time) && (
+                                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-primary-100">
+                                                        <Clock className="h-4 w-4 text-primary-600" />
+                                                        {formatTime(featuredActivity.start_time)}
+                                                        {featuredActivity.end_time && ` – ${formatTime(featuredActivity.end_time)}`}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {featuredActivity.feature_description && (
                                             <p className="text-sm leading-6 text-gray-600">
@@ -791,9 +862,10 @@ export function Events() {
                                                 href={featuredActionLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex w-fit items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
+                                                className="group inline-flex w-fit items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
                                             >
                                                 {featuredActionText}
+                                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                                             </a>
                                         )}
                                     </div>
@@ -904,6 +976,8 @@ export function Events() {
                             })
                         )}
                     </div>
+
+                    <ActivityEnquiryCTA />
                 </div>
 
                 {/* Inline Regular Activity Form */}
