@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { CalendarDays, Loader2, Inbox, Trash2 } from 'lucide-react';
+import { useState, useEffect, FormEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { CalendarDays, Loader2, Inbox, Trash2, Plus, X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 type BookingStatus = 'pending' | 'confirmed' | 'declined';
@@ -39,6 +40,13 @@ export function AdminBookings() {
     const [updatingSessionId, setUpdatingSessionId] = useState<string | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addForm, setAddForm] = useState({
+        name: '', email: '', phone: '', date: '', endDate: '', session: '', message: '',
+    });
+    const [addSubmitting, setAddSubmitting] = useState(false);
+    const [addError, setAddError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchBookings();
@@ -106,6 +114,50 @@ export function AdminBookings() {
         setUpdatingId(null);
     }
 
+    function closeAddModal() {
+        setShowAddModal(false);
+        setAddError(null);
+        setAddForm({ name: '', email: '', phone: '', date: '', endDate: '', session: '', message: '' });
+    }
+
+    async function handleAddBooking(e: FormEvent) {
+        e.preventDefault();
+        setAddError(null);
+
+        if (!addForm.name.trim()) {
+            setAddError('Please enter a name.');
+            return;
+        }
+        if (!addForm.date) {
+            setAddError('Please select a date.');
+            return;
+        }
+
+        setAddSubmitting(true);
+        const { data, error: insertError } = await supabase
+            .from('bookings')
+            .insert([{
+                name: addForm.name.trim(),
+                email: addForm.email.trim(),
+                phone: addForm.phone.trim() || null,
+                date: addForm.date,
+                end_date: addForm.endDate || null,
+                event_type: addForm.session || null,
+                message: addForm.message.trim() || null,
+                status: 'confirmed',
+            }])
+            .select()
+            .single();
+
+        if (insertError) {
+            setAddError(insertError.message);
+        } else if (data) {
+            setBookings(prev => [data as Booking, ...prev]);
+            closeAddModal();
+        }
+        setAddSubmitting(false);
+    }
+
     if (loading) {
         return (
             <div className="p-8 flex items-center justify-center min-h-[60vh]">
@@ -131,9 +183,19 @@ export function AdminBookings() {
                     <h1 className="text-3xl font-bold font-serif text-gray-900 mb-2">Bookings</h1>
                     <p className="text-gray-500">Hall booking enquiries, ordered by most recent.</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 bg-white border border-gray-100 rounded-xl px-4 py-2 shadow-sm">
-                    <CalendarDays className="w-4 h-4 text-primary-500" />
-                    {bookings.length} {bookings.length === 1 ? 'enquiry' : 'enquiries'}
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 bg-white border border-gray-100 rounded-xl px-4 py-2 shadow-sm">
+                        <CalendarDays className="w-4 h-4 text-primary-500" />
+                        {bookings.length} {bookings.length === 1 ? 'enquiry' : 'enquiries'}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowAddModal(true)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-700 cursor-pointer"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Add Booking
+                    </button>
                 </div>
             </div>
 
@@ -273,6 +335,156 @@ export function AdminBookings() {
                         </table>
                     </div>
                 </div>
+            )}
+
+            {/* Add Booking Modal */}
+            {showAddModal && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/60"
+                        style={{ backdropFilter: 'blur(4px)' }}
+                        onClick={() => !addSubmitting && closeAddModal()}
+                    />
+                    <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90vh] overflow-y-auto">
+                        <div className="mb-6 flex items-start justify-between gap-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Add Booking</h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    For enquiries taken by phone, Facebook, or in person. Goes straight in as confirmed.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => !addSubmitting && closeAddModal()}
+                                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form className="space-y-4" onSubmit={handleAddBooking}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm mb-1.5 text-gray-700 font-medium">
+                                        Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={addForm.name}
+                                        onChange={e => setAddForm(prev => ({ ...prev, name: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        disabled={addSubmitting}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm mb-1.5 text-gray-700 font-medium">Phone</label>
+                                    <input
+                                        type="tel"
+                                        value={addForm.phone}
+                                        onChange={e => setAddForm(prev => ({ ...prev, phone: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        disabled={addSubmitting}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm mb-1.5 text-gray-700 font-medium">Email</label>
+                                <input
+                                    type="email"
+                                    value={addForm.email}
+                                    onChange={e => setAddForm(prev => ({ ...prev, email: e.target.value }))}
+                                    placeholder="Optional if taken by phone"
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    disabled={addSubmitting}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm mb-1.5 text-gray-700 font-medium">
+                                        Date <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={addForm.date}
+                                        onChange={e => setAddForm(prev => ({ ...prev, date: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        disabled={addSubmitting}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm mb-1.5 text-gray-700 font-medium">End date</label>
+                                    <input
+                                        type="date"
+                                        value={addForm.endDate}
+                                        min={addForm.date || undefined}
+                                        onChange={e => setAddForm(prev => ({ ...prev, endDate: e.target.value }))}
+                                        placeholder="Same day if blank"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        disabled={addSubmitting}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm mb-1.5 text-gray-700 font-medium">Session</label>
+                                <select
+                                    value={addForm.session}
+                                    onChange={e => setAddForm(prev => ({ ...prev, session: e.target.value }))}
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
+                                    disabled={addSubmitting}
+                                >
+                                    <option value="">Session not set</option>
+                                    <option value="morning">Morning (8am–12pm)</option>
+                                    <option value="afternoon">Afternoon (12pm–5pm)</option>
+                                    <option value="evening">Evening (5pm–10pm)</option>
+                                    <option value="allday">All Day</option>
+                                    <option value="morning, afternoon">Morning + Afternoon</option>
+                                    <option value="morning, evening">Morning + Evening</option>
+                                    <option value="afternoon, evening">Afternoon + Evening</option>
+                                    <option value="morning, afternoon, evening">Morning + Afternoon + Evening</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm mb-1.5 text-gray-700 font-medium">Notes</label>
+                                <textarea
+                                    value={addForm.message}
+                                    onChange={e => setAddForm(prev => ({ ...prev, message: e.target.value }))}
+                                    rows={3}
+                                    placeholder="Any details worth keeping on file..."
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    disabled={addSubmitting}
+                                />
+                            </div>
+
+                            {addError && (
+                                <p className="text-sm text-red-600">{addError}</p>
+                            )}
+
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    disabled={addSubmitting}
+                                    onClick={closeAddModal}
+                                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={addSubmitting}
+                                    className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-60 cursor-pointer"
+                                >
+                                    {addSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    Add Booking
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );

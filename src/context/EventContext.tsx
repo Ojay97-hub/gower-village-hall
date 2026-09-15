@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 export type Event = {
@@ -37,9 +37,18 @@ export type RegularActivity = {
     recurrence_end_date?: string | null;
 };
 
+export type RegularActivityException = {
+    id: string;
+    activity_id: string;
+    exception_date: string;
+    created_at: string;
+};
+
 type EventContextType = {
     events: Event[];
     regularActivities: RegularActivity[];
+    activityExceptions: RegularActivityException[];
+    exceptionDatesByActivity: Map<string, Set<string>>;
     loading: boolean;
     addEvent: (event: Omit<Event, 'id' | 'created_at'>) => Promise<void>;
     updateEvent: (id: string, updates: Partial<Event>) => Promise<void>;
@@ -47,6 +56,8 @@ type EventContextType = {
     addRegularActivity: (activity: Omit<RegularActivity, 'id' | 'created_at'>) => Promise<void>;
     updateRegularActivity: (id: string, updates: Partial<RegularActivity>) => Promise<void>;
     deleteRegularActivity: (id: string) => Promise<void>;
+    cancelActivityOccurrence: (activityId: string, dateStr: string) => Promise<void>;
+    restoreActivityOccurrence: (activityId: string, dateStr: string) => Promise<void>;
     refreshEvents: () => Promise<void>;
 };
 
@@ -55,6 +66,7 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 export function EventProvider({ children }: { children: React.ReactNode }) {
     const [events, setEvents] = useState<Event[]>([]);
     const [regularActivities, setRegularActivities] = useState<RegularActivity[]>([]);
+    const [activityExceptions, setActivityExceptions] = useState<RegularActivityException[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchEvents = async () => {
@@ -88,9 +100,22 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const fetchActivityExceptions = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('regular_activity_exceptions')
+                .select('*');
+
+            if (error) throw error;
+            setActivityExceptions(data || []);
+        } catch (error) {
+            console.error('Error fetching activity exceptions:', error);
+        }
+    };
+
     const refreshData = async () => {
         setLoading(true);
-        await Promise.all([fetchEvents(), fetchRegularActivities()]);
+        await Promise.all([fetchEvents(), fetchRegularActivities(), fetchActivityExceptions()]);
         setLoading(false);
     };
 
@@ -181,6 +206,45 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const cancelActivityOccurrence = async (activityId: string, dateStr: string) => {
+        try {
+            const { error } = await supabase
+                .from('regular_activity_exceptions')
+                .insert([{ activity_id: activityId, exception_date: dateStr }]);
+            // 23505 = unique violation — this date is already cancelled, treat as success.
+            if (error && (error as { code?: string }).code !== '23505') throw error;
+            await fetchActivityExceptions();
+        } catch (error) {
+            console.error('Error cancelling activity occurrence:', error);
+            throw error;
+        }
+    };
+
+    const restoreActivityOccurrence = async (activityId: string, dateStr: string) => {
+        try {
+            const { error } = await supabase
+                .from('regular_activity_exceptions')
+                .delete()
+                .eq('activity_id', activityId)
+                .eq('exception_date', dateStr);
+            if (error) throw error;
+            await fetchActivityExceptions();
+        } catch (error) {
+            console.error('Error restoring activity occurrence:', error);
+            throw error;
+        }
+    };
+
+    const exceptionDatesByActivity = useMemo(() => {
+        const map = new Map<string, Set<string>>();
+        activityExceptions.forEach(exc => {
+            const set = map.get(exc.activity_id) ?? new Set<string>();
+            set.add(exc.exception_date.slice(0, 10));
+            map.set(exc.activity_id, set);
+        });
+        return map;
+    }, [activityExceptions]);
+
     useEffect(() => {
         refreshData();
     }, []);
@@ -190,6 +254,8 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
             value={{
                 events,
                 regularActivities,
+                activityExceptions,
+                exceptionDatesByActivity,
                 loading,
                 addEvent,
                 updateEvent,
@@ -197,6 +263,8 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
                 addRegularActivity,
                 updateRegularActivity,
                 deleteRegularActivity,
+                cancelActivityOccurrence,
+                restoreActivityOccurrence,
                 refreshEvents: refreshData,
             }}
         >

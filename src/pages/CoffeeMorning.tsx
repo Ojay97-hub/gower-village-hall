@@ -48,19 +48,19 @@ const defaultGalleryImages = [
   }
 ];
 
-function getNextCoffeeMorning(activity?: RegularActivity): Date {
+function getNextCoffeeMorning(activity?: RegularActivity, exceptionDates?: Set<string>): Date {
   const now = new Date();
 
   // Prefer the schedule set on the Coffee Morning regular activity in the admin area
   if (activity) {
     const [h, m] = (activity.start_time || '10:30').split(':').map(Number);
-    const next = getNextOccurrence(activity, now);
+    const next = getNextOccurrence(activity, now, exceptionDates);
     if (next) {
       next.setHours(h, m || 0, 0, 0);
       if (next > now) return next;
       const dayAfter = new Date(next);
       dayAfter.setDate(dayAfter.getDate() + 1);
-      const following = getNextOccurrence(activity, dayAfter);
+      const following = getNextOccurrence(activity, dayAfter, exceptionDates);
       if (following) {
         following.setHours(h, m || 0, 0, 0);
         return following;
@@ -104,11 +104,11 @@ export function CoffeeMorning() {
   const { galleryImages, loading: galleryLoading, deleteGalleryImage, reorderGalleryImages } = useGallery();
   const { updates, loading: updatesLoading, announcement } = useCoffeeMorning();
   const { isAdmin, hasRole } = useAuth();
-  const { regularActivities } = useEvents();
+  const { regularActivities, exceptionDatesByActivity } = useEvents();
   const navigate = useNavigate();
 
   const coffeeActivity = regularActivities.find(a => a.title.toLowerCase().includes('coffee morning'));
-  const nextDate = getNextCoffeeMorning(coffeeActivity);
+  const nextDate = getNextCoffeeMorning(coffeeActivity, coffeeActivity ? exceptionDatesByActivity.get(coffeeActivity.id) : undefined);
   const countdown = useCountdown(nextDate);
 
   const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');

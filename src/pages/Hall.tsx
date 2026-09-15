@@ -72,7 +72,7 @@ const hallGallerySlides = [
 
 export function Hall() {
   // Regular activities (shared with the Events page — same records, same admin form)
-  const { regularActivities, loading: activitiesLoading } = useEvents();
+  const { regularActivities, loading: activitiesLoading, exceptionDatesByActivity } = useEvents();
   const { hasRole } = useAuth();
   const canManageEvents = hasRole('events');
   const [editingActivity, setEditingActivity] = useState<RegularActivity | null>(null);
@@ -560,6 +560,7 @@ export function Hall() {
                     selectedEndDate={bookingForm.endDate}
                     onDateSelect={(date, endDate) => setBookingForm(prev => ({ ...prev, date, endDate }))}
                     onBookedSessionsChange={handleBookedSessionsChange}
+                    canManageEvents={canManageEvents}
                   />
                 </div>
 
@@ -724,7 +725,7 @@ export function Hall() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {regularActivities.map(activity => {
                 const ActivityIcon = activityIconMap[activity.icon] || Coffee;
-                const nextDate = getNextOccurrence(activity);
+                const nextDate = getNextOccurrence(activity, new Date(), exceptionDatesByActivity.get(activity.id));
                 const cadenceText = describeRecurrence(activity) || activity.schedule;
                 const timeText = (activity.start_time || activity.end_time)
                   ? `${(activity.start_time || '').slice(0, 5)}${activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}`

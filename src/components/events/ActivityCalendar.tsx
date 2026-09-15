@@ -102,7 +102,7 @@ function getTheme(item: CalendarItem) {
 }
 
 export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps) {
-    const { events, regularActivities, loading } = useEvents();
+    const { events, regularActivities, exceptionDatesByActivity, loading } = useEvents();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
     const defaultedRef = useRef(false);
@@ -150,7 +150,7 @@ export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps
 
         regularActivities.forEach(activity => {
             const parsedTime = activity.schedule ? parseTimeFromSchedule(activity.schedule) : null;
-            getActivityDatesForMonth(activity, year, month).forEach((date, index) => {
+            getActivityDatesForMonth(activity, year, month, exceptionDatesByActivity.get(activity.id)).forEach((date, index) => {
                 items.push({
                     id: `${activity.id}-${index}`,
                     title: activity.title,
@@ -183,7 +183,7 @@ export function ActivityCalendar({ privateBookings = [] }: ActivityCalendarProps
         });
 
         return items;
-    }, [events, regularActivities, currentMonth, privateBookings]);
+    }, [events, regularActivities, exceptionDatesByActivity, currentMonth, privateBookings]);
 
     const itemsByDate = useMemo(() => {
         const map = new Map<string, CalendarItem[]>();

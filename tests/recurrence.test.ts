@@ -157,3 +157,33 @@ describe('describeRecurrence', () => {
         expect(describeRecurrence({ ...base, schedule_date: '2026-08-15' })).toBeNull();
     });
 });
+
+describe('exception filtering', () => {
+    const weekly: RecurringSchedulable = { ...base, recurrence_type: 'weekly', recurrence_day: 4 }; // Thursdays
+
+    it('omits a date present in exceptionDates', () => {
+        // September 2026 Thursdays: 3, 10, 17, 24
+        const exceptions = new Set(['2026-09-24']);
+        expect(getActivityDatesForMonth(weekly, 2026, 8, exceptions).map(toDateKey))
+            .not.toContain('2026-09-24');
+    });
+
+    it('leaves other occurrences in the month untouched', () => {
+        const exceptions = new Set(['2026-09-24']);
+        const withExceptions = getActivityDatesForMonth(weekly, 2026, 8, exceptions).map(toDateKey);
+        const withoutExceptions = getActivityDatesForMonth(weekly, 2026, 8).map(toDateKey);
+        expect(withExceptions).toEqual(withoutExceptions.filter(d => d !== '2026-09-24'));
+    });
+
+    it('is a no-op when exceptionDates is omitted or empty', () => {
+        expect(getActivityDatesForMonth(weekly, 2026, 8)).toEqual(getActivityDatesForMonth(weekly, 2026, 8, undefined));
+        expect(getActivityDatesForMonth(weekly, 2026, 8, new Set())).toEqual(getActivityDatesForMonth(weekly, 2026, 8));
+    });
+
+    it('getNextOccurrence skips a cancelled next date and returns the following one', () => {
+        // September 2026 Thursdays: 3, 10, 17, 24; October's first Thursday is the 1st
+        const exceptions = new Set(['2026-09-24']);
+        const next = getNextOccurrence(weekly, new Date(2026, 8, 20), exceptions);
+        expect(next && toDateKey(next)).toBe('2026-10-01');
+    });
+});

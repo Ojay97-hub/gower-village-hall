@@ -146,7 +146,7 @@ function formatSession(eventType: string | null): string {
 }
 
 export function Events() {
-    const { events, regularActivities, loading, deleteEvent, deleteRegularActivity } = useEvents();
+    const { events, regularActivities, exceptionDatesByActivity, loading, deleteEvent, deleteRegularActivity } = useEvents();
     const { hasRole, isMasterAdmin } = useAuth();
     const canManageEvents = hasRole('events');
     const canViewPrivateBookings = isMasterAdmin || hasRole('events') || hasRole('bookings');
@@ -708,7 +708,7 @@ export function Events() {
                         const featuredActionText = featuredActivity.action_text;
                         const featuredActionLink = featuredActivity.action_link;
 
-                        const nextDate = getNextOccurrence(featuredActivity);
+                        const nextDate = getNextOccurrence(featuredActivity, new Date(), exceptionDatesByActivity.get(featuredActivity.id));
                         const cadenceText = describeRecurrence(featuredActivity) || featuredActivity.schedule;
                         const cadenceLabel = ({
                             weekly: 'Weekly event',

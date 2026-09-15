@@ -164,31 +164,42 @@ function hasStructuredRecurrence(activity: RecurringSchedulable): boolean {
 /**
  * All dates in the given month on which the activity occurs.
  * One-off `schedule_date` activities are included only if they fall in the month.
+ *
+ * `exceptionDates`, if given, is the set of this activity's own cancelled
+ * occurrence dates (as `toDateKey` strings) — matching dates are omitted.
  */
 export function getActivityDatesForMonth(
     activity: RecurringSchedulable,
     year: number,
     month: number,
+    exceptionDates?: Set<string> | null,
 ): Date[] {
+    let dates: Date[];
     if (hasStructuredRecurrence(activity)) {
-        return structuredDatesForMonth(activity, year, month);
-    }
-    if (activity.schedule_date) {
+        dates = structuredDatesForMonth(activity, year, month);
+    } else if (activity.schedule_date) {
         const date = parseISODateLocal(activity.schedule_date);
-        return date.getFullYear() === year && date.getMonth() === month ? [date] : [];
+        dates = date.getFullYear() === year && date.getMonth() === month ? [date] : [];
+    } else if (activity.schedule) {
+        dates = parseLegacySchedule(activity.schedule, year, month);
+    } else {
+        dates = [];
     }
-    if (activity.schedule) {
-        return parseLegacySchedule(activity.schedule, year, month);
-    }
-    return [];
+
+    if (!exceptionDates || exceptionDates.size === 0) return dates;
+    return dates.filter(date => !exceptionDates.has(toDateKey(date)));
 }
 
 /** The next occurrence on or after `from` (defaults to today), or null. Scans 24 months ahead. */
-export function getNextOccurrence(activity: RecurringSchedulable, from: Date = new Date()): Date | null {
+export function getNextOccurrence(
+    activity: RecurringSchedulable,
+    from: Date = new Date(),
+    exceptionDates?: Set<string> | null,
+): Date | null {
     const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
     for (let i = 0; i < 24; i++) {
         const probe = new Date(start.getFullYear(), start.getMonth() + i, 1);
-        const match = getActivityDatesForMonth(activity, probe.getFullYear(), probe.getMonth())
+        const match = getActivityDatesForMonth(activity, probe.getFullYear(), probe.getMonth(), exceptionDates)
             .sort((a, b) => a.getTime() - b.getTime())
             .find(date => date >= start);
         if (match) return match;

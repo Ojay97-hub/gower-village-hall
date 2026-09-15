@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useEvents } from '../../context/EventContext';
-import { getActivityDatesForMonth } from '../../lib/recurrence';
+import { getActivityDatesForMonth, toDateKey } from '../../lib/recurrence';
 
 interface Booking {
   id: string;
@@ -19,6 +20,8 @@ interface CalendarEventItem {
   type: 'event' | 'activity';
   startTime?: string | null;
   endTime?: string | null;
+  activityId?: string;
+  cancelled?: boolean;
 }
 
 interface BookingCalendarProps {
@@ -26,6 +29,7 @@ interface BookingCalendarProps {
   selectedEndDate?: string;
   onDateSelect?: (date: string, endDate: string) => void;
   onBookedSessionsChange?: (sessions: Set<string>) => void;
+  canManageEvents?: boolean;
 }
 
 // Session-based colour coding for confirmed bookings
@@ -43,6 +47,9 @@ const SCHEDULE_COLORS = {
   event:    { bg: '#eff6ff', text: '#1e40af', border: '#3b82f6', label: 'Event' },
   activity: { bg: '#fdf4e7', text: '#7c3a00', border: '#b45309', label: 'Activity' },
 };
+
+// Muted styling for a single cancelled occurrence of a recurring activity
+const CANCELLED_COLOR = { bg: '#f1f5f9', text: '#64748b', border: '#94a3b8', label: 'Cancelled' };
 
 function getSessionColor(eventType: string | null) {
   if (!eventType) return SESSION_COLORS.unknown;
@@ -91,13 +98,22 @@ function formatDateDisplay(dateStr: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, onBookedSessionsChange }: BookingCalendarProps) {
+export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, onBookedSessionsChange, canManageEvents }: BookingCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectingEnd, setSelectingEnd] = useState(false);
 
-  const { events, regularActivities } = useEvents();
+  const {
+    events, regularActivities, exceptionDatesByActivity,
+    cancelActivityOccurrence, restoreActivityOccurrence,
+  } = useEvents();
+
+  const [confirmTarget, setConfirmTarget] = useState<{
+    activityId: string; activityTitle: string; dateKey: string; wasCancelled: boolean;
+  } | null>(null);
+  const [confirmSubmitting, setConfirmSubmitting] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -168,17 +184,30 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
     });
 
     regularActivities.forEach(activity => {
+      const exceptions = exceptionDatesByActivity.get(activity.id);
       getActivityDatesForMonth(activity, year, month).forEach((date, idx) => {
-        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const dateKey = toDateKey(date);
         map.set(dateKey, [...(map.get(dateKey) || []), {
           id: `${activity.id}-${idx}`, title: activity.title, type: 'activity',
           startTime: activity.start_time, endTime: activity.end_time,
+          activityId: activity.id,
+          cancelled: exceptions?.has(dateKey) ?? false,
         }]);
       });
     });
 
     return map;
-  }, [events, regularActivities, year, month]);
+  }, [events, regularActivities, exceptionDatesByActivity, year, month]);
+
+  // Cancelled occurrences still render (as a muted pill) but must not block booking.
+  const blockingEventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEventItem[]>();
+    calendarEventsByDate.forEach((items, dateKey) => {
+      const active = items.filter(item => !item.cancelled);
+      if (active.length) map.set(dateKey, active);
+    });
+    return map;
+  }, [calendarEventsByDate]);
 
   // Returns which booking sessions a time range overlaps with
   function getSessionsForTime(startTime: string | null | undefined, endTime: string | null | undefined): string[] {
@@ -219,8 +248,8 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
         }
       });
 
-      // Block sessions covered by events/activities on this date
-      (calendarEventsByDate.get(dateKey) || []).forEach(item => {
+      // Block sessions covered by events/activities on this date (cancelled occurrences don't block)
+      (blockingEventsByDate.get(dateKey) || []).forEach(item => {
         if (!item.startTime) {
           // No time data stored — block all sessions to prevent double-booking
           ['morning', 'afternoon', 'evening', 'allday'].forEach(s => booked.add(s));
@@ -238,7 +267,7 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
     }
 
     onBookedSessionsChange(booked);
-  }, [selectedDate, selectedEndDate, bookingsByDate, calendarEventsByDate, onBookedSessionsChange]);
+  }, [selectedDate, selectedEndDate, bookingsByDate, blockingEventsByDate, onBookedSessionsChange]);
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
@@ -448,7 +477,9 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
 
                 {/* Scheduled events & activities */}
                 {eventItemsToShow.map((item) => {
-                  const color = SCHEDULE_COLORS[item.type];
+                  const color = item.cancelled ? CANCELLED_COLOR : SCHEDULE_COLORS[item.type];
+                  const clickable = !!canManageEvents && item.type === 'activity' && !!item.activityId;
+                  const label = item.cancelled ? `Cancelled: ${item.title}` : item.title;
                   return (
                     <div
                       key={`${item.type}-${item.id}`}
@@ -457,10 +488,28 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
                         backgroundColor: color.bg,
                         color: color.text,
                         borderLeft: `3px solid ${color.border}`,
+                        textDecoration: item.cancelled ? 'line-through' : undefined,
+                        cursor: clickable ? 'pointer' : undefined,
                       }}
-                      title={`${color.label}: ${item.title}`}
+                      title={
+                        item.cancelled
+                          ? `Cancelled: ${item.title} (click to restore)`
+                          : clickable
+                            ? `${color.label}: ${item.title} (click to cancel this date)`
+                            : `${color.label}: ${item.title}`
+                      }
+                      onClick={clickable ? (e) => {
+                        e.stopPropagation();
+                        setConfirmError(null);
+                        setConfirmTarget({
+                          activityId: item.activityId!,
+                          activityTitle: item.title,
+                          dateKey,
+                          wasCancelled: !!item.cancelled,
+                        });
+                      } : undefined}
                     >
-                      <span className="booking-cal-event-name">{item.title}</span>
+                      <span className="booking-cal-event-name">{label}</span>
                     </div>
                   );
                 })}
@@ -499,9 +548,74 @@ export function BookingCalendar({ selectedDate, selectedEndDate, onDateSelect, o
                 {c.label}
               </span>
             ))}
+          <span
+            className="booking-cal-legend-chip"
+            style={{ background: CANCELLED_COLOR.bg, color: CANCELLED_COLOR.text, borderColor: CANCELLED_COLOR.border, textDecoration: 'line-through' }}
+          >
+            {CANCELLED_COLOR.label}
+          </span>
         </div>
         <span className="booking-cal-legend-text">Confirmed bookings · scheduled events &amp; activities</span>
       </div>
+
+      {/* Cancel / restore confirmation modal (admins only) */}
+      {confirmTarget && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60"
+            style={{ backdropFilter: 'blur(4px)' }}
+            onClick={() => !confirmSubmitting && setConfirmTarget(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <h4 className="mb-2 text-lg font-semibold text-gray-900">
+              {confirmTarget.wasCancelled ? 'Restore this occurrence?' : 'Cancel this occurrence?'}
+            </h4>
+            <p className="mb-4 text-sm text-gray-600">
+              {confirmTarget.wasCancelled
+                ? `"${confirmTarget.activityTitle}" will run as normal again on ${formatDateDisplay(confirmTarget.dateKey)}.`
+                : `"${confirmTarget.activityTitle}" will be cancelled on ${formatDateDisplay(confirmTarget.dateKey)} only — every other date in the series is unaffected, and this date becomes free to book as a private hire.`}
+            </p>
+            {confirmError && <p className="mb-4 text-sm text-red-600">{confirmError}</p>}
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={confirmSubmitting}
+                onClick={() => setConfirmTarget(null)}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                disabled={confirmSubmitting}
+                onClick={async () => {
+                  setConfirmSubmitting(true);
+                  setConfirmError(null);
+                  try {
+                    if (confirmTarget.wasCancelled) {
+                      await restoreActivityOccurrence(confirmTarget.activityId, confirmTarget.dateKey);
+                    } else {
+                      await cancelActivityOccurrence(confirmTarget.activityId, confirmTarget.dateKey);
+                    }
+                    setConfirmTarget(null);
+                  } catch {
+                    setConfirmError('Something went wrong. Please try again.');
+                  } finally {
+                    setConfirmSubmitting(false);
+                  }
+                }}
+                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white ${
+                  confirmTarget.wasCancelled ? 'bg-primary-600 hover:bg-primary-700' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {confirmSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {confirmTarget.wasCancelled ? 'Restore' : 'Cancel this date'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
