@@ -1,4 +1,5 @@
-import { Mail, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Copy, Mail, Sparkles } from 'lucide-react';
 
 const ENQUIRY_EMAIL = 'info@penmaenandnicholastonvh.co.uk';
 
@@ -20,6 +21,18 @@ const mailtoHref = `mailto:${ENQUIRY_EMAIL}?subject=${encodeURIComponent(SUBJECT
 
 /** Banner inviting visitors to propose their own regular activity at the hall. */
 export function ActivityEnquiryCTA() {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyEmail = async () => {
+        try {
+            await navigator.clipboard.writeText(ENQUIRY_EMAIL);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            // Silently fail — clipboard API unavailable
+        }
+    };
+
     return (
         <div className="mt-8 overflow-hidden rounded-2xl border border-primary-100 bg-gradient-to-r from-primary-50 to-white shadow-sm">
             <div className="flex flex-col gap-5 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
@@ -38,13 +51,30 @@ export function ActivityEnquiryCTA() {
                         </p>
                     </div>
                 </div>
-                <a
-                    href={mailtoHref}
-                    className="inline-flex w-fit shrink-0 items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
-                >
-                    <Mail className="h-4 w-4" />
-                    Email us your idea
-                </a>
+                <div className="flex w-fit shrink-0 flex-col items-start gap-2 md:items-end">
+                    <a
+                        href={mailtoHref}
+                        className="inline-flex w-fit shrink-0 items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
+                    >
+                        <Mail className="h-4 w-4" />
+                        Email us your idea
+                    </a>
+                    <button
+                        type="button"
+                        onClick={handleCopyEmail}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 cursor-pointer"
+                    >
+                        {copied ? (
+                            <>
+                                <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="h-3.5 w-3.5" /> No mail app? Copy {ENQUIRY_EMAIL}
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
         </div>
     );
