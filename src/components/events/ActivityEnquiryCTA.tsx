@@ -1,79 +1,75 @@
-import { useState } from 'react';
-import { Check, Copy, Mail, Sparkles } from 'lucide-react';
+import { Mail, Sparkles } from 'lucide-react';
 
 const ENQUIRY_EMAIL = 'info@penmaenandnicholastonvh.co.uk';
 
-const SUBJECT = 'Regular activity enquiry';
+const [EMAIL_LOCAL, EMAIL_DOMAIN] = ENQUIRY_EMAIL.split('@');
 
-const BODY = `Hi,
-
-I'd like to run a regular activity at the village hall.
-
-Activity:
-How often (weekly / fortnightly / monthly):
-Preferred day and time:
-A little about the activity:
-
-Thanks,
-`;
-
-const mailtoHref = `mailto:${ENQUIRY_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY)}`;
+const EXAMPLES = ['Yoga', 'Crafts', 'Book club', 'Choir', 'Fitness', 'Toddler group'];
 
 /** Banner inviting visitors to propose their own regular activity at the hall. */
 export function ActivityEnquiryCTA() {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopyEmail = async () => {
-        try {
-            await navigator.clipboard.writeText(ENQUIRY_EMAIL);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-        } catch {
-            // Silently fail — clipboard API unavailable
-        }
-    };
-
     return (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-primary-100 bg-gradient-to-r from-primary-50 to-white shadow-sm">
-            <div className="flex flex-col gap-5 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-primary-600 shadow-sm ring-1 ring-primary-100">
-                        <Sparkles className="h-5 w-5" />
+        <div className="relative mt-10 overflow-hidden rounded-3xl bg-white p-6 shadow-[0_1px_2px_rgba(62,69,55,0.06),0_16px_40px_-20px_rgba(62,69,55,0.35)] ring-1 ring-primary-100 sm:p-8">
+            {/* Soft brand bloom for depth — the page background is primary-50, so the card stays white to lift off it */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-20 -top-32 h-72 w-72 rounded-full bg-primary-200/55 blur-3xl"
+            />
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -bottom-36 left-1/3 h-64 w-64 rounded-full bg-primary-200/35 blur-3xl"
+            />
+
+            <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:gap-10">
+                {/* Pitch */}
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm">
+                            <Sparkles className="h-4.5 w-4.5" />
+                        </span>
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-700">
+                            New activities welcome
+                        </span>
                     </div>
-                    <div>
-                        <h3 className="font-serif text-lg font-semibold text-gray-800">
-                            Want to run your own activity at the hall?
-                        </h3>
-                        <p className="mt-1 max-w-xl text-sm leading-6 text-gray-600">
-                            Yoga, crafts, a book club, a choir — we'd love to hear your idea. Tell us what
-                            you'd like to run and how often (weekly, fortnightly or monthly), and we'll help
-                            you find a regular slot.
-                        </p>
+
+                    <h3 className="mt-4 font-serif text-2xl font-semibold leading-snug text-gray-900 sm:text-3xl">
+                        Bring your own activity to the hall
+                    </h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+                        If you'd like to run something regular — weekly, fortnightly or monthly — we'll help
+                        you find a slot and get it on the hall calendar.
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                            For example
+                        </span>
+                        {EXAMPLES.map((example) => (
+                            <span
+                                key={example}
+                                className="rounded-full border border-primary-100 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-800"
+                            >
+                                {example}
+                            </span>
+                        ))}
                     </div>
                 </div>
-                <div className="flex w-fit shrink-0 flex-col items-start gap-2 md:items-end">
-                    <a
-                        href={mailtoHref}
-                        className="inline-flex w-fit shrink-0 items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
-                    >
+
+                {/* Contact */}
+                <div className="w-full shrink-0 rounded-2xl bg-primary-50 p-4 ring-1 ring-primary-100 sm:max-w-md sm:p-5 lg:w-[22rem] lg:max-w-none">
+                    <div className="flex items-center gap-2 text-primary-700">
                         <Mail className="h-4 w-4" />
-                        Email us your idea
-                    </a>
-                    <button
-                        type="button"
-                        onClick={handleCopyEmail}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 cursor-pointer"
-                    >
-                        {copied ? (
-                            <>
-                                <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="h-3.5 w-3.5" /> No mail app? Copy {ENQUIRY_EMAIL}
-                            </>
-                        )}
-                    </button>
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
+                            Email us
+                        </span>
+                    </div>
+                    <p className="mt-2 break-words font-serif text-sm font-semibold text-gray-900 sm:text-base">
+                        {EMAIL_LOCAL}@<wbr />
+                        {EMAIL_DOMAIN}
+                    </p>
+                    <p className="mt-3 text-xs leading-5 text-gray-600">
+                        Tell us what you'd like to run, how often, and the day and time that would suit you.
+                    </p>
                 </div>
             </div>
         </div>
