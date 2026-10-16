@@ -101,7 +101,8 @@ export function Footer() {
           <p>
             &copy; 2026 <a href="https://www.novaformadesigns.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">Nova Forma Designs</a>. All rights reserved.
           </p>
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            <Link to="/policies" className="hover:text-white transition-colors">Policies</Link>
             <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms-conditions" className="hover:text-white transition-colors">Terms &amp; Conditions</Link>
             <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link>

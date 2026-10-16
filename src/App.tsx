@@ -40,6 +40,7 @@ const ChurchPage = lazy(() => import('./pages/ChurchPage').then(m => ({ default:
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 const TermsConditions = lazy(() => import('./pages/TermsConditions').then(m => ({ default: m.TermsConditions })));
 const CookiesPolicy = lazy(() => import('./pages/CookiesPolicy').then(m => ({ default: m.CookiesPolicy })));
+const Policies = lazy(() => import('./pages/Policies').then(m => ({ default: m.Policies })));
 
 /** Reverse guard: redirects to /hall/events if already logged in */
 
@@ -76,6 +77,7 @@ export default function App() {
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-conditions" element={<TermsConditions />} />
                     <Route path="/cookies" element={<CookiesPolicy />} />
+                    <Route path="/policies" element={<Policies />} />
 
                     {/* Admin login */}
                     <Route path="/admin/login" element={<AdminLogin />} />
