@@ -8,7 +8,9 @@ type Policy = {
   id: string;
   title: string;
   summary: string;
+  details?: { label: string; value: string }[];
   sections: PolicySection[];
+  signedLabel?: string;
   signedBy?: string;
   signedOn?: string;
   reviewDate: string;
@@ -17,6 +19,61 @@ type Policy = {
 // To add a new policy, append an entry here — it will appear in the
 // contents list and as its own section on the page automatically.
 const policies: Policy[] = [
+  {
+    id: 'fire-safety',
+    title: 'Fire Safety Policy',
+    summary: 'Fire precautions, equipment and evacuation procedures for the Hall.',
+    details: [
+      { label: 'Policy owner', value: 'Chair of Trustees' },
+      { label: 'Address', value: 'Penmaen and Nicholaston Village Hall, Tor View, Penmaen SA3 2HH' },
+      { label: 'Use of premises', value: 'Community events, e.g. social gatherings and hobby clubs, and ad hoc rental for meetings, parties and groups, e.g. choirs, yoga etc.' },
+      { label: 'Number of rooms', value: '7 on one floor, comprising entrance lobby, 3 toilets, main hall, kitchen and storage annex.' },
+      { label: 'Occupancy', value: 'Up to 80 persons seated at dining tables, up to 100 persons seated theatre style, up to 120 persons standing/mixed use. No persons resident or sleeping overnight except in cases of civil emergency, where fire watch wardens must be on duty.' },
+    ],
+    sections: [
+      {
+        heading: 'Policy Statement',
+        paragraphs: [
+          'The purpose of this policy is to ensure the safety of all people in the vicinity of the Village Hall in the case of fire.',
+          'The Village Hall management is committed to taking all reasonably practicable steps to prevent and minimise the risk of fire and has undertaken a fire safety risk assessment to identify hazards and ensure appropriate controls are in place in line with the Regulatory Reform (Fire Safety) Order 2005.',
+          'Whilst fire can never be prevented completely, the Village Hall management has put in place suitable systems to alert people, raise the alarm and escape safely.',
+          'These systems will be regularly monitored and reviewed through fire drills. Members of the committee will be given instruction, and written fire evacuation procedures will be electronically provided to the responsible person for each rental.',
+        ],
+      },
+      {
+        heading: 'Section 1: Fire Safety Hazards',
+        paragraphs: ['Please see fire safety risk assessment attached.'],
+      },
+      {
+        heading: 'Section 2: Fire Safety Precautions',
+        paragraphs: [
+          "Fire safety responsibility lies with 'The Responsible Person', i.e. the hirer, or the person in charge of the event, who must be on the premises and familiar with this policy and the implementation of the fire evacuation procedure.",
+          'Smoking, naked flames or other devices, e.g. gas or oil lamps, are strictly prohibited within the confines of the building, as are any portable electrical devices not owned by the hall or currently PAT tested.',
+          'There is an approved heat sensor alarm in the kitchen, and a manually operated alarm bell in the main hall adjacent to the kitchen door. In the event of fire, the alarm bell should be sounded and all occupants directed to leave the hall via the nearest safely accessible fire exit (see attached fire escape plan).',
+        ],
+      },
+      {
+        heading: 'Section 3: Emergency Procedures',
+        paragraphs: [
+          'In the event of fire, the alarm will be raised, and all persons evacuated to the fire muster point as per the attached fire evacuation procedure.',
+          'The hall is equipped with emergency lighting. This and the alarm bell will be tested on the first Saturday of each month and recorded.',
+          'There are two fire exits. One is situated at the rear of the main hall with outward opening double doors. Doors must be unlocked for the duration of any use. The second fire exit is a crash door located in the storage room adjacent to the kitchen.',
+          "The location of both doors is indicated by luminous 'fire exit' signage.",
+          'The fire assembly point is located in the car park field at the eastern end of the hall boundary and is indicated by a luminous sign.',
+          "It is the duty of the 'Responsible Person' to ensure that fire exits are clear of obstructions and that rules relating to smoking and other fire hazards are obeyed at all times.",
+          'There are water and foam extinguishers situated throughout the building as marked on the attached plan, and a fire blanket located in the kitchen.',
+          'These should ONLY be operated by people trained in their use on small contained fires. The alarm MUST be raised and evacuation put in progress BEFORE considering use of extinguishers or fire blankets, and this MUST NOT be carried out at risk to the safety of the operator. Inappropriate use of extinguishers on fires, e.g. water on oil fires, can lead to greater danger.',
+          'Fire extinguishers will be checked for security on the first Saturday of each month and tested annually by a registered fire equipment technician.',
+          "It is the duty of the 'Responsible Person' to ensure the evacuation is carried out in accordance with the attached fire evacuation procedure and to check, as far as is safely possible, that all persons have left the building and are accounted for. It is important to ensure that ALL evacuated persons remain at the muster point until the arrival of emergency services.",
+          'The Chair and the Secretary of Penmaen and Nicholaston Village Hall have joint responsibility for ensuring that testing, checks and certification of the above equipment is routinely carried out and that all hirers have a copy of the fire evacuation documents with this policy.',
+        ],
+      },
+    ],
+    signedLabel: 'Prepared by',
+    signedBy: 'D Ponting (Chair)',
+    signedOn: 'June 2026',
+    reviewDate: 'Annually',
+  },
   {
     id: 'safeguarding',
     title: 'Safeguarding Policy',
@@ -151,6 +208,17 @@ export function Policies() {
             <article key={policy.id} id={policy.id} className="scroll-mt-24 space-y-6 pt-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">{policy.title}</h2>
 
+              {policy.details && (
+                <dl className="border border-gray-200 rounded-lg divide-y divide-gray-200 text-sm">
+                  {policy.details.map((detail) => (
+                    <div key={detail.label} className="grid sm:grid-cols-[10rem_1fr]">
+                      <dt className="bg-gray-50 py-3 px-4 font-semibold text-gray-900">{detail.label}</dt>
+                      <dd className="py-3 px-4 text-gray-700">{detail.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+
               {policy.sections.map((section, i) => (
                 <div key={section.heading ?? i} className="space-y-4">
                   {section.heading && (
@@ -170,7 +238,7 @@ export function Policies() {
               ))}
 
               <div className="bg-gray-50 p-6 rounded-lg space-y-1 text-sm text-gray-700">
-                {policy.signedBy && <p><strong>Signed:</strong> {policy.signedBy}</p>}
+                {policy.signedBy && <p><strong>{policy.signedLabel ?? 'Signed'}:</strong> {policy.signedBy}</p>}
                 {policy.signedOn && <p><strong>Date:</strong> {policy.signedOn}</p>}
                 <p><strong>Next review:</strong> {policy.reviewDate}</p>
               </div>
